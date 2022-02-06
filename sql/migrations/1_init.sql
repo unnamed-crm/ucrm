@@ -4,6 +4,7 @@ create table users (
     id uuid not null default uuid_generate_v4() constraint users_pk primary key,
     created_at timestamp not null default current_timestamp,
     email text not null,
+    avatar_url text,
     password text not null CONSTRAINT password_check CHECK (char_length(password) >= 5)
 );
 

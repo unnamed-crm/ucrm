@@ -14,18 +14,23 @@ type UserController struct {
 	a *auth.Authorizer
 }
 
-func (c *UserController) SignUp (w http.ResponseWriter, r *http.Request) {
+func NewUserController(a *auth.Authorizer) *UserController {
+	return &UserController{
+		a: a,
+	}
+}
+
+func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	var payload SignUpPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
-		httpext.JSON(w,httpext.CommonError{
+		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
-			Code: http.StatusBadRequest,
-		},http.StatusBadRequest)
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
 	}
 
-	
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.a.GetHashSalt()))

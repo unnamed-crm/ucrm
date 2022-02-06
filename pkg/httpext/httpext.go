@@ -10,4 +10,3 @@ func JSON(w http.ResponseWriter, body interface{}, code int) {
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(body)
 }
-

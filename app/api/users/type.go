@@ -1,6 +1,6 @@
-package	users
+package users
 
 type SignUpPayload struct {
 	Password string `json:"password"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 }

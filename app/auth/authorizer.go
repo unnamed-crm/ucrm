@@ -21,7 +21,7 @@ func NewAuthorizer(hashSalt string, signingKey []byte, expireDuration time.Durat
 	}
 }
 
-func (a *Authorizer) CreateToken(ctx context.Context,id string)(string, error) {
+func (a *Authorizer) CreateToken(ctx context.Context, id string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		StandardClaims: jwt.StandardClaims{
