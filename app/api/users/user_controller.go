@@ -41,6 +41,14 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(payload.Password) < 5 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "password too short",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
