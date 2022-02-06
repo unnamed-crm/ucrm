@@ -21,7 +21,7 @@ func NewAPIServer(listenOn string, config config.Config, conn *sql.DB) *Server {
 	router := chi.NewRouter()
 
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
-	userController := users.NewUserController(authorizer)
+	userController := users.NewUserController(authorizer, conn)
 	users.RegisterUserRouter(router, *userController)
 
 	return &Server{

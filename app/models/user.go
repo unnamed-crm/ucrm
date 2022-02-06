@@ -7,5 +7,5 @@ type User struct {
 	Password  string    `json:"password"`
 	Email     string    `json:"email"`
 	AvatarUrl string    `json:"avatar_url"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
