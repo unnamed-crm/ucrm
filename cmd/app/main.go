@@ -28,9 +28,7 @@ func main() {
 
 	web := api.NewAPIServer(":8080", *config, singleConn.Get())
 
-	if err := web.Start(); err != nil {
-		log.Fatal(err)
-	}
+	web.Start();
 
 	appCloser := make(chan os.Signal)
 	signal.Notify(appCloser, os.Interrupt, syscall.SIGTERM)
