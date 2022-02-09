@@ -15,13 +15,13 @@ import (
 )
 
 type UserController struct {
-	auth *auth.Authorizer
+	auth       *auth.Authorizer
 	repository repo.Repository
 }
 
-func NewUserController(a *auth.Authorizer,repository repo.Repository) *UserController {
+func NewUserController(a *auth.Authorizer, repository repo.Repository) *UserController {
 	return &UserController{
-		auth: a,
+		auth:       a,
 		repository: repository,
 	}
 }
@@ -49,7 +49,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
-	user,err := c.repository.AddUser(payload.Email,fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.repository.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		if err != nil {
 			log.Print(err)
