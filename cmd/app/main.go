@@ -8,13 +8,14 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi"
+	chim "github.com/go-chi/chi/middleware"
 	"github.com/ignavan39/tm-go/app/api"
+	"github.com/ignavan39/tm-go/app/api/dashboards"
 	"github.com/ignavan39/tm-go/app/api/users"
 	"github.com/ignavan39/tm-go/app/auth"
 	"github.com/ignavan39/tm-go/app/config"
-	"github.com/ignavan39/tm-go/app/repo"
+	"github.com/ignavan39/tm-go/app/database"
 	"github.com/ignavan39/tm-go/pkg/pg"
-	chim "github.com/go-chi/chi/middleware"
 )
 
 func main() {
@@ -33,9 +34,10 @@ func main() {
 
 	web := api.NewAPIServer(":8080", *config)
 
-	repository := repo.NewRepository(singleConn.Get())
+	dbService := database.NewDbService(singleConn.Get())
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
-	userController := users.NewUserController(authorizer, *repository)
+	userController := users.NewUserController(authorizer, *dbService)
+	dashboardController := dashboards.NewDashboardController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		v1.Use(
@@ -43,6 +45,7 @@ func main() {
 			chim.Recoverer,
 		)
 		users.RegisterUserRouter(v1, userController)
+		dashboards.RegisterDashboardRouter(v1,dashboardController)
 	})
 	web.Start()
 

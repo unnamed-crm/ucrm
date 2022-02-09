@@ -1,4 +1,4 @@
-package repo
+package database
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-func (r *Repository) AddUser(email string, password string) (*models.User, error) {
+func (r *DbService) AddUser(email string, password string) (*models.User, error) {
 	user := &models.User{}
 	row := sq.Insert("users").Columns("password", "email").
 		Values(password, email).
@@ -21,7 +21,7 @@ func (r *Repository) AddUser(email string, password string) (*models.User, error
 	return user, nil
 }
 
-func (r *Repository) GetOneUserByEmail(email string, password string) (*models.User, error) {
+func (r *DbService) GetOneUserByEmail(email string, password string) (*models.User, error) {
 	user := &models.User{}
 	row := sq.Select("id,email,password,coalesce(avatar_url,'') as avatar_url,created_at").
 		From("users").
