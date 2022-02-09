@@ -27,7 +27,7 @@ func NewUserController(a *auth.Authorizer, repository repo.Repository) *UserCont
 }
 
 func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
-	var payload SignUpPayload
+	var payload SignPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
@@ -51,13 +51,11 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd.Write([]byte(c.auth.GetHashSalt()))
 	user, err := c.repository.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
-		if err != nil {
-			log.Print(err)
-			httpext.JSON(w, httpext.CommonError{
-				Error: "user already exists",
-				Code:  http.StatusBadRequest,
-			}, http.StatusBadRequest)
-		}
+		log.Print(err)
+		httpext.JSON(w, httpext.CommonError{
+			Error: "user already exists",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
 		return
 	}
 
@@ -72,8 +70,57 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = r.WithContext(ctx)
 
-	httpext.JSON(w, SignUpResponse{
+	httpext.JSON(w, SignResponse{
 		User:  *user,
 		Token: accessToken,
 	}, http.StatusCreated)
+}
+
+func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
+	var payload SignPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	pwd := sha1.New()
+	pwd.Write([]byte(payload.Password))
+	pwd.Write([]byte(c.auth.GetHashSalt()))
+
+	user, err := c.repository.GetOneUserByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	if user == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "user not found",
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
+		return
+	}
+	ctx := context.WithValue(r.Context(), ContextUserKey, user.Id)
+	accessToken, err := c.auth.CreateToken(ctx, user.Id)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed created access token",
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	_ = r.WithContext(ctx)
+
+	httpext.JSON(w, SignResponse{
+		User:  *user,
+		Token: accessToken,
+	}, http.StatusCreated)
+
 }

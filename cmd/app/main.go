@@ -14,6 +14,7 @@ import (
 	"github.com/ignavan39/tm-go/app/config"
 	"github.com/ignavan39/tm-go/app/repo"
 	"github.com/ignavan39/tm-go/pkg/pg"
+	chim "github.com/go-chi/chi/middleware"
 )
 
 func main() {
@@ -37,6 +38,10 @@ func main() {
 	userController := users.NewUserController(authorizer, *repository)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
+		v1.Use(
+			chim.Logger,
+			chim.Recoverer,
+		)
 		users.RegisterUserRouter(v1, userController)
 	})
 	web.Start()

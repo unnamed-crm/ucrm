@@ -42,11 +42,11 @@ func (a *Server) Start() {
 		httpServerError <- a.server.ListenAndServe()
 	}()
 
-	if <-httpServerError != nil {
+	select {
+	case <-httpServerError:
 		log.Fatal("The Logging API service could not be started.", <-httpServerError)
-	} else {
+	default:
 		log.Println("Server has been started...")
 	}
-
 	wg.Wait()
 }

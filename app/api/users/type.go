@@ -2,14 +2,15 @@ package users
 
 import "github.com/ignavan39/tm-go/app/models"
 
-type SignUpPayload struct {
+type SignPayload struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
 }
 
-type SignUpResponse struct {
+type SignResponse struct {
 	User  models.User `json:"user"`
 	Token string      `json:"token"`
 }
+
 
 const ContextUserKey string = "user"
