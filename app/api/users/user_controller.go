@@ -59,7 +59,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), ContextUserKey, user.Id)
+	ctx := context.WithValue(r.Context(), auth.ContextUserKey, user.Id)
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -107,7 +107,7 @@ func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusNotFound)
 		return
 	}
-	ctx := context.WithValue(r.Context(), ContextUserKey, user.Id)
+	ctx := context.WithValue(r.Context(), auth.ContextUserKey, user.Id)
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{

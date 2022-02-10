@@ -12,4 +12,3 @@ type SignResponse struct {
 	Token string      `json:"token"`
 }
 
-const ContextUserKey string = "user"

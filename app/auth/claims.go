@@ -8,3 +8,5 @@ type Claims struct {
 	jwt.StandardClaims
 	Id string `json:"id"`
 }
+
+const ContextUserKey string = "user"
