@@ -55,3 +55,16 @@ services:
         limits:
           cpus: '1'
           memory: 4G
+  app: 
+    depends_on:
+     - postgres
+    links:
+     - postgres
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    image: app:docker
+    ports:
+      - 8080:8080

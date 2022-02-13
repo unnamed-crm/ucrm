@@ -16,8 +16,19 @@ create table dashboards (
     id uuid not null default uuid_generate_v4() constraint dashboards_pk primary key,
     updated_at timestamp not null default current_timestamp,
     name text not null,
-    user_id uuid not null constraint user_id_fk references users(id) on update cascade on delete cascade
+    author_id uuid not null constraint user_id_fk references users(id) on update cascade on delete cascade
 );
+
+create type dashboard_user_access as enum ('r', 'w', 'rw');
+
+create table dashboards_user(
+    id uuid not null default uuid_generate_v4() constraint dashboards_user_pk primary key,
+    user_id uuid not null constraint user_id_fk references users(id) on update cascade on delete cascade,
+    dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
+    access dashboard_user_access not null default 'r'
+);
+
+create unique index dashboards_user_id_idx on dashboards_user(id);
 
 create unique index dashboards_id_idx on dashboards(id);
 

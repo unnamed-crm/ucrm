@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/ignavan39/tm-go/pkg/pg"
-	"github.com/joho/godotenv"
 )
 
 type JWTConfig struct {
@@ -21,10 +20,6 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return nil, err
-	}
 
 	port, err := strconv.ParseInt(os.Getenv("DATABASE_PORT"), 10, 16)
 	if err != nil {
