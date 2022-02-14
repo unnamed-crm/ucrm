@@ -6,6 +6,11 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ master ]
+  workflow_run:
+    workflows: ["Build and Lint"]
+    branches: [master]
+    types: 
+      - completed
 
 env:
   REGISTRY: ghcr.io

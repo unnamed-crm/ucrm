@@ -1,4 +1,5 @@
 name: Build and Lint
+
 on:
   push:
     branches:
@@ -6,28 +7,9 @@ on:
   pull_request:
 
 jobs:
-  # lint:
-  #   name: Lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v1
-  #       with:
-  #         go-version: 1.17
-
-  #     - name: Check out code
-  #       uses: actions/checkout@v1
-
-  #     - name: Lint Go Code
-  #       run: |
-  #         export PATH=$PATH:$(go env GOPATH)/bin # temporary fix. See https://github.com/actions/setup-go/issues/14
-  #         go get -u golang.org/x/lint/golint
-  #         make lint
-
-  build:
-    name: Build
+  go-build:
+    name: Go app build
     runs-on: ubuntu-latest
-    # needs: [lint]
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
