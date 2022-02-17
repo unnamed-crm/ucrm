@@ -17,6 +17,7 @@ type CreateDashboardResponse struct {
 type AddUserToDashboardPayload struct {
 	DashboardId string `json:"dashboard_id"`
 	Access      string `json:"access"`
+	UserId      string `json:"user_id"`
 }
 
 func (p *AddUserToDashboardPayload) Validate() error {

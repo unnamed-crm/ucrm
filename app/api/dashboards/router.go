@@ -10,6 +10,7 @@ func RegisterDashboardRouter(r chi.Router, controller *DashboardController) {
 		r.Use(auth.AuthGuard)
 		r.Route("/dashboards", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
+			r.Post("/addUser", controller.AddUserToDashboard)
 		})
 	})
 }

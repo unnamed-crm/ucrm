@@ -63,7 +63,36 @@ func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.
 		return
 	}
 	userId := ctx.Value(auth.ContextUserKey).(string)
-	id, err := c.dbService.AddUserToDashboard(payload.DashboardId, userId, payload.Access)
+	dashboard, err := c.dbService.GetOneDashboard(payload.DashboardId)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	if dashboard == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "dashboard not found",
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
+		return
+	}
+	if dashboard.AuthorId != userId {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "not enough permissions",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	if dashboard.AuthorId == payload.UserId {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "user author this dashboard",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	id, err := c.dbService.AddUserToDashboard(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
