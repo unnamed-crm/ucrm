@@ -36,8 +36,8 @@ func main() {
 
 	dbService := database.NewDbService(singleConn.Get())
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
-	userController := users.NewUserController(authorizer, *dbService)
-	dashboardController := dashboards.NewDashboardController(dbService)
+	userController := users.NewController(authorizer, *dbService)
+	dashboardController := dashboards.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		v1.Use(
@@ -45,7 +45,7 @@ func main() {
 			chim.Recoverer,
 		)
 		users.RegisterUserRouter(v1, userController)
-		dashboards.RegisterDashboardRouter(v1,dashboardController)
+		dashboards.RegisterDashboardRouter(v1, dashboardController)
 	})
 	web.Start()
 

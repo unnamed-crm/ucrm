@@ -11,4 +11,3 @@ type SignResponse struct {
 	User  models.User `json:"user"`
 	Token string      `json:"token"`
 }
-

@@ -19,7 +19,7 @@ type UserController struct {
 	dbService database.DbService
 }
 
-func NewUserController(a *auth.Authorizer, dbService database.DbService) *UserController {
+func NewController(a *auth.Authorizer, dbService database.DbService) *UserController {
 	return &UserController{
 		auth:      a,
 		dbService: dbService,

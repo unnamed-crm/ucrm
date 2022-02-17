@@ -23,12 +23,12 @@ func AuthGuard(next http.Handler) http.Handler {
 			token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
 				return []byte(config.JWT.SingingKey), nil
 			})
-			if err != nil || !token.Valid{
+			if err != nil || !token.Valid {
 				log.Println(err)
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Unauthorized"))
 			}
-			
+
 			ctx := context.WithValue(r.Context(), ContextUserKey, customClaims.Id)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
