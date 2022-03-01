@@ -10,19 +10,19 @@ import (
 	"net/http"
 
 	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/database"
+	"github.com/ignavan39/tm-go/app/usecase"
 	"github.com/ignavan39/tm-go/pkg/httpext"
 )
 
 type UserController struct {
-	auth      *auth.Authorizer
-	dbService database.DbService
+	auth    *auth.Authorizer
+	useCase usecase.UserUseCase
 }
 
-func NewController(a *auth.Authorizer, dbService database.DbService) *UserController {
+func NewController(a *auth.Authorizer, useCase usecase.UserUseCase) *UserController {
 	return &UserController{
-		auth:      a,
-		dbService: dbService,
+		auth:    a,
+		useCase: useCase,
 	}
 }
 
@@ -49,7 +49,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
-	user, err := c.dbService.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.useCase.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		log.Print(err)
 		httpext.JSON(w, httpext.CommonError{
@@ -92,7 +92,7 @@ func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
 
-	user, err := c.dbService.GetOneUserByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.useCase.GetOneUserByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

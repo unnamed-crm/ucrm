@@ -5,16 +5,16 @@ import (
 	"net/http"
 
 	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/database"
+	"github.com/ignavan39/tm-go/app/usecase"
 	"github.com/ignavan39/tm-go/pkg/httpext"
 )
 
 type DashboardController struct {
-	dbService *database.DbService
+	useCase usecase.DashboardUseCase
 }
 
-func NewController(dbService *database.DbService) *DashboardController {
-	return &DashboardController{dbService: dbService}
+func NewController(useCase usecase.DashboardUseCase) *DashboardController {
+	return &DashboardController{useCase: useCase}
 }
 
 func (c *DashboardController) CreateOne(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (c *DashboardController) CreateOne(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	userId := ctx.Value(auth.ContextUserKey).(string)
-	dashboard, err := c.dbService.AddDashboard(payload.Name, userId)
+	dashboard, err := c.useCase.AddDashboard(payload.Name, userId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -63,7 +63,7 @@ func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.
 		return
 	}
 	userId := ctx.Value(auth.ContextUserKey).(string)
-	dashboard, err := c.dbService.GetOneDashboard(payload.DashboardId)
+	dashboard, err := c.useCase.GetOneDashboard(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -92,7 +92,7 @@ func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.
 		}, http.StatusBadRequest)
 		return
 	}
-	id, err := c.dbService.AddUserToDashboard(payload.DashboardId, payload.UserId, payload.Access)
+	id, err := c.useCase.AddUserToDashboard(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

@@ -14,7 +14,7 @@ import (
 	"github.com/ignavan39/tm-go/app/api/users"
 	"github.com/ignavan39/tm-go/app/auth"
 	"github.com/ignavan39/tm-go/app/config"
-	"github.com/ignavan39/tm-go/app/database"
+	"github.com/ignavan39/tm-go/app/usecase/database"
 	"github.com/ignavan39/tm-go/pkg/pg"
 )
 
@@ -36,7 +36,7 @@ func main() {
 
 	dbService := database.NewDbService(singleConn.Get())
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
-	userController := users.NewController(authorizer, *dbService)
+	userController := users.NewController(authorizer, dbService)
 	dashboardController := dashboards.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
