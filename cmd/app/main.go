@@ -14,7 +14,7 @@ import (
 	"github.com/ignavan39/tm-go/app/api/users"
 	"github.com/ignavan39/tm-go/app/auth"
 	"github.com/ignavan39/tm-go/app/config"
-	"github.com/ignavan39/tm-go/app/usecase/database"
+	"github.com/ignavan39/tm-go/app/repository/database"
 	"github.com/ignavan39/tm-go/pkg/pg"
 )
 

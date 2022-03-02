@@ -1,7 +1,6 @@
 package users
 
 import (
-	"context"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -10,19 +9,19 @@ import (
 	"net/http"
 
 	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/usecase"
+	"github.com/ignavan39/tm-go/app/repository"
 	"github.com/ignavan39/tm-go/pkg/httpext"
 )
 
 type UserController struct {
 	auth    *auth.Authorizer
-	useCase usecase.UserUseCase
+	repo repository.UserRepository
 }
 
-func NewController(a *auth.Authorizer, useCase usecase.UserUseCase) *UserController {
+func NewController(a *auth.Authorizer, repo repository.UserRepository) *UserController {
 	return &UserController{
 		auth:    a,
-		useCase: useCase,
+		repo: repo,
 	}
 }
 
@@ -49,7 +48,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
-	user, err := c.useCase.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.repo.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		log.Print(err)
 		httpext.JSON(w, httpext.CommonError{
@@ -59,7 +58,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), auth.ContextUserKey, user.Id)
+	ctx := r.Context()
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -68,7 +67,6 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	_ = r.WithContext(ctx)
 
 	httpext.JSON(w, SignResponse{
 		User:  *user,
@@ -92,7 +90,7 @@ func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
 
-	user, err := c.useCase.GetOneUserByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.repo.GetOneUserByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -107,7 +105,7 @@ func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusNotFound)
 		return
 	}
-	ctx := context.WithValue(r.Context(), auth.ContextUserKey, user.Id)
+	ctx := r.Context()
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -116,7 +114,6 @@ func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	_ = r.WithContext(ctx)
 
 	httpext.JSON(w, SignResponse{
 		User:  *user,
