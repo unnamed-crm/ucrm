@@ -1,7 +1,6 @@
 package database
 
 import (
-
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
 

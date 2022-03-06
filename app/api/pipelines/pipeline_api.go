@@ -2,12 +2,13 @@ package pipelines
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/auth"
+	"github.com/ignavan39/ucrm-go/app/config"
+	"github.com/ignavan39/ucrm-go/app/middlewares"
 )
 
-func RegisterRouter(r chi.Router, controller *Controller) {
+func RegisterRouter(r chi.Router, controller *Controller, config config.Config) {
 	r.Group(func(r chi.Router) {
-		r.Use(auth.AuthGuard)
+		r.Use(middlewares.AuthGuard(config))
 		r.Route("/pipelines", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
 		})

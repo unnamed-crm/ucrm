@@ -17,6 +17,13 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err := row.Scan(&dashboard.Id, &dashboard.Name, &dashboard.AuthorId, &dashboard.UpdatedAt); err != nil {
 		return nil, err
 	}
+	_, err := sq.Insert("dashboards_user").Columns("dashboard_id", "user_id", "access").
+		Values(dashboard.Id, userId, "rw").
+		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		return nil, err
+	}
 	return dashboard, nil
 }
 

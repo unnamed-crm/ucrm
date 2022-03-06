@@ -71,31 +71,31 @@ func OpenDb(config Config) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: pool %s", ErrorConnection, err)
 	}
-	return stdlib.OpenDBFromPool(pool),nil
+	return stdlib.OpenDBFromPool(pool), nil
 }
 
 func NewSingle(ctx context.Context, config Config) (*SingleConnection, error) {
-	db,err := OpenDb(config)
+	db, err := OpenDb(config)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return &SingleConnection{
 		conn: db,
 	}, nil
 }
 func NewReadAndWriteConnection(ctx context.Context, read Config, write Config) (*ReadAndWriteConnection, error) {
-	w,err := OpenDb(read)
+	w, err := OpenDb(read)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	r,err := OpenDb(write)
+	r, err := OpenDb(write)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return &ReadAndWriteConnection{
 		write: w,
-		read: r,
-	},nil
+		read:  r,
+	}, nil
 }
 
 func (r *ReadAndWriteConnection) Read() *sql.DB {

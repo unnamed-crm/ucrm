@@ -26,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database,config.Database)
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database)
 
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +45,7 @@ func main() {
 			chim.Recoverer,
 		)
 		users.RegisterRouter(v1, userController)
-		dashboards.RegisterRouter(v1, dashboardController)
+		dashboards.RegisterRouter(v1, dashboardController, *config)
 	})
 	web.Start()
 
