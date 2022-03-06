@@ -4,7 +4,7 @@ volumes:
 
 services:
   postgres:
-    container_name: tm-go-db
+    container_name: ucrm-go-db
     image: postgres:11.13-alpine
     command:
       - 'postgres'
@@ -37,7 +37,7 @@ services:
       - '-c'
       - 'pg_stat_statements.track=all'
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-tm-go-db}
+      POSTGRES_DB: ${DATABASE_NAME:-tm-db}
       POSTGRES_USER: ${DATABASE_USER:-user}
       POSTGRES_PASSWORD: ${DATABASE_PASS:-pass}
     volumes:
@@ -45,7 +45,7 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-user} -d ${DATABASE_NAME:-tm-go-db}']
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-user} -d ${DATABASE_NAME:-tm-db}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,3 +55,16 @@ services:
         limits:
           cpus: '1'
           memory: 4G
+  app: 
+    depends_on:
+     - postgres
+    links:
+     - postgres
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    image: app:docker
+    ports:
+      - 8080:8080
