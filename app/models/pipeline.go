@@ -8,4 +8,5 @@ type Pipeline struct {
 	DashboardId string    `json:"dashboard_id"`
 	Order       int       `json:"order"`
 	UpdatedAt   time.Time `json:"update_at"`
+	Cards      []Card	  `json:"card"`
 }

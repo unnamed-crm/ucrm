@@ -8,6 +8,7 @@ type Dashboard struct {
 	Id        string            `json:"id"`
 	UpdatedAt time.Time         `json:"updated_at"`
 	Users     []DashboardsUsers `json:"users,omitempty"`
+	Pipelines []Pipeline        `json:"pipelines"`
 }
 
 type DashboardsUsers struct {

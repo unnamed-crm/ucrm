@@ -115,12 +115,11 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if len(id) == 0 {
-		httpext.JSON(w,httpext.CommonError{
+		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong id",
-			Code: http.StatusBadRequest,
-		},http.StatusBadRequest)
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
 		return
 	}
 
-	
 }

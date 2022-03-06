@@ -12,7 +12,7 @@ func RegisterRouter(r chi.Router, controller *Controller, config config.JWTConfi
 		r.Route("/dashboards", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
 			r.Post("/addUser", controller.AddUserToDashboard)
-			r.Get("/:id",controller.AddUserToDashboard)
+			r.Get("/:id", controller.GetOneDashboard)
 		})
 	})
 }

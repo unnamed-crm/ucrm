@@ -30,9 +30,15 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
 	var dashboard *models.Dashboard
 
-	rows, err := sq.Select("d.name, d.author_id,d.id,d.updated_at,du.user_id,du.access").
+	rows, err := sq.Select("*").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
+		LeftJoin("left join pipelines p on d.id = p.dashboard_id"). 
+		LeftJoin("left join cards c on p.id = c.pipeline_id").
+		LeftJoin("left join contacts c2 on c.id = c2.card_id").
+		LeftJoin("left join card_fields cf on c.id = cf.card_id").
+		LeftJoin("left join contact_fields cf2 on c2.id = cf2.contact_id").
+		LeftJoin("left join fields f on d.id = f.dashboard_id").
 		Where(sq.Eq{"id": dashboardId}).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
