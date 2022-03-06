@@ -11,7 +11,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/config"
 )
 
-func AuthGuard(cfg config.Config) func(next http.Handler) http.Handler {
+func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -22,7 +22,7 @@ func AuthGuard(cfg config.Config) func(next http.Handler) http.Handler {
 				jwtToken := authHeader[1]
 				customClaims := &auth.Claims{}
 				token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
-					return []byte(cfg.JWT.SingingKey), nil
+					return []byte(cfg.SingingKey), nil
 				})
 				if err != nil || !token.Valid {
 					log.Println(err)

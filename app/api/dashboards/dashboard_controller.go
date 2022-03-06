@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -109,4 +110,17 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 	httpext.JSON(w, AddUserToDashboardResponse{
 		UserDashboardId: *id,
 	}, 201)
+}
+
+func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if len(id) == 0 {
+		httpext.JSON(w,httpext.CommonError{
+			Error: "wrong id",
+			Code: http.StatusBadRequest,
+		},http.StatusBadRequest)
+		return
+	}
+
+	
 }

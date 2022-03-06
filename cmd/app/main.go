@@ -45,7 +45,7 @@ func main() {
 			chim.Recoverer,
 		)
 		users.RegisterRouter(v1, userController)
-		dashboards.RegisterRouter(v1, dashboardController, *config)
+		dashboards.RegisterRouter(v1, dashboardController, config.JWT)
 	})
 	web.Start()
 
