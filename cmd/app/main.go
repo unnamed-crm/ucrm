@@ -9,13 +9,13 @@ import (
 
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
-	"github.com/ignavan39/tm-go/app/api"
-	"github.com/ignavan39/tm-go/app/api/dashboards"
-	"github.com/ignavan39/tm-go/app/api/users"
-	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/config"
-	"github.com/ignavan39/tm-go/app/repository/database"
-	"github.com/ignavan39/tm-go/pkg/pg"
+	"github.com/ignavan39/ucrm-go/app/api"
+	"github.com/ignavan39/ucrm-go/app/api/dashboards"
+	"github.com/ignavan39/ucrm-go/app/api/users"
+	"github.com/ignavan39/ucrm-go/app/auth"
+	"github.com/ignavan39/ucrm-go/app/config"
+	"github.com/ignavan39/ucrm-go/app/repository/database"
+	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
 
 func main() {
@@ -32,7 +32,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	web := api.NewAPIServer(":8080", *config)
+	web := api.NewAPIServer(":8080").
+		WithCors(config.Cors)
 
 	dbService := database.NewDbService(singleConn.Get())
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
@@ -44,8 +45,8 @@ func main() {
 			chim.Logger,
 			chim.Recoverer,
 		)
-		users.RegisterUserRouter(v1, userController)
-		dashboards.RegisterDashboardRouter(v1, dashboardController)
+		users.RegisterRouter(v1, userController)
+		dashboards.RegisterRouter(v1, dashboardController)
 	})
 	web.Start()
 

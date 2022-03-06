@@ -1,0 +1,18 @@
+cors:
+  allow_credentials: false
+  allowed_headers:
+    - '*'
+  allowed_methods:
+    - 'GET'
+    - 'POST'
+    - 'OPTIONS'
+    - 'HEAD'
+  allowed_origins:
+    - '*'
+  debug_cors: false
+  exposed_headers:
+    - '*'
+  # 24 h
+  max_age: 86400
+  options_passthrough: false
+  use_allow_all_handler: true

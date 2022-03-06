@@ -1,4 +1,4 @@
-package dashboards
+package pipelines
 
 import (
 	"github.com/go-chi/chi"
@@ -8,9 +8,8 @@ import (
 func RegisterRouter(r chi.Router, controller *Controller) {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthGuard)
-		r.Route("/dashboards", func(r chi.Router) {
+		r.Route("/pipelines", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
-			r.Post("/addUser", controller.AddUserToDashboard)
 		})
 	})
 }

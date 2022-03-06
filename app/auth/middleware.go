@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go/v4"
-	"github.com/ignavan39/tm-go/app/config"
+	"github.com/ignavan39/ucrm-go/app/config"
 )
 
 func AuthGuard(next http.Handler) http.Handler {

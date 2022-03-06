@@ -1,6 +1,6 @@
 package users
 
-import "github.com/ignavan39/tm-go/app/models"
+import "github.com/ignavan39/ucrm-go/app/models"
 
 type SignPayload struct {
 	Password string `json:"password"`

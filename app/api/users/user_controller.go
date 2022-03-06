@@ -8,24 +8,24 @@ import (
 
 	"net/http"
 
-	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/repository"
-	"github.com/ignavan39/tm-go/pkg/httpext"
+	"github.com/ignavan39/ucrm-go/app/auth"
+	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-type UserController struct {
-	auth    *auth.Authorizer
+type Controller struct {
+	auth *auth.Authorizer
 	repo repository.UserRepository
 }
 
-func NewController(a *auth.Authorizer, repo repository.UserRepository) *UserController {
-	return &UserController{
-		auth:    a,
+func NewController(a *auth.Authorizer, repo repository.UserRepository) *Controller {
+	return &Controller{
+		auth: a,
 		repo: repo,
 	}
 }
 
-func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 	var payload SignPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
@@ -74,7 +74,7 @@ func (c *UserController) SignUp(w http.ResponseWriter, r *http.Request) {
 	}, http.StatusCreated)
 }
 
-func (c *UserController) SignIn(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 	var payload SignPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 

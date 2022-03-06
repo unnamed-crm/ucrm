@@ -19,7 +19,7 @@ create table dashboards (
     author_id uuid not null constraint user_id_fk references users(id) on update cascade on delete cascade
 );
 
-create type dashboard_user_access as enum ('r', 'w', 'rw');
+create type dashboard_user_access as enum ('r', 'rw');
 
 create table dashboards_user(
     id uuid not null default uuid_generate_v4() constraint dashboards_user_pk primary key,
@@ -49,11 +49,62 @@ create index pipelines_name_idx on pipelines(name, dashboard_id);
 create unique index pipelines_order_idx on pipelines("order", id);
 
 create table cards (
-    id uuid not null default uuid_generate_v4() constraint task_pk primary key,
+    id uuid not null default uuid_generate_v4() constraint cards_pk primary key,
     updated_at timestamp not null default current_timestamp,
-    title varchar not null,
-    body text,
-    pipeline_id uuid not null constraint pipeline_id_fk references pipelines(id) on update cascade on delete cascade
+    pipeline_id uuid not null constraint pipeline_id_fk references pipelines(id) on update cascade on delete cascade,
+    "order" smallint not null default 1
 );
 
 create unique index card_id_idx on cards(id);
+
+create table contacts (
+    id uuid not null default uuid_generate_v4() constraint contacts_pk primary key,
+    dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
+    card_id uuid constraint card_id_fk references cards(id) on update cascade on delete
+    set
+        null,
+        name text,
+        phone text not null,
+        city text
+);
+
+create index contacts_phone_idx on contacts(phone);
+
+create unique index contacts_id_idx on contacts(id);
+
+create table fields (
+    id uuid not null default uuid_generate_v4() constraint fields_pk primary key,
+    name text not null,
+    dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
+    is_nullable boolean not null default true
+);
+
+create table card_fields (
+    id uuid not null default uuid_generate_v4() constraint card_fields_pk primary key,
+    card_id uuid not null constraint card_id_fk references cards(id) on update cascade on delete cascade,
+    field_id uuid not null constraint field_id_fk references fields(id) on update cascade on delete cascade,
+    value text not null
+);
+
+create table contact_fields (
+    id uuid not null default uuid_generate_v4() constraint contact_fields_pk primary key,
+    contact_id uuid not null constraint contact_id_fk references contacts(id) on update cascade on delete cascade,
+    field_id uuid not null constraint field_id_fk references fields(id) on update cascade on delete cascade,
+    value text not null
+);
+
+create index contact_fields_id_idx on contact_fields(id);
+
+create unique index card_fields_idx on card_fields (card_id, field_id);
+
+create unique index card_fields_id_idx on card_fields(id);
+
+create unique index fields_id_idx on fields(id);
+
+create table pipeline_webhooks (
+    id uuid not null default uuid_generate_v4() constraint pipeline_webhooks_pk primary key,
+    url text not null,
+    dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade
+);
+
+create index pipeline_webhooks_id_idx on pipeline_webhooks(id);

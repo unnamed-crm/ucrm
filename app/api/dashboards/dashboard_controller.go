@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ignavan39/tm-go/app/auth"
-	"github.com/ignavan39/tm-go/app/repository"
-	"github.com/ignavan39/tm-go/pkg/httpext"
+	"github.com/ignavan39/ucrm-go/app/auth"
+	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-type DashboardController struct {
+type Controller struct {
 	repo repository.DashboardRepository
 }
 
-func NewController(repo repository.DashboardRepository) *DashboardController {
-	return &DashboardController{repo: repo}
+func NewController(repo repository.DashboardRepository) *Controller {
+	return &Controller{repo: repo}
 }
 
-func (c *DashboardController) CreateOne(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateDashboardPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -28,7 +28,7 @@ func (c *DashboardController) CreateOne(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusBadRequest)
 		return
 	}
-	userId := ctx.Value(auth.ContextUserKey).(string)
+	userId := auth.GetUserIdFromContext(ctx)
 	dashboard, err := c.repo.AddDashboard(payload.Name, userId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -42,7 +42,7 @@ func (c *DashboardController) CreateOne(w http.ResponseWriter, r *http.Request) 
 	}, http.StatusCreated)
 }
 
-func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload AddUserToDashboardPayload
 
@@ -62,7 +62,7 @@ func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.
 		}, http.StatusBadRequest)
 		return
 	}
-	userId := ctx.Value(auth.ContextUserKey).(string)
+	userId := auth.GetUserIdFromContext(ctx)
 	dashboard, err := c.repo.GetOneDashboard(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -78,7 +78,13 @@ func (c *DashboardController) AddUserToDashboard(w http.ResponseWriter, r *http.
 		}, http.StatusNotFound)
 		return
 	}
-	if dashboard.AuthorId != userId {
+	found := false
+	for _, d := range dashboard.Users {
+		if d.UserId == userId && d.Access == "rw" {
+			found = true
+		}
+	}
+	if !found {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "not enough permissions",
 			Code:  http.StatusBadRequest,

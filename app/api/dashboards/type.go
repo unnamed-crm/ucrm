@@ -3,7 +3,7 @@ package dashboards
 import (
 	"errors"
 
-	"github.com/ignavan39/tm-go/app/models"
+	"github.com/ignavan39/ucrm-go/app/models"
 )
 
 type CreateDashboardPayload struct {

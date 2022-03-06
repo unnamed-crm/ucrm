@@ -1,11 +1,14 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/ignavan39/tm-go/pkg/pg"
+	"github.com/ignavan39/ucrm-go/pkg/pg"
+	"gopkg.in/yaml.v2"
 )
 
 type JWTConfig struct {
@@ -17,6 +20,21 @@ type JWTConfig struct {
 type Config struct {
 	Database pg.Config
 	JWT      JWTConfig
+	Cors     CorsConfig
+}
+
+func confFromFile(fileName string) (*CorsConfig, error) {
+	log.Println(fmt.Sprintf("reading from %s", fileName))
+	file, err := os.Open(fileName)
+	if err != nil {
+		return nil, err
+	}
+	var conf CorsConfig
+	defer file.Close()
+	if err := yaml.NewDecoder(file).Decode(&conf); err != nil {
+		return nil, err
+	}
+	return &conf, nil
 }
 
 func GetConfig() (*Config, error) {
@@ -37,6 +55,11 @@ func GetConfig() (*Config, error) {
 		Port:     uint16(port),
 		DB:       os.Getenv("DATABASE_NAME"),
 	}
+	cors, err := confFromFile("./usr/local/bin/app/develop.yml")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
 		Database: pgCong,
 		JWT: JWTConfig{
@@ -44,5 +67,6 @@ func GetConfig() (*Config, error) {
 			SingingKey:     os.Getenv("JWT_SINGINGING_KEY"),
 			ExpireDuration: expireDuration,
 		},
+		Cors: *cors,
 	}, nil
 }

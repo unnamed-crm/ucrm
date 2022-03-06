@@ -1,6 +1,6 @@
 # Task Manager
 
-![example workflow](https://github.com/ignavan39/tm-go/actions/workflows/build.yml/badge.svg)
+![example workflow](https://github.com/ignavan39/ucrm-go/actions/workflows/build.yml/badge.svg)
 
 ### How to start:
 
@@ -8,3 +8,5 @@
 $ docker-compose up --build
 $ go run ./cmd/app/main.go
 ```
+
+![scheme](./.assets/scheme.png)

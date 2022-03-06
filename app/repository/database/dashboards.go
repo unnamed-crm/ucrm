@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/ignavan39/tm-go/app/models"
+	"github.com/ignavan39/ucrm-go/app/models"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -21,20 +21,32 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 }
 
 func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
-	dashboard := &models.Dashboard{}
+	var dashboard *models.Dashboard
 
-	row := sq.Select("name, author_id,id,updated_at").
-		From("dashboards").
+	rows, err := sq.Select("d.name, d.author_id,d.id,d.updated_at,du.user_id,du.access").
+		From("dashboards d").
+		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
 		Where(sq.Eq{"id": dashboardId}).
 		RunWith(r.conn).
 		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&dashboard.Name, &dashboard.AuthorId, &dashboard.Id, &dashboard.UpdatedAt); err != nil {
+		Query()
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
+	defer rows.Close()
+
+	dashboardUsers := []models.DashboardsUsers{}
+	for rows.Next() {
+		var da models.DashboardsUsers
+		if err := rows.Scan(&dashboard.Name, &dashboard.AuthorId, &dashboard.Id, &dashboard.UpdatedAt, &da.UserId, &da.Access); err != nil {
+			return nil, err
+		}
+		dashboardUsers = append(dashboardUsers, da)
+	}
+	dashboard.Users = dashboardUsers
 	return dashboard, nil
 }
 

@@ -4,7 +4,7 @@ volumes:
 
 services:
   postgres:
-    container_name: tm-go-db
+    container_name: ucrm-go-db
     image: postgres:11.13-alpine
     command:
       - 'postgres'

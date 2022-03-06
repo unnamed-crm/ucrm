@@ -1,8 +1,11 @@
-module github.com/ignavan39/tm-go
+module github.com/ignavan39/ucrm-go
 
 go 1.17
 
-require github.com/go-chi/chi v1.5.4
+require (
+	github.com/go-chi/chi v1.5.4
+	gopkg.in/yaml.v2 v2.4.0
+)
 
 require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
@@ -20,4 +23,5 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/joho/godotenv v1.4.0 // indirect
+	github.com/rs/cors v1.8.2
 )
