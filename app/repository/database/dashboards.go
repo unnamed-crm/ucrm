@@ -13,7 +13,7 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	row := sq.Insert("dashboards").Columns("name", "author_id").
 		Values(name, userId).
 		Suffix("returning id,name,author_id,updated_at").
-		RunWith(r.conn).PlaceholderFormat(sq.Dollar).QueryRow()
+		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
 	if err := row.Scan(&dashboard.Id, &dashboard.Name, &dashboard.AuthorId, &dashboard.UpdatedAt); err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
 		Where(sq.Eq{"id": dashboardId}).
-		RunWith(r.conn).
+		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
 	if err != nil {
@@ -55,7 +55,7 @@ func (r *DbService) AddUserToDashboard(dashboardId string, userId string, access
 	row := sq.Insert("dashboards_user").Columns("user_id", "dashboard_id", "access").
 		Values(userId, dashboardId, access).
 		Suffix("returning id").
-		RunWith(r.conn).PlaceholderFormat(sq.Dollar).QueryRow()
+		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
 	if err := row.Scan(&id); err != nil {
 		return nil, err
 	}

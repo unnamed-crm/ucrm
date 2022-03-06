@@ -42,8 +42,8 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var Response struct {
-		pipeline models.Pipeline `json:"pipeline"`
+		Pipeline models.Pipeline `json:"pipeline"`
 	}
-	Response.pipeline = *pipeline
+	Response.Pipeline = *pipeline
 	httpext.JSON(w, Response, http.StatusCreated)
 }

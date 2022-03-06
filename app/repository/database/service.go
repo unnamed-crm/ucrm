@@ -1,13 +1,16 @@
 package database
 
-import "database/sql"
+import (
+
+	"github.com/ignavan39/ucrm-go/pkg/pg"
+)
 
 type DbService struct {
-	conn *sql.DB
+	pool pg.Pool
 }
 
-func NewDbService(conn *sql.DB) *DbService {
+func NewDbService(pool pg.Pool) *DbService {
 	return &DbService{
-		conn: conn,
+		pool: pool,
 	}
 }

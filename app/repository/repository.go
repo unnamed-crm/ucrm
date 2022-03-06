@@ -15,6 +15,5 @@ type UserRepository interface {
 
 type PipelineRepository interface {
 	AddPipeline(name string, userId string) (*models.Pipeline, error)
-	GetOnePipeline(PipelineId string) (*models.Pipeline, error)
-	AddUserToPipeline(pipelineId string, userId string, access string) (*string, error)
+	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
 }

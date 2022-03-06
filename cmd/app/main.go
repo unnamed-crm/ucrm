@@ -26,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	singleConn, err := pg.NewSingle(ctx, config.Database)
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database,config.Database)
 
 	if err != nil {
 		log.Fatal(err)
@@ -34,8 +34,7 @@ func main() {
 
 	web := api.NewAPIServer(":8080").
 		WithCors(config.Cors)
-
-	dbService := database.NewDbService(singleConn.Get())
+	dbService := database.NewDbService(rwConn)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
 	dashboardController := dashboards.NewController(dbService)
