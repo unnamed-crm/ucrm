@@ -18,7 +18,8 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.PipelineAccessGuard(pipelineRepo, "rw"))
-				r.Patch("/name/{id}",controller.UpdateName)
+				r.Patch("/{id}",controller.UpdateName)
+				r.Delete("/{id}",controller.DeleteById)
 			})
 		})
 	})

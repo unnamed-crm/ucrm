@@ -16,7 +16,8 @@ type UserRepository interface {
 
 type PipelineRepository interface {
 	AddPipeline(name string, dashboardId string,order int) (*models.Pipeline, error)
-	UpdateName (piplineId string,name string) (error)
+	UpdateName (pipelineId string,name string) (error)
+	DeleteById (pipelineId string) (error)
 	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
 	GetAccessPipelineById(pipelineId string,userId string,accessType string) (bool,error)
 	GetAllPipelines(dashboardId string) ([]models.Pipeline, error)

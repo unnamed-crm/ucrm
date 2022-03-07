@@ -59,11 +59,16 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 
 func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
-
-	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
+	builder := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
-		Where(sq.Eq{"d.id": dashboardId, "du.user_id": userId, "du.access": accessType}).
+		Where(sq.Eq{"d.id": dashboardId, "du.user_id": userId})
+	if accessType == "r" {
+		builder.Where(sq.Or{sq.Eq{"du.access": accessType}, sq.Eq{"du.access": "rw"}})
+	} else {
+		builder.Where(sq.Eq{"du.access": accessType})
+	}
+	rows, err := builder.
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()

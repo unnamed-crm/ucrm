@@ -74,6 +74,25 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if len(id) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing id: pipelines/deleteById",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	err := c.repo.DeleteById(id)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	orderQuery := chi.URLParam(r, "order")

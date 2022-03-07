@@ -16,7 +16,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
 				r.Post("/addUser", controller.AddUserToDashboard)
 			})
-			r.Get("/:id", controller.GetOneDashboard)
+			r.Get("/{id}", controller.GetOneDashboard)
 		})
 	})
 }
