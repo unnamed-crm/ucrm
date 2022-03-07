@@ -32,7 +32,7 @@ create unique index dashboards_user_id_idx on dashboards_user(id);
 
 create unique index dashboards_id_idx on dashboards(id);
 
-create index dashboards_name_idx on dashboards(name, user_id);
+create index dashboards_name_idx on dashboards(name, author_id);
 
 create table pipelines (
     id uuid not null default uuid_generate_v4() constraint pipelines_pk primary key,
@@ -72,25 +72,28 @@ create index contacts_phone_idx on contacts(phone);
 
 create unique index contacts_id_idx on contacts(id);
 
+create type fields_type as enum ('contact', 'card');
+
 create table fields (
     id uuid not null default uuid_generate_v4() constraint fields_pk primary key,
     name text not null,
     dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
-    is_nullable boolean not null default true
+    is_nullable boolean not null default true,
+    "type" fields_type not null
 );
 
 create table card_fields (
     id uuid not null default uuid_generate_v4() constraint card_fields_pk primary key,
     card_id uuid not null constraint card_id_fk references cards(id) on update cascade on delete cascade,
     field_id uuid not null constraint field_id_fk references fields(id) on update cascade on delete cascade,
-    value text not null
+    value text
 );
 
 create table contact_fields (
     id uuid not null default uuid_generate_v4() constraint contact_fields_pk primary key,
     contact_id uuid not null constraint contact_id_fk references contacts(id) on update cascade on delete cascade,
     field_id uuid not null constraint field_id_fk references fields(id) on update cascade on delete cascade,
-    value text not null
+    value text
 );
 
 create index contact_fields_id_idx on contact_fields(id);
