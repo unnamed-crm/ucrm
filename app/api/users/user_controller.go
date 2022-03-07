@@ -14,11 +14,11 @@ import (
 )
 
 type Controller struct {
-	auth *auth.Authorizer
+	auth auth.Authorizer
 	repo repository.UserRepository
 }
 
-func NewController(a *auth.Authorizer, repo repository.UserRepository) *Controller {
+func NewController(a auth.Authorizer, repo repository.UserRepository) *Controller {
 	return &Controller{
 		auth: a,
 		repo: repo,

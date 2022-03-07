@@ -23,7 +23,7 @@ func (r *DbService) AddUser(email string, password string) (*models.User, error)
 
 func (r *DbService) GetOneUserByEmail(email string, password string) (*models.User, error) {
 	user := &models.User{}
-	row := sq.Select("id,email,password,coalesce(avatar_url,'') as avatar_url,created_at").
+	row := sq.Select("id,email,password,avatar_url,created_at").
 		From("users").
 		Where(sq.Eq{"email": email, "password": password}).
 		RunWith(r.pool.Read()).

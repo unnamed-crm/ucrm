@@ -33,7 +33,7 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 	rows, err := sq.Select("*").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
-		LeftJoin("left join pipelines p on d.id = p.dashboard_id"). 
+		LeftJoin("left join pipelines p on d.id = p.dashboard_id").
 		LeftJoin("left join cards c on p.id = c.pipeline_id").
 		LeftJoin("left join contacts c2 on c.id = c2.card_id").
 		LeftJoin("left join card_fields cf on c.id = cf.card_id").

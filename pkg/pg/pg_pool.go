@@ -38,11 +38,6 @@ type SingleConnection struct {
 	conn *sql.DB
 }
 
-type ReadAndWriteConnection struct {
-	read  *sql.DB
-	write *sql.DB
-}
-
 func (c *SingleConnection) Read() *sql.DB {
 	return c.conn
 }
@@ -55,25 +50,6 @@ func (s *SingleConnection) Close(ctx context.Context) error {
 	return s.conn.Close()
 }
 
-func OpenDb(config Config) (*sql.DB, error) {
-	connConfig := pgx.ConnConfig{
-		Host:     config.Host,
-		Port:     config.Port,
-		Database: config.DB,
-		User:     config.User,
-		Password: config.Password,
-	}
-	poolCfg := pgx.ConnPoolConfig{
-		ConnConfig:     connConfig,
-		MaxConnections: config.MaxOpen(),
-	}
-	pool, err := pgx.NewConnPool(poolCfg)
-	if err != nil {
-		return nil, fmt.Errorf("%w: pool %s", ErrorConnection, err)
-	}
-	return stdlib.OpenDBFromPool(pool), nil
-}
-
 func NewSingle(ctx context.Context, config Config) (*SingleConnection, error) {
 	db, err := OpenDb(config)
 	if err != nil {
@@ -83,6 +59,12 @@ func NewSingle(ctx context.Context, config Config) (*SingleConnection, error) {
 		conn: db,
 	}, nil
 }
+
+type ReadAndWriteConnection struct {
+	read  *sql.DB
+	write *sql.DB
+}
+
 func NewReadAndWriteConnection(ctx context.Context, read Config, write Config) (*ReadAndWriteConnection, error) {
 	w, err := OpenDb(read)
 	if err != nil {
@@ -104,4 +86,23 @@ func (r *ReadAndWriteConnection) Read() *sql.DB {
 
 func (r *ReadAndWriteConnection) Write() *sql.DB {
 	return r.write
+}
+
+func OpenDb(config Config) (*sql.DB, error) {
+	connConfig := pgx.ConnConfig{
+		Host:     config.Host,
+		Port:     config.Port,
+		Database: config.DB,
+		User:     config.User,
+		Password: config.Password,
+	}
+	poolCfg := pgx.ConnPoolConfig{
+		ConnConfig:     connConfig,
+		MaxConnections: config.MaxOpen(),
+	}
+	pool, err := pgx.NewConnPool(poolCfg)
+	if err != nil {
+		return nil, fmt.Errorf("%w: pool %s", ErrorConnection, err)
+	}
+	return stdlib.OpenDBFromPool(pool), nil
 }

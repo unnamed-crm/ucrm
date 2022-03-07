@@ -5,20 +5,21 @@ type Field struct {
 	IsNullable  bool   `json:"is_nullable"`
 	Name        string `json:"name"`
 	DashboardId string `json:"dashboard_id"`
+	Type        string `json:"type"`
 }
 
 type CardField struct {
-	Id      string `json:"id"`
-	CardId  string `json:"card_id"`
-	FieldId string `json:"field_id"`
-	Value   string `json:"value"`
+	Id      string  `json:"id"`
+	CardId  string  `json:"card_id"`
+	FieldId string  `json:"field_id"`
+	Value   *string `json:"value,omitempty"`
 	Field
 }
 
 type ContactField struct {
-	Id        string `json:"id"`
-	ContactId string `json:"contact_id"`
-	FieldId   string `json:"field_id"`
-	Value     string `json:"value"`
+	Id        string  `json:"id"`
+	ContactId string  `json:"contact_id"`
+	FieldId   string  `json:"field_id"`
+	Value     *string `json:"value,omitempty"`
 	Field
 }
