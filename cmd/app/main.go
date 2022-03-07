@@ -49,7 +49,7 @@ func main() {
 		)
 		users.RegisterRouter(v1, userController)
 		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
-		pipelines.RegisterRouter(v1, pipelineController, dbService, config.JWT)
+		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
 	})
 	web.Start()
 

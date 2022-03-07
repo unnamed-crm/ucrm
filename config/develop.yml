@@ -7,12 +7,14 @@ cors:
     - 'POST'
     - 'OPTIONS'
     - 'HEAD'
+    - 'PATCH'
+    - 'PUT'
   allowed_origins:
     - '*'
   debug_cors: false
   exposed_headers:
     - '*'
-  # 24 h
-  max_age: 86400
+  # 10 m
+  max_age: 600
   options_passthrough: false
   use_allow_all_handler: true

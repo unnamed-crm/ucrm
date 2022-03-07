@@ -12,14 +12,14 @@ import (
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-func DashboardAccessGuard(repo repository.DashboardRepository, accessType string) func(next http.Handler) http.Handler {
+func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			id := chi.URLParam(r, "dashboardId")
+			id := chi.URLParam(r, "id")
 			if len(id) == 0 {
 				var payload struct {
-					DashboardId string `json:"dashboard_id"`
+					PipelineId string `json:"pipeline_id"`
 				}
 				body, err := ioutil.ReadAll(r.Body)
 				if err != nil {
@@ -39,10 +39,10 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 					}, http.StatusBadRequest)
 					return
 				}
-				id = payload.DashboardId
+				id = payload.PipelineId
 			}
 			userId := auth.GetUserIdFromContext(ctx)
-			dashboard, err := repo.GetOneDashboardWithUserAccess(id, userId, accessType)
+			ok, err := repo.GetAccessPipelineById(id, userId, accessType)
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),
@@ -50,11 +50,9 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 				}, http.StatusInternalServerError)
 				return
 			}
-			for _, d := range dashboard.Users {
-				if d.UserId == userId && d.Access == accessType {
-					next.ServeHTTP(w, r.WithContext(ctx))
-					return
-				}
+			if ok {
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
 			}
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Forbidden"))

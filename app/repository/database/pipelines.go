@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
-	
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
 )
@@ -36,4 +36,24 @@ func (r *DbService) GetOnePipeline(pipelineId string) (*models.Pipeline, error) 
 		return nil, err
 	}
 	return pipeline, nil
+}
+
+func (r *DbService) GetAccessPipelineById(pipelineId string,userId string,accessType string) (bool,error) {
+	var id string
+	row := sq.Select("p.id").
+		From("pipelines p").
+		Where(sq.Eq{"p.id": pipelineId}).
+		InnerJoin("dashboards d on p.dashboard_id = d.id").
+		InnerJoin("dashboards_user du on d.id = du.dashboard_id").
+		Where(sq.Eq{"p.id": pipelineId,"du.access": accessType,"du.user_id":userId}).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	if err := row.Scan(&id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
