@@ -19,6 +19,8 @@ create table dashboards (
     author_id uuid not null constraint user_id_fk references users(id) on update cascade on delete cascade
 );
 
+create index dashboards_name_idx on dashboards(name, author_id);
+
 create type dashboard_user_access as enum ('r', 'rw');
 
 create table dashboards_user(
@@ -31,8 +33,6 @@ create table dashboards_user(
 create unique index dashboards_user_id_idx on dashboards_user(id);
 
 create unique index dashboards_id_idx on dashboards(id);
-
-create index dashboards_name_idx on dashboards(name, author_id);
 
 create table pipelines (
     id uuid not null default uuid_generate_v4() constraint pipelines_pk primary key,
@@ -82,12 +82,18 @@ create table fields (
     "type" fields_type not null
 );
 
+create unique index fields_id_idx on fields(id);
+
 create table card_fields (
     id uuid not null default uuid_generate_v4() constraint card_fields_pk primary key,
     card_id uuid not null constraint card_id_fk references cards(id) on update cascade on delete cascade,
     field_id uuid not null constraint field_id_fk references fields(id) on update cascade on delete cascade,
     value text
 );
+
+create unique index card_fields_idx on card_fields (card_id, field_id);
+
+create unique index card_fields_id_idx on card_fields(id);
 
 create table contact_fields (
     id uuid not null default uuid_generate_v4() constraint contact_fields_pk primary key,
@@ -97,12 +103,6 @@ create table contact_fields (
 );
 
 create index contact_fields_id_idx on contact_fields(id);
-
-create unique index card_fields_idx on card_fields (card_id, field_id);
-
-create unique index card_fields_id_idx on card_fields(id);
-
-create unique index fields_id_idx on fields(id);
 
 create table pipeline_webhooks (
     id uuid not null default uuid_generate_v4() constraint pipeline_webhooks_pk primary key,
