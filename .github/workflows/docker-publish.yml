@@ -2,15 +2,11 @@ name: Docker Push
 
 on:
   push:
-    branches: [ master ]
-    tags: [ 'v*.*.*' ]
+    tags:        
+      - 'release.*.*'
+    branches: [ release.*.* ]
   pull_request:
-    branches: [ master ]
-  workflow_run:
-    workflows: ["Build and Lint"]
-    branches: [master]
-    types: 
-      - completed
+    branches: [ release.*.* ]
 
 env:
   REGISTRY: ghcr.io
