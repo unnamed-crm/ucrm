@@ -60,12 +60,10 @@ create unique index card_id_idx on cards(id);
 create table contacts (
     id uuid not null default uuid_generate_v4() constraint contacts_pk primary key,
     dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
-    card_id uuid constraint card_id_fk references cards(id) on update cascade on delete
-    set
-        null,
-        name text,
-        phone text not null,
-        city text
+    card_id uuid constraint card_id_fk references cards(id) on update cascade on delete set null,
+    name text,
+    phone text not null,
+    city text
 );
 
 create index contacts_phone_idx on contacts(phone);
