@@ -46,7 +46,7 @@ create unique index pipelines_id_idx on pipelines(id);
 
 create index pipelines_name_idx on pipelines(name, dashboard_id);
 
-create unique index pipelines_order_idx on pipelines("order", id);
+create unique index pipelines_order_idx on pipelines("order", dashboard_id);
 
 create table cards (
     id uuid not null default uuid_generate_v4() constraint cards_pk primary key,

@@ -27,7 +27,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	pipeline, err := c.repo.AddPipeline(payload.Name, payload.DashboardId)
+	pipeline, err := c.repo.AddPipeline(payload.Name, payload.DashboardId,payload.Order)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
