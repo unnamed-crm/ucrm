@@ -36,7 +36,7 @@ func main() {
 	web := api.NewAPIServer(":8080").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
-	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
+	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
 	dashboardController := dashboards.NewController(dbService)
 	pipelineController := pipelines.NewController(dbService)

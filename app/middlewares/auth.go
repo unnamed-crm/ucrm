@@ -23,7 +23,7 @@ func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
 				jwtToken := authHeader[1]
 				customClaims := &auth.Claims{}
 				token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
-					return []byte(cfg.SingingKey), nil
+					return []byte(cfg.SigningKey), nil
 				})
 				if err != nil || !token.Valid {
 					log.Println(err)

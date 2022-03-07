@@ -13,7 +13,7 @@ import (
 
 type JWTConfig struct {
 	HashSalt       string        `env:"JWT_HASH_SALT"`
-	SingingKey     string        `env:"JWT_SINGINGING_KEY"`
+	SigningKey     string        `env:"JWT_SIGNING_KEY"`
 	ExpireDuration time.Duration `env:"JWT_EXPIRE_DURATION"`
 }
 
@@ -64,7 +64,7 @@ func GetConfig() (*Config, error) {
 		Database: pgCong,
 		JWT: JWTConfig{
 			HashSalt:       os.Getenv("JWT_HASH_SALT"),
-			SingingKey:     os.Getenv("JWT_SINGINGING_KEY"),
+			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
 		Cors: *cors,
