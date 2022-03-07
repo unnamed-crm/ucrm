@@ -12,14 +12,14 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 		r.Use(middlewares.AuthGuard(config))
 		r.Route("/pipelines", func(r chi.Router) {
 			r.Group(func(r chi.Router) {
-				r.Use(middlewares.PipelineAccessGuard(pipelineRepo, "rw"))
-				r.Route("/order/{id}/{order}", func(r chi.Router) {
-					r.Patch("/", controller.UpdateOrder)
-				})
+				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
+				r.Patch("/order/{dashboardId}/{id}/{order}", controller.UpdateOrder)
+				r.Post("/create", controller.CreateOne)
 			})
 			r.Group(func(r chi.Router) {
-				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
-				r.Post("/create", controller.CreateOne)
+				r.Use(middlewares.PipelineAccessGuard(pipelineRepo, "rw"))
+				r.Patch("/{id}", controller.UpdateName)
+				r.Delete("/{id}", controller.DeleteById)
 			})
 		})
 	})

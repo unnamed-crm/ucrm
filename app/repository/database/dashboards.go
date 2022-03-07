@@ -59,11 +59,16 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 
 func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
-
-	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
+	builder := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
-		Where(sq.Eq{"d.id": dashboardId, "du.user_id": userId, "du.access": accessType}).
+		Where(sq.Eq{"d.id": dashboardId, "du.user_id": userId})
+	if accessType == "r" {
+		builder.Where(sq.Or{sq.Eq{"du.access": accessType}, sq.Eq{"du.access": "rw"}})
+	} else {
+		builder.Where(sq.Eq{"du.access": accessType})
+	}
+	rows, err := builder.
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
@@ -97,4 +102,32 @@ func (r *DbService) AddUserToDashboard(dashboardId string, userId string, access
 		return nil, err
 	}
 	return id, nil
+}
+func (r *DbService) UpdateDashboardName(dashboardId string, name string) error {
+
+	_, err := sq.Update("dashboards").
+		Set("name", name).
+		Where(sq.Eq{"id": dashboardId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *DbService) DeleteDashboardById(dashboardId string) error {
+	_, err := sq.Delete("dashboards cascade").
+		Where(sq.Eq{"id": dashboardId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }

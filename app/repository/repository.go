@@ -1,12 +1,16 @@
 package repository
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import (
+	"github.com/ignavan39/ucrm-go/app/models"
+)
 
 type DashboardRepository interface {
 	AddDashboard(name string, userId string) (*models.Dashboard, error)
 	GetOneDashboard(dashboardId string) (*models.Dashboard, error)
 	AddUserToDashboard(dashboardId string, userId string, access string) (*string, error)
 	GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error)
+	UpdateDashboardName(dashboardId string, name string) error
+	DeleteDashboardById(dashboardId string) error
 }
 
 type UserRepository interface {
@@ -15,7 +19,10 @@ type UserRepository interface {
 }
 
 type PipelineRepository interface {
-	AddPipeline(name string, dashboardId string,order int) (*models.Pipeline, error)
+	AddPipeline(name string, dashboardId string, order int) (*models.Pipeline, error)
+	UpdatePipelineName(pipelineId string, name string) error
+	DeletePipelineById(pipelineId string) error
 	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
-	GetAccessPipelineById(pipelineId string,userId string,accessType string) (bool,error)
+	GetAccessPipelineById(pipelineId string, userId string, accessType string) (bool, error)
+	GetAllPipelines(dashboardId string) ([]models.Pipeline, error)
 }

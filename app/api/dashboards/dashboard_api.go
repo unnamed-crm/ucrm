@@ -16,7 +16,15 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
 				r.Post("/addUser", controller.AddUserToDashboard)
 			})
-			r.Get("/:id", controller.GetOneDashboard)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.DashboardAccessGuard(repo, "r"))
+				r.Get("/{id}", controller.GetOneDashboard)
+			})
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.IsAdminGuard(repo))
+				r.Patch("/{id}", controller.UpdateName)
+				r.Delete("/{id}", controller.DeleteById)
+			})
 		})
 	})
 }
