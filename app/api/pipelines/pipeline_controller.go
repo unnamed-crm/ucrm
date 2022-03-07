@@ -64,7 +64,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	err = c.repo.UpdateName(id, payload.Name)
+	err = c.repo.UpdatePipelineName(id, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -83,7 +83,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	err := c.repo.DeleteById(id)
+	err := c.repo.DeletePipelineById(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

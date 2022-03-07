@@ -91,7 +91,7 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 	}
 	return pipelines, nil
 }
-func (r *DbService) UpdateName(pipelineId string, name string) error {
+func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 	_, err := sq.Update("pipelines").
 		Set("name", name).
 		Where(sq.Eq{"id": pipelineId}).
@@ -107,8 +107,8 @@ func (r *DbService) UpdateName(pipelineId string, name string) error {
 	return err
 }
 
-func (r *DbService) DeleteById(pipelineId string) error {
-	_, err := sq.Delete("pipelines").
+func (r *DbService) DeletePipelineById(pipelineId string) error {
+	_, err := sq.Delete("pipelines cascade").
 		Where(sq.Eq{"id": pipelineId}).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).

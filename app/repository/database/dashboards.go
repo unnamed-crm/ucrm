@@ -103,3 +103,31 @@ func (r *DbService) AddUserToDashboard(dashboardId string, userId string, access
 	}
 	return id, nil
 }
+func (r *DbService) UpdateDashboardName(dashboardId string, name string) error {
+
+	_, err := sq.Update("dashboards").
+		Set("name", name).
+		Where(sq.Eq{"id": dashboardId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *DbService) DeleteDashboardById(dashboardId string) error {
+	_, err := sq.Delete("dashboards cascade").
+		Where(sq.Eq{"id": dashboardId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
+	}
+	return nil
+}

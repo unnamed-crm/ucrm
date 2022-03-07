@@ -106,5 +106,48 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+}
 
+func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var payload struct {
+		Name string `json:"name"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	if len(payload.Name) < 2 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "name too short",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	err = c.repo.UpdateDashboardName(id, payload.Name)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	err := c.repo.DeleteDashboardById(id)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
