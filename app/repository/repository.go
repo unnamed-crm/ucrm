@@ -6,6 +6,7 @@ type DashboardRepository interface {
 	AddDashboard(name string, userId string) (*models.Dashboard, error)
 	GetOneDashboard(dashboardId string) (*models.Dashboard, error)
 	AddUserToDashboard(dashboardId string, userId string, access string) (*string, error)
+	GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error)
 }
 
 type UserRepository interface {
@@ -14,6 +15,6 @@ type UserRepository interface {
 }
 
 type PipelineRepository interface {
-	AddPipeline(name string, userId string) (*models.Pipeline, error)
+	AddPipeline(name string, dashboardId string) (*models.Pipeline, error)
 	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
 }

@@ -11,6 +11,7 @@ import (
 	chim "github.com/go-chi/chi/middleware"
 	"github.com/ignavan39/ucrm-go/app/api"
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
+	"github.com/ignavan39/ucrm-go/app/api/pipelines"
 	"github.com/ignavan39/ucrm-go/app/api/users"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/config"
@@ -38,14 +39,17 @@ func main() {
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SingingKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
 	dashboardController := dashboards.NewController(dbService)
+	pipelineController := pipelines.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		v1.Use(
 			chim.Logger,
 			chim.Recoverer,
+			chim.RequestID,
 		)
 		users.RegisterRouter(v1, userController)
-		dashboards.RegisterRouter(v1, dashboardController, config.JWT)
+		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
+		pipelines.RegisterRouter(v1, pipelineController, dbService, config.JWT)
 	})
 	web.Start()
 

@@ -18,6 +18,7 @@ func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
 			if len(authHeader) != 2 {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Malformed Token"))
+				return
 			} else {
 				jwtToken := authHeader[1]
 				customClaims := &auth.Claims{}

@@ -44,7 +44,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
 	var payload AddUserToDashboardPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -63,7 +62,6 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusBadRequest)
 		return
 	}
-	userId := auth.GetUserIdFromContext(ctx)
 	dashboard, err := c.repo.GetOneDashboard(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -77,19 +75,6 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 			Error: "dashboard not found",
 			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
-		return
-	}
-	found := false
-	for _, d := range dashboard.Users {
-		if d.UserId == userId && d.Access == "rw" {
-			found = true
-		}
-	}
-	if !found {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "not enough permissions",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
 		return
 	}
 	if dashboard.AuthorId == payload.UserId {

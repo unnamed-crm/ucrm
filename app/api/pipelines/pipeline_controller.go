@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -19,21 +18,16 @@ func NewController(repo repository.PipelineRepository) *Controller {
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	var payload struct {
-		Name        string `json:"name"`
-		DashboardId string `json:"dashboard_id"`
-	}
+	var payload CreateOnePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload",
+			Error: "failed decode payload: pipelines/createOne",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
-	userId := auth.GetUserIdFromContext(ctx)
-	pipeline, err := c.repo.AddPipeline(payload.Name, userId)
+	pipeline, err := c.repo.AddPipeline(payload.Name, payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
