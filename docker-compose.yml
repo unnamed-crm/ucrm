@@ -59,7 +59,7 @@ services:
       ucrm:
         ipv4_address: 172.4.4.3
         aliases:
-          - db.ucrm.loc
+          - ucrm.db.loc
   app: 
     depends_on:
      - postgres
