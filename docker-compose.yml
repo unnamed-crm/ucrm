@@ -55,6 +55,11 @@ services:
         limits:
           cpus: '1'
           memory: 4G
+    networks:
+      ucrm:
+        ipv4_address: 172.4.4.3
+        aliases:
+          - ucrm.db.loc
   app: 
     depends_on:
      - postgres
@@ -68,3 +73,14 @@ services:
     image: app:docker
     ports:
       - 8080:8080
+    networks:
+      ucrm:
+        ipv4_address: 172.4.4.2
+        aliases:
+          - ucrm.api.loc
+networks:
+  ucrm:
+    name: ucrm 
+    ipam:
+      config:
+        - subnet: "172.4.4.0/24"

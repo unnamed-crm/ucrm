@@ -1,0 +1,8 @@
+#!/bin/sh
+export MAIN_DIR=$(pwd)
+export MIGRATIONS=${MAIN_DIR}/sql/migrations
+
+for file in `find ${MIGRATIONS} -type f -name "*.sql"`
+do
+   cat -- ${file} | docker exec -i ucrm-go-db psql -U ${DATABASE_USER} ${DATABASE_NAME};
+done
