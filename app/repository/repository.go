@@ -26,3 +26,8 @@ type PipelineRepository interface {
 	GetAccessPipelineById(pipelineId string, userId string, accessType string) (bool, error)
 	GetAllPipelines(dashboardId string) ([]models.Pipeline, error)
 }
+
+type CardWebhookRepository interface {
+	AddCardWebhook(dashboardId string, url string,name *string) error
+	GetCardWebhookByDashboardId(dashboardId string) (*models.CardWebhook,error)
+}

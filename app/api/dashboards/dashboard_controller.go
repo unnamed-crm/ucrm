@@ -12,10 +12,11 @@ import (
 
 type Controller struct {
 	repo repository.DashboardRepository
+	webhookRepo repository.CardWebhookRepository
 }
 
-func NewController(repo repository.DashboardRepository) *Controller {
-	return &Controller{repo: repo}
+func NewController(repo repository.DashboardRepository,webhookRepo repository.CardWebhookRepository) *Controller {
+	return &Controller{repo: repo,webhookRepo: webhookRepo}
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
@@ -150,4 +151,38 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) AddWebhook (w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var payload struct {
+		Url string `json:"url"`
+		Name *string `json:"name,omitempty"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	if len(payload.Url) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "url to short",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	err = c.webhookRepo.AddCardWebhook(id,payload.Url,payload.Name)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }

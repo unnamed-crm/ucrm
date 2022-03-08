@@ -24,6 +24,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 				r.Use(middlewares.IsAdminGuard(repo))
 				r.Patch("/{id}", controller.UpdateName)
 				r.Delete("/{id}", controller.DeleteById)
+				r.Post("/{id}/webhook",controller.AddWebhook)
 			})
 		})
 	})

@@ -102,10 +102,12 @@ create table contact_fields (
 
 create index contact_fields_id_idx on contact_fields(id);
 
-create table pipeline_webhooks (
-    id uuid not null default uuid_generate_v4() constraint pipeline_webhooks_pk primary key,
+create table card_webhook (
+    id uuid not null default uuid_generate_v4() constraint card_webhooks_pk primary key,
     url text not null,
+    name text,
     dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade
 );
 
-create index pipeline_webhooks_id_idx on pipeline_webhooks(id);
+create index card_webhooks_id_idx on card_webhook(id);
+create unique index card_webhook_dashboard_idx on card_webhook(dashboard_id);

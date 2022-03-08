@@ -38,7 +38,7 @@ func main() {
 	dbService := database.NewDbService(rwConn)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
-	dashboardController := dashboards.NewController(dbService)
+	dashboardController := dashboards.NewController(dbService,dbService)
 	pipelineController := pipelines.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
