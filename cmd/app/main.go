@@ -39,9 +39,9 @@ func main() {
 	dbService := database.NewDbService(rwConn)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
-	dashboardController := dashboards.NewController(dbService,dbService)
+	dashboardController := dashboards.NewController(dbService, dbService)
 	pipelineController := pipelines.NewController(dbService)
-	cardController := cards.NewController(dbService,dbService)
+	cardController := cards.NewController(dbService, dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		v1.Use(
@@ -52,7 +52,7 @@ func main() {
 		users.RegisterRouter(v1, userController)
 		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
 		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
-		cards.RegisterRouter(v1,cardController,dbService,config.JWT)
+		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
 	})
 	web.Start()
 

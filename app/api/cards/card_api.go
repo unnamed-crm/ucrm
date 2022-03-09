@@ -7,12 +7,12 @@ import (
 	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
-func RegisterRouter(r chi.Router, controller *Controller,repo repository.PipelineRepository,config config.JWTConfig) {
+func RegisterRouter(r chi.Router, controller *Controller, repo repository.PipelineRepository, config config.JWTConfig) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthGuard(config))
 		r.Route("/cards", func(r chi.Router) {
-			r.Use(middlewares.PipelineAccessGuard(repo,"rw"))
-			r.Post("/create",controller.CreateOne)
+			r.Use(middlewares.PipelineAccessGuard(repo, "rw"))
+			r.Post("/create", controller.CreateOne)
 		})
 	})
 }

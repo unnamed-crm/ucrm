@@ -28,11 +28,11 @@ type PipelineRepository interface {
 }
 
 type CardWebhookRepository interface {
-	AddCardWebhook(dashboardId string, url string,name *string) error
-	GetCardWebhookByDashboardId(dashboardId string) (*models.CardWebhook,error)
+	AddCardWebhook(dashboardId string, url string, name *string) error
+	GetCardWebhookByDashboardId(dashboardId string) (*models.CardWebhook, error)
 	GetCardWebhookByPipelineId(pipelineId string) (*models.CardWebhook, error)
 }
 
 type CardRepository interface {
-	AddCard(name string,order int,pipelineId string) (*models.Card, error)
+	AddCard(name string, order int, pipelineId string) (*models.Card, error)
 }

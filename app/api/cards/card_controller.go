@@ -52,6 +52,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	go triggers.SendCardUpdatesToSubscriber(webhook.Url,card,nil)
+	go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
 	httpext.JSON(w, card, http.StatusOK)
 }
