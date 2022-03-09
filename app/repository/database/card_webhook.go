@@ -10,7 +10,7 @@ import (
 
 func (s *DbService) AddCardWebhook(dashboardId string, url string, name *string) error {
 	_, err := sq.Insert("card_webhook").Columns("url", "name", "dashboard_id").
-		Values(url, name,dashboardId).
+		Values(url, name, dashboardId).
 		Suffix("on conflict (dashboard_id) do update set url = ?", url).
 		RunWith(s.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
@@ -29,11 +29,31 @@ func (s *DbService) GetCardWebhookByDashboardId(dashboardId string) (*models.Car
 		QueryRow()
 
 	var webhook models.CardWebhook
-	if err := row.Scan(&webhook.Url,&webhook.Name,&webhook.DashboardId); err != nil {
+	if err := row.Scan(&webhook.Url, &webhook.Name, &webhook.DashboardId); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return &webhook,nil
+	return &webhook, nil
+}
+
+func (s *DbService) GetCardWebhookByPipelineId(pipelineId string) (*models.CardWebhook, error) {
+	row := sq.Select("c.url", "c.name", "c.dashboard_id").
+		From("card_webhook c").
+		LeftJoin("dashboards d on c.dashboard_id = d.id").
+		LeftJoin("pipelines p on p.dashboard_id = d.id").
+		Where(sq.Eq{"p.id": pipelineId}).
+		RunWith(s.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+
+	var webhook models.CardWebhook
+	if err := row.Scan(&webhook.Url, &webhook.Name, &webhook.DashboardId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &webhook, nil
 }
