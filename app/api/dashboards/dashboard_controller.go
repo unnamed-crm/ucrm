@@ -111,9 +111,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var payload struct {
-		Name string `json:"name"`
-	}
+	var payload UpdateNamePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -155,11 +153,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var payload struct {
-		Url  string  `json:"url"`
-		Name *string `json:"name,omitempty"`
-	}
-
+	var payload AddWebhookPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{

@@ -12,22 +12,18 @@ import (
 
 type Controller struct {
 	repo        repository.CardRepository
-	cardWebhook repository.CardWebhookRepository
+	cardWebhookRepo repository.CardWebhookRepository
 }
 
-func NewController(repo repository.CardRepository, cardWebhook repository.CardWebhookRepository) *Controller {
+func NewController(repo repository.CardRepository, cardWebhookRepo repository.CardWebhookRepository) *Controller {
 	return &Controller{
 		repo:        repo,
-		cardWebhook: cardWebhook,
+		cardWebhookRepo: cardWebhookRepo,
 	}
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		PipelineId string `json:"pipeline_id"`
-		Order      int    `json:"order"`
-		Name       string `json:"name"`
-	}
+	var payload CreateOnePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -44,7 +40,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	webhook, err := c.cardWebhook.GetCardWebhookByPipelineId(payload.PipelineId)
+	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(payload.PipelineId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[CreateOne] failed to get pipeline",

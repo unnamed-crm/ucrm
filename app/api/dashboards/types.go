@@ -30,3 +30,12 @@ func (p *AddUserToDashboardPayload) Validate() error {
 type AddUserToDashboardResponse struct {
 	UserDashboardId string `json:"user_dashboard_id"`
 }
+
+type AddWebhookPayload struct {
+	Url  string  `json:"url"`
+	Name *string `json:"name,omitempty"`
+}
+
+type UpdateNamePayload struct {
+	Name string `json:"name"`
+}
