@@ -16,7 +16,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			id := chi.URLParam(r, "id")
+			id := chi.URLParam(r, "pipelineId")
 			if len(id) == 0 {
 				var payload struct {
 					PipelineId string `json:"pipeline_id"`

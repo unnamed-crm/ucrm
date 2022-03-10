@@ -11,8 +11,10 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Pipeli
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthGuard(config))
 		r.Route("/cards", func(r chi.Router) {
-			r.Use(middlewares.PipelineAccessGuard(repo, "rw"))
 			r.Post("/create", controller.CreateOne)
+			r.Delete("/{cardId}", controller.Delete)
+			r.Get("/{cardId}", controller.GetOne)
+			r.Patch("/{cardId}", controller.Update)
 		})
 	})
 }
