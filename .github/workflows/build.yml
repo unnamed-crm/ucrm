@@ -20,4 +20,4 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Build
-        run:  CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o tm.app ./cmd/app/main.go
+        run:  CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ucrm.app ./cmd/app/main.go
