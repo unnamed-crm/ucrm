@@ -11,12 +11,12 @@ import (
 )
 
 type Controller struct {
-	repo repository.DashboardRepository
+	repo        repository.DashboardRepository
 	webhookRepo repository.CardWebhookRepository
 }
 
-func NewController(repo repository.DashboardRepository,webhookRepo repository.CardWebhookRepository) *Controller {
-	return &Controller{repo: repo,webhookRepo: webhookRepo}
+func NewController(repo repository.DashboardRepository, webhookRepo repository.CardWebhookRepository) *Controller {
+	return &Controller{repo: repo, webhookRepo: webhookRepo}
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
@@ -111,9 +111,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var payload struct {
-		Name string `json:"name"`
-	}
+	var payload UpdateNamePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -153,13 +151,9 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *Controller) AddWebhook (w http.ResponseWriter, r *http.Request) {
+func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var payload struct {
-		Url string `json:"url"`
-		Name *string `json:"name,omitempty"`
-	}
-
+	var payload AddWebhookPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -175,7 +169,7 @@ func (c *Controller) AddWebhook (w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	err = c.webhookRepo.AddCardWebhook(id,payload.Url,payload.Name)
+	err = c.webhookRepo.AddCardWebhook(id, payload.Url, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

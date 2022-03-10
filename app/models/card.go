@@ -7,6 +7,7 @@ type Card struct {
 	UpdatedAt  time.Time   `json:"updated_at"`
 	PipelineId string      `json:"pipeline_id"`
 	Order      int         `json:"order"`
+	Name       string      `json:"name"`
 	Contacts   []Contact   `json:"contacts"`
 	Fields     []CardField `json:"fields"`
 }

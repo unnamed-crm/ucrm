@@ -52,6 +52,7 @@ create table cards (
     id uuid not null default uuid_generate_v4() constraint cards_pk primary key,
     updated_at timestamp not null default current_timestamp,
     pipeline_id uuid not null constraint pipeline_id_fk references pipelines(id) on update cascade on delete cascade,
+    name text not null,
     "order" smallint not null default 1
 );
 
