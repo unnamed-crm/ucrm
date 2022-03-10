@@ -88,7 +88,6 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	go triggers.SendCardUpdatesToSubscriber(webhook.Url, nil, card)
 	httpext.JSON(w, card, http.StatusOK)
-
 }
 
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
