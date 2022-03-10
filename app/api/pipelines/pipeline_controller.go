@@ -56,7 +56,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "pipelineId")
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/updateName",
@@ -75,7 +75,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "pipelineId")
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/deleteById",
@@ -94,7 +94,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 	dashboardId := chi.URLParam(r, "dashboardId")
 

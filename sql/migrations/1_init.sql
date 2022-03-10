@@ -57,6 +57,7 @@ create table cards (
 );
 
 create unique index card_id_idx on cards(id);
+create unique index card_order_idx on cards(pipeline_id, "order");
 
 create table contacts (
     id uuid not null default uuid_generate_v4() constraint contacts_pk primary key,
