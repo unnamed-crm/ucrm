@@ -41,6 +41,13 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 				}
 				id = payload.PipelineId
 			}
+			if len(id) == 0 {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "[PipelineAccessGuard]/wrong id",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
+				return
+			}
 			userId := auth.GetUserIdFromContext(ctx)
 			ok, err := repo.GetAccessPipelineById(id, userId, accessType)
 			if err != nil {

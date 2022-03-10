@@ -41,6 +41,13 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 				}
 				id = payload.DashboardId
 			}
+			if len(id) == 0 {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "[DashboardAccessGuard]/wrong id",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
+				return
+			}
 			userId := auth.GetUserIdFromContext(ctx)
 			dashboard, err := repo.GetOneDashboardWithUserAccess(id, userId, accessType)
 			if err != nil {
