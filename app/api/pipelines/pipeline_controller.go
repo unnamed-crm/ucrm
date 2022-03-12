@@ -156,7 +156,14 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	newArr, updated := utils.SortPipelines(pipelines, oldPipele.Order, order, id)
 	if updated {
 		for _, p := range newArr {
-			c.repo.UpdatePipelineOrder(p.Id, p.Order)
+			err = c.repo.UpdatePipelineOrder(p.Id, p.Order)
+			if err != nil {
+				httpext.JSON(w, httpext.CommonError{
+					Error: err.Error(),
+					Code:  http.StatusInternalServerError,
+				}, http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 	httpext.JSON(w, newArr, http.StatusOK)
