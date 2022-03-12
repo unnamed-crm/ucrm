@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
-	"log"
+
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/ignavan39/ucrm-go/pkg/pg"
+	blogger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +25,7 @@ type Config struct {
 }
 
 func confFromFile(fileName string) (*CorsConfig, error) {
-	log.Println(fmt.Sprintf("reading from %s", fileName))
+	blogger.Infoln(fmt.Sprintf("reading from %s", fileName))
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err

@@ -2,13 +2,14 @@ package middlewares
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/config"
+
+	blogger "github.com/sirupsen/logrus"
 )
 
 func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
@@ -26,7 +27,7 @@ func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
 					return []byte(cfg.SigningKey), nil
 				})
 				if err != nil || !token.Valid {
-					log.Println(err)
+					blogger.Error("[AuthGuard] Error :%s", err.Error())
 					w.WriteHeader(http.StatusUnauthorized)
 					w.Write([]byte("Unauthorized"))
 					return
