@@ -2,13 +2,13 @@ package config
 
 import (
 	"fmt"
-	
-	blogger "github.com/sirupsen/logrus"
+
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/ignavan39/ucrm-go/pkg/pg"
+	blogger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 

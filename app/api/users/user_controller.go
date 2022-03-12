@@ -4,10 +4,9 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	
-	blogger "github.com/sirupsen/logrus"
-
 	"net/http"
+
+	blogger "github.com/sirupsen/logrus"
 
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/repository"
@@ -52,7 +51,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd.Write([]byte(c.auth.GetHashSalt()))
 	user, err := c.repo.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
-		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]",ctx,err.Error())
+		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: "user already exists",
 			Code:  http.StatusBadRequest,
