@@ -3,9 +3,12 @@ package pipelines
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+
 	// "strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/ignavan39/ucrm-go/app/core/utils"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -120,15 +123,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// order, err := strconv.Atoi(orderQuery)
-	// if err != nil {
-	// 	httpext.JSON(w, httpext.CommonError{
-	// 		Error: err.Error(),
-	// 		Code:  http.StatusInternalServerError,
-	// 	}, http.StatusInternalServerError)
-	// 	return
-	// }
-	pipelines, err := c.repo.GetAllPipelines(dashboardId)
+	order, err := strconv.Atoi(orderQuery)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -136,6 +131,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+	pipelines, err := c.repo.GetAllPipelines(dashboardId)
 	if len(pipelines) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "pipelines not found: pipelines/updateOrder",
@@ -143,4 +139,26 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusNotFound)
 		return
 	}
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	var oldPipele models.Pipeline
+	for _, p := range pipelines {
+		if p.Id == id {
+			oldPipele = p
+		}
+	}
+
+	newArr, updated := utils.Sort(pipelines,oldPipele.Order,order,id)
+	if updated {
+		for _,p := range newArr {
+			c.repo.UpdatePipelineOrder(p.Id,p.Order)
+		}
+	}
+	httpext.JSON(w, newArr, http.StatusOK)
+
 }

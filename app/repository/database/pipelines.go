@@ -106,6 +106,21 @@ func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 	}
 	return err
 }
+func (r *DbService) UpdatePipelineOrder(pipelineId string, order int) error {
+	_, err := sq.Update("pipelines").
+		Set(`"order"`, order).
+		Where(sq.Eq{"id": pipelineId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
+	}
+	return err
+}
 
 func (r *DbService) DeletePipelineById(pipelineId string) error {
 	_, err := sq.Delete("pipelines cascade").

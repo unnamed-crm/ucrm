@@ -10,3 +10,11 @@ type Pipeline struct {
 	UpdatedAt   time.Time `json:"update_at"`
 	Cards       []Card    `json:"card"`
 }
+
+func (p *Pipeline) GetOrder() int {
+	return p.Order
+}
+
+func (p *Pipeline) SetOrder(order int) {
+	p.Order = order
+}
