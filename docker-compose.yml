@@ -78,6 +78,14 @@ services:
     image: app:docker
     ports:
       - 8080:8080
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "100M"
+        reservations:
+          cpus: "0.25"
+          memory: 30M
     networks:
       ucrm:
         ipv4_address: 172.4.4.2

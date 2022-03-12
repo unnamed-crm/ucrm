@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -18,20 +17,23 @@ import (
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
+	blogger "github.com/sirupsen/logrus"
 )
 
 func main() {
 	ctx := context.Background()
 	config, err := config.GetConfig()
+	blogger.SetOutput(os.Stdout)
+	blogger.SetFormatter(&blogger.TextFormatter{})
 
 	if err != nil {
-		log.Fatal(err)
+		blogger.Fatal(err.Error())
 	}
 
 	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database)
 
 	if err != nil {
-		log.Fatal(err)
+		blogger.Fatal(err.Error())
 	}
 
 	web := api.NewAPIServer(":8080").
@@ -60,9 +62,9 @@ func main() {
 	signal.Notify(appCloser, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-appCloser
-		log.Print("[os.SIGNAL] close request")
+		blogger.Info("[os.SIGNAL] close request")
 		go web.Stop()
-		log.Print("[os.SIGNAL] done")
+		blogger.Info("[os.SIGNAL] done")
 	}()
 
 }

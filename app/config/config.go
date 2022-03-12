@@ -2,7 +2,8 @@ package config
 
 import (
 	"fmt"
-	"log"
+	
+	blogger "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ type Config struct {
 }
 
 func confFromFile(fileName string) (*CorsConfig, error) {
-	log.Println(fmt.Sprintf("reading from %s", fileName))
+	blogger.Infoln(fmt.Sprintf("reading from %s", fileName))
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err

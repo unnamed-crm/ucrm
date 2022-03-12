@@ -9,6 +9,8 @@ import (
 	"github.com/ignavan39/ucrm-go/app/core/triggers"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
+
+	blogger "github.com/sirupsen/logrus"
 )
 
 type Controller struct {
@@ -36,6 +38,8 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	card, err := c.repo.AddCard(payload.Name, payload.Order, payload.PipelineId)
+	ctx := r.Context()
+	blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
@@ -52,6 +56,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+	blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 
 	go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
 	httpext.JSON(w, card, http.StatusOK)
@@ -177,7 +182,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	
+
 	if card == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",

@@ -2,13 +2,14 @@ package api
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"sync"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/rs/cors"
+
+	blogger "github.com/sirupsen/logrus"
 )
 
 type Server struct {
@@ -63,9 +64,9 @@ func (a *Server) Start() {
 
 	select {
 	case <-httpServerError:
-		log.Fatal("The Logging API service could not be started.", <-httpServerError)
+		blogger.Fatal("The Logging API service could not be started.", <-httpServerError)
 	default:
-		log.Println("Server has been started...")
+		blogger.Info("Server has been started...")
 	}
 	wg.Wait()
 }
