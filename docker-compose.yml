@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 volumes:
   postgres_data:
 
@@ -7,45 +7,50 @@ services:
     container_name: ucrm-go-db
     image: postgres:11.13-alpine
     command:
-      - 'postgres'
-      - '-c'
-      - 'max_connections=50'
-      - '-c'
-      - 'shared_buffers=1GB'
-      - '-c'
-      - 'effective_cache_size=4GB'
-      - '-c'
-      - 'work_mem=16MB'
-      - '-c'
-      - 'maintenance_work_mem=512MB'
-      - '-c'
-      - 'random_page_cost=1.1'
-      - '-c'
-      - 'temp_file_limit=10GB'
-      - '-c'
-      - 'log_min_duration_statement=200ms'
-      - '-c'
-      - 'idle_in_transaction_session_timeout=10s'
-      - '-c'
-      - 'lock_timeout=1s'
-      - '-c'
-      - 'statement_timeout=60s'
-      - '-c'
-      - 'shared_preload_libraries=pg_stat_statements'
-      - '-c'
-      - 'pg_stat_statements.max=10000'
-      - '-c'
-      - 'pg_stat_statements.track=all'
+      - "postgres"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=4GB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "temp_file_limit=10GB"
+      - "-c"
+      - "log_min_duration_statement=200ms"
+      - "-c"
+      - "idle_in_transaction_session_timeout=10s"
+      - "-c"
+      - "lock_timeout=1s"
+      - "-c"
+      - "statement_timeout=60s"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "pg_stat_statements.max=10000"
+      - "-c"
+      - "pg_stat_statements.track=all"
     environment:
       POSTGRES_DB: ${DATABASE_NAME:-ucrm-db}
       POSTGRES_USER: ${DATABASE_USER:-user}
       POSTGRES_PASSWORD: ${DATABASE_PASS:-pass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./sql/migrations:/docker-entrypoint-initdb.d
     ports:
-      - '5432:5432'
+      - "5432:5432"
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-user} -d ${DATABASE_NAME:-ucrm-db}']
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USER:-user} -d ${DATABASE_NAME:-ucrm-db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -53,18 +58,18 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 4G
     networks:
       ucrm:
         ipv4_address: 172.4.4.3
         aliases:
           - ucrm.db.loc
-  app: 
+  app:
     depends_on:
-     - postgres
+      - postgres
     links:
-     - postgres
+      - postgres
     build:
       context: ./
       dockerfile: ./Dockerfile
@@ -80,7 +85,7 @@ services:
           - ucrm.api.loc
 networks:
   ucrm:
-    name: ucrm 
+    name: ucrm
     ipam:
       config:
         - subnet: "172.4.4.0/24"

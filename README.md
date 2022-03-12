@@ -22,14 +22,6 @@ subsequent runs can simply be
 ```bash
 $ docker-compose up --build
 ```
-
-##### Migrations :
-```bash
-$ export DATABASE_NAME=<database_name>
-$ export DATABASE_USER=<database_user>
-$ chmod +x ./.local/migrations
-$ ./.local/migrations 
-```
 ## Database scheme
 
 ![scheme](./.assets/scheme.png)
