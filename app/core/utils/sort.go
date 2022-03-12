@@ -7,7 +7,7 @@ import (
 )
 
 // arr must be sort by order ASC
-func Sort(arr []models.Pipeline, oldOrder int, newOrder int, pipelineId string) ([]models.Pipeline, bool) {
+func SortPipelines(arr []models.Pipeline, oldOrder int, newOrder int, pipelineId string) ([]models.Pipeline, bool) {
 	newArr := []models.Pipeline{}
 	if newOrder == oldOrder {
 		return arr, false

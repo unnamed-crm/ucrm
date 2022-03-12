@@ -177,7 +177,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	
+
 	if card == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",

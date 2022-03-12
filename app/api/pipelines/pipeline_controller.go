@@ -153,10 +153,10 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	newArr, updated := utils.Sort(pipelines,oldPipele.Order,order,id)
+	newArr, updated := utils.SortPipelines(pipelines, oldPipele.Order, order, id)
 	if updated {
-		for _,p := range newArr {
-			c.repo.UpdatePipelineOrder(p.Id,p.Order)
+		for _, p := range newArr {
+			c.repo.UpdatePipelineOrder(p.Id, p.Order)
 		}
 	}
 	httpext.JSON(w, newArr, http.StatusOK)

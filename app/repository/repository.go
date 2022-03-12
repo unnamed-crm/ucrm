@@ -25,7 +25,7 @@ type PipelineRepository interface {
 	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
 	GetAccessPipelineById(pipelineId string, userId string, accessType string) (bool, error)
 	GetAllPipelines(dashboardId string) ([]models.Pipeline, error)
-	UpdatePipelineOrder(pipelineId string, order int) error 
+	UpdatePipelineOrder(pipelineId string, order int) error
 }
 
 type CardWebhookRepository interface {
