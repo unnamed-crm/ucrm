@@ -131,3 +131,26 @@ func (r *DbService) DeleteDashboardById(dashboardId string) error {
 	}
 	return nil
 }
+
+func (r *DbService) AddDashboardSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error) {
+	var res models.DashboardSettings
+	row := sq.Insert("dashboard_settings").Columns("dashboard_id", "client_token", "secret").
+		Values(dashboardId, xClientToken, secret).
+		Suffix("on conflict (dashboard_id) do update set client_token = ?, secret = ? returning id,dashboard_id,client_token,secret", xClientToken, secret).
+		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
+	if err := row.Scan(&res.Id, &res.DashboardId, &res.ClientToken, &res.Secret); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (r *DbService) GetDashboardSettings(xClientToken string) (*models.DashboardSettings, error) {
+	var res models.DashboardSettings
+	row := sq.Select("dashboard_id", "client_token", "secret", "id").From("dashboard_settings").
+		Where(sq.Eq{"client_token": xClientToken}).
+		RunWith(r.pool.Read()).PlaceholderFormat(sq.Dollar).QueryRow()
+	if err := row.Scan(&res.DashboardId, &res.ClientToken, &res.Secret, &res.Id); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}

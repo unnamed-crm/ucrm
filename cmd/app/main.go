@@ -13,6 +13,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
 	"github.com/ignavan39/ucrm-go/app/api/pipelines"
 	"github.com/ignavan39/ucrm-go/app/api/users"
+	"github.com/ignavan39/ucrm-go/app/api/ws"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
@@ -44,6 +45,7 @@ func main() {
 	dashboardController := dashboards.NewController(dbService, dbService)
 	pipelineController := pipelines.NewController(dbService)
 	cardController := cards.NewController(dbService, dbService)
+	wsController := ws.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		v1.Use(
@@ -55,6 +57,7 @@ func main() {
 		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
 		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
 		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
+		ws.RegisterRouter(v1, wsController)
 	})
 	web.Start()
 

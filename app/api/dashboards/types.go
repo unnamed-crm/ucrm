@@ -39,3 +39,7 @@ type AddWebhookPayload struct {
 type UpdateNamePayload struct {
 	Name string `json:"name"`
 }
+
+type AddSettingsPayload struct {
+	Secret string `json:"secret"`
+}

@@ -17,3 +17,10 @@ type DashboardsUsers struct {
 	UserId      string `json:"user_id"`
 	DashboardId string `json:"dashboard_id"`
 }
+
+type DashboardSettings struct {
+	Id          string `json:"id"`
+	DashboardId string `json:"dashboard_id"`
+	ClientToken string `json:"client_token"`
+	Secret      string `json:"secret"`
+}

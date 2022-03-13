@@ -13,7 +13,7 @@ func IsAdminGuard(repo repository.DashboardRepository) func(next http.Handler) h
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			id := chi.URLParam(r, "id")
+			id := chi.URLParam(r, "dashboardId")
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "wrong dashboard id",

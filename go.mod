@@ -40,6 +40,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.2
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
+	github.com/gorilla/websocket v1.5.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/rs/cors v1.8.2
