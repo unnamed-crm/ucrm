@@ -26,8 +26,6 @@ func (c *Controller) WsEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-	// upgrade this connection to a WebSocket
-	// connection
 	_, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		blogger.Error(err)
