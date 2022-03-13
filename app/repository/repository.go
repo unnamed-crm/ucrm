@@ -11,7 +11,7 @@ type DashboardRepository interface {
 	AddUserToDashboard(dashboardId string, userId string, access string) (*string, error)
 	GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error)
 	UpdateDashboardName(dashboardId string, name string) error
-	AddDashboardSettings(dashboardId string,secret string,xClientToken string) (*models.DashboardSettings,error)
+	AddDashboardSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error)
 	DeleteDashboardById(dashboardId string) error
 }
 

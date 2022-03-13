@@ -57,7 +57,7 @@ func main() {
 		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
 		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
 		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
-		ws.RegisterRouter(v1,wsController)
+		ws.RegisterRouter(v1, wsController)
 	})
 	web.Start()
 

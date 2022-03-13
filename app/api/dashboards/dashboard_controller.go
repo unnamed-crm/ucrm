@@ -183,7 +183,6 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-
 func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	if len(id) == 0 {
@@ -205,9 +204,9 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Secret))
-	 
-	xClientToken := fmt.Sprintf("%x",pwd.Sum(nil))
-	settings,err := c.repo.AddDashboardSettings(id,payload.Secret,xClientToken)
+
+	xClientToken := fmt.Sprintf("%x", pwd.Sum(nil))
+	settings, err := c.repo.AddDashboardSettings(id, payload.Secret, xClientToken)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -215,5 +214,5 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	httpext.JSON(w,settings,http.StatusOK)
+	httpext.JSON(w, settings, http.StatusOK)
 }

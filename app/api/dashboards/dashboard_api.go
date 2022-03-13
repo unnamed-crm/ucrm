@@ -25,7 +25,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 				r.Patch("/{dashboardId}", controller.UpdateName)
 				r.Delete("/{dashboardId}", controller.DeleteById)
 				r.Post("/{dashboardId}/webhook", controller.AddWebhook)
-				r.Post("/{dashboardId}/settings",controller.AddSettings)
+				r.Post("/{dashboardId}/settings", controller.AddSettings)
 			})
 		})
 	})
