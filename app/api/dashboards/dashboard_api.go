@@ -18,13 +18,14 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.DashboardAccessGuard(repo, "r"))
-				r.Get("/{id}", controller.GetOneDashboard)
+				r.Get("/{dashboardId}", controller.GetOneDashboard)
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.IsAdminGuard(repo))
-				r.Patch("/{id}", controller.UpdateName)
-				r.Delete("/{id}", controller.DeleteById)
-				r.Post("/{id}/webhook", controller.AddWebhook)
+				r.Patch("/{dashboardId}", controller.UpdateName)
+				r.Delete("/{dashboardId}", controller.DeleteById)
+				r.Post("/{dashboardId}/webhook", controller.AddWebhook)
+				r.Post("/{dashboardId}/settings",controller.AddSettings)
 			})
 		})
 	})

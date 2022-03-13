@@ -1,7 +1,9 @@
 package dashboards
 
 import (
+	"crypto/sha1"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -99,7 +101,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "dashboardId")
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong id",
@@ -110,7 +112,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "dashboardId")
 	var payload UpdateNamePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -139,7 +141,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "dashboardId")
 	err := c.repo.DeleteDashboardById(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -152,7 +154,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "dashboardId")
 	var payload AddWebhookPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -179,4 +181,39 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+
+func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "dashboardId")
+	if len(id) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	var payload AddSettingsPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	pwd := sha1.New()
+	pwd.Write([]byte(payload.Secret))
+	 
+	xClientToken := fmt.Sprintf("%x",pwd.Sum(nil))
+	settings,err := c.repo.AddDashboardSettings(id,payload.Secret,xClientToken)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+	httpext.JSON(w,settings,http.StatusOK)
 }
