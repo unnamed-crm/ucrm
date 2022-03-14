@@ -5,9 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/log/logrusadapter"
 	"github.com/jackc/pgx/stdlib"
+	blogger "github.com/sirupsen/logrus"
 )
 
 const pgDefaultMaxOpenConnections = 20
@@ -70,10 +74,12 @@ func NewReadAndWriteConnection(ctx context.Context, read Config, write Config) (
 	if err != nil {
 		return nil, err
 	}
+
 	r, err := OpenDb(write)
 	if err != nil {
 		return nil, err
 	}
+
 	return &ReadAndWriteConnection{
 		write: w,
 		read:  r,
@@ -89,20 +95,38 @@ func (r *ReadAndWriteConnection) Write() *sql.DB {
 }
 
 func OpenDb(config Config) (*sql.DB, error) {
-	connConfig := pgx.ConnConfig{
-		Host:     config.Host,
-		Port:     config.Port,
-		Database: config.DB,
-		User:     config.User,
-		Password: config.Password,
+	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
+
+	var connConfig pgx.ConnConfig
+	if environment == "develop" { 
+		connConfig = pgx.ConnConfig{
+			Host:     config.Host,
+			Port:     config.Port,
+			Database: config.DB,
+			LogLevel: 4,
+			Logger: logrusadapter.NewLogger(blogger.New()),
+			User:     config.User,
+			Password: config.Password,
+		}
+	} else {
+		connConfig = pgx.ConnConfig{
+			Host:     config.Host,
+			Port:     config.Port,
+			Database: config.DB,
+			User:     config.User,
+			Password: config.Password,
+		}
 	}
+
 	poolCfg := pgx.ConnPoolConfig{
 		ConnConfig:     connConfig,
 		MaxConnections: config.MaxOpen(),
 	}
+
 	pool, err := pgx.NewConnPool(poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("%w: pool %s", ErrorConnection, err)
 	}
+
 	return stdlib.OpenDBFromPool(pool), nil
 }

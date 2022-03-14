@@ -39,7 +39,6 @@ func confFromFile(fileName string) (*CorsConfig, error) {
 }
 
 func GetConfig() (*Config, error) {
-
 	port, err := strconv.ParseInt(os.Getenv("DATABASE_PORT"), 10, 16)
 	if err != nil {
 		return nil, err
@@ -49,6 +48,7 @@ func GetConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	pgCong := pg.Config{
 		Password: os.Getenv("DATABASE_PASS"),
 		Host:     os.Getenv("DATABASE_HOST"),
@@ -56,6 +56,7 @@ func GetConfig() (*Config, error) {
 		Port:     uint16(port),
 		DB:       os.Getenv("DATABASE_NAME"),
 	}
+	
 	cors, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
 		return nil, err
