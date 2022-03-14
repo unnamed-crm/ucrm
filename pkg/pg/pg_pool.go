@@ -98,13 +98,13 @@ func OpenDb(config Config) (*sql.DB, error) {
 	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
 
 	var connConfig pgx.ConnConfig
-	if environment == "develop" { 
+	if environment == "develop" {
 		connConfig = pgx.ConnConfig{
 			Host:     config.Host,
 			Port:     config.Port,
 			Database: config.DB,
 			LogLevel: 4,
-			Logger: logrusadapter.NewLogger(blogger.New()),
+			Logger:   logrusadapter.NewLogger(blogger.New()),
 			User:     config.User,
 			Password: config.Password,
 		}

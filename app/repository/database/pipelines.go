@@ -136,25 +136,25 @@ func (r *DbService) UpdateOrder(pipelineId string, dashboardId string, oldOrder 
 	if newOrder > oldOrder {
 		changeOperator = "-"
 		comparisionMark = "<="
-	} else { 
+	} else {
 		changeOperator = "+"
 		comparisionMark = ">="
 	}
 
-	_, err := 
+	_, err :=
 		sq.Update("pipelines p").
-			 	Set(`"order"`, 
-					sq.Case().
-							When(sq.Expr("p.id = ?", pipelineId), strconv.Itoa(newOrder)).
-							When(sq.Expr(fmt.Sprintf("p.order %s ?", comparisionMark), strconv.Itoa(newOrder)), 
-									fmt.Sprintf("p.order %s 1", changeOperator)).
-							Else(sq.Expr(`"order"`)),
-			 	).
+			Set(`"order"`,
+				sq.Case().
+					When(sq.Expr("p.id = ?", pipelineId), strconv.Itoa(newOrder)).
+					When(sq.Expr(fmt.Sprintf("p.order %s ?", comparisionMark), strconv.Itoa(newOrder)),
+						fmt.Sprintf("p.order %s 1", changeOperator)).
+					Else(sq.Expr(`"order"`)),
+			).
 			Where(sq.Eq{"dashboard_id": dashboardId}).
 			RunWith(r.pool.Write()).
 			PlaceholderFormat(sq.Dollar).
 			Exec()
-	
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
