@@ -132,8 +132,8 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload UpdateOrder
-	decode_err := json.NewDecoder(r.Body).Decode(&payload)
-	if decode_err != nil {
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload: pipelines/createOne",
 			Code:  http.StatusBadRequest,
