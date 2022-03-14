@@ -3,7 +3,7 @@ package pipelines
 import (
 	"encoding/json"
 	"net/http"
-	// "strconv"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/models"
@@ -94,41 +94,54 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "pipelineId")
+	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 	dashboardId := chi.URLParam(r, "dashboardId")
-
-	if len(id) == 0 {
+	
+	if len(pipelineId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missing id: pipelines/updateOrder",
+			Error: "missign id: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
+
 	if len(orderQuery) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missing order id: pipelines/updateOrder",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-	if len(dashboardId) == 0 {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "missing dashboard id: pipelines/updateOrder",
+			Error: "missign order: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
-	// order, err := strconv.Atoi(orderQuery)
-	// if err != nil {
-	// 	httpext.JSON(w, httpext.CommonError{
-	// 		Error: err.Error(),
-	// 		Code:  http.StatusInternalServerError,
-	// 	}, http.StatusInternalServerError)
-	// 	return
-	// }
-	pipelines, err := c.repo.GetAllPipelines(dashboardId)
+	if len(dashboardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missign dashboardId: pipelines/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	newOrder, err := strconv.Atoi(orderQuery)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "incorrect value for order: pipelines/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var payload UpdateOrder
+	decode_err := json.NewDecoder(r.Body).Decode(&payload)
+	if decode_err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload: pipelines/createOne",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}		
+
+	err = c.repo.UpdateOrder(pipelineId, dashboardId, payload.OldOrder, newOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -136,11 +149,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	if len(pipelines) == 0 {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "pipelines not found: pipelines/updateOrder",
-			Code:  http.StatusNotFound,
-		}, http.StatusNotFound)
-		return
-	}
+
+	var Response struct {}
+	httpext.JSON(w, Response, http.StatusOK)
 }

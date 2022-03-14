@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
@@ -91,6 +93,7 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 	}
 	return pipelines, nil
 }
+
 func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 	_, err := sq.Update("pipelines").
 		Set("name", name).
@@ -120,4 +123,44 @@ func (r *DbService) DeletePipelineById(pipelineId string) error {
 		return err
 	}
 	return err
+}
+
+func (r *DbService) UpdateOrder(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
+	if newOrder <= 0 {
+		return errors.New("Incorrect order for pipeline")
+	}
+
+	var changeOperator string
+	var comparisionMark string
+
+	if newOrder > oldOrder {
+		changeOperator = "-"
+		comparisionMark = "<="
+	} else { 
+		changeOperator = "+"
+		comparisionMark = ">="
+	}
+
+	_, err := 
+		sq.Update("pipelines p").
+			 	Set(`"order"`, 
+					sq.Case().
+							When(sq.Expr("p.id = ?", pipelineId), strconv.Itoa(newOrder)).
+							When(sq.Expr(fmt.Sprintf("p.order %s ?", comparisionMark), strconv.Itoa(newOrder)), 
+									fmt.Sprintf("p.order %s 1", changeOperator)).
+							Else(sq.Expr(`"order"`)),
+			 	).
+			Where(sq.Eq{"dashboard_id": dashboardId}).
+			RunWith(r.pool.Write()).
+			PlaceholderFormat(sq.Dollar).
+			Exec()
+	
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
