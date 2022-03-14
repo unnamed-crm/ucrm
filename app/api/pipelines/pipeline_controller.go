@@ -97,7 +97,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 	dashboardId := chi.URLParam(r, "dashboardId")
-	
+
 	if len(pipelineId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/updateOrder",
@@ -139,7 +139,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
-	}		
+	}
 
 	err = c.repo.UpdateOrder(pipelineId, dashboardId, payload.OldOrder, newOrder)
 	if err != nil {

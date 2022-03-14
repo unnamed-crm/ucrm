@@ -56,7 +56,7 @@ func GetConfig() (*Config, error) {
 		Port:     uint16(port),
 		DB:       os.Getenv("DATABASE_NAME"),
 	}
-	
+
 	cors, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
 		return nil, err
