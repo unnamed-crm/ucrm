@@ -150,6 +150,5 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var Response struct {}
-	httpext.JSON(w, Response, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
