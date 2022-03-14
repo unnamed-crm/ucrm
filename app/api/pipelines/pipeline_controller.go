@@ -100,7 +100,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	
 	if len(pipelineId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missign id: pipelines/updateOrder",
+			Error: "missing id: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -108,7 +108,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
 	if len(orderQuery) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missign order: pipelines/updateOrder",
+			Error: "missing order: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -116,7 +116,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
 	if len(dashboardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missign dashboardId: pipelines/updateOrder",
+			Error: "missing dashboardId: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
