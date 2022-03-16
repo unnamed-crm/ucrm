@@ -9,7 +9,8 @@ import (
 )
 
 func (s *DbService) AddCardWebhook(dashboardId string, url string, name *string) error {
-	_, err := sq.Insert("card_webhook").Columns("url", "name", "dashboard_id").
+	_, err := sq.Insert("card_webhook").
+		Columns("url", "name", "dashboard_id").
 		Values(url, name, dashboardId).
 		Suffix("on conflict (dashboard_id) do update set url = ?", url).
 		RunWith(s.pool.Write()).
@@ -18,6 +19,7 @@ func (s *DbService) AddCardWebhook(dashboardId string, url string, name *string)
 	if err != nil {
 		return err
 	}
+
 	return err
 }
 
@@ -35,6 +37,7 @@ func (s *DbService) GetCardWebhookByDashboardId(dashboardId string) (*models.Car
 		}
 		return nil, err
 	}
+
 	return &webhook, nil
 }
 
@@ -55,5 +58,6 @@ func (s *DbService) GetCardWebhookByPipelineId(pipelineId string) (*models.CardW
 		}
 		return nil, err
 	}
+
 	return &webhook, nil
 }

@@ -12,6 +12,7 @@ import (
 
 func (r *DbService) AddPipeline(name string, dashboardId string, order int) (*models.Pipeline, error) {
 	pipeline := &models.Pipeline{}
+
 	row := sq.Insert("pipelines").Columns("name", "dashboard_id", `"order"`).
 		Values(name, dashboardId, order).
 		Suffix(`returning id,name,"order",dashboard_id,updated_at`).
@@ -19,6 +20,7 @@ func (r *DbService) AddPipeline(name string, dashboardId string, order int) (*mo
 	if err := row.Scan(&pipeline.Id, &pipeline.Name, &pipeline.Order, &pipeline.DashboardId, &pipeline.UpdatedAt); err != nil {
 		return nil, err
 	}
+
 	return pipeline, nil
 }
 
@@ -37,6 +39,7 @@ func (r *DbService) GetOnePipeline(pipelineId string) (*models.Pipeline, error) 
 		}
 		return nil, err
 	}
+
 	return pipeline, nil
 }
 
@@ -54,6 +57,7 @@ func (r *DbService) GetAccessPipelineById(pipelineId string, userId string, acce
 	} else {
 		builder.Where(sq.Eq{"du.access": accessType})
 	}
+
 	row := builder.RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
@@ -63,6 +67,7 @@ func (r *DbService) GetAccessPipelineById(pipelineId string, userId string, acce
 		}
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -76,13 +81,13 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
+
 	defer rows.Close()
 	for rows.Next() {
 		var p models.Pipeline
@@ -91,6 +96,7 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 		}
 		pipelines = append(pipelines, p)
 	}
+
 	return pipelines, nil
 }
 
@@ -107,6 +113,7 @@ func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 		}
 		return err
 	}
+
 	return err
 }
 
@@ -122,12 +129,13 @@ func (r *DbService) DeletePipelineById(pipelineId string) error {
 		}
 		return err
 	}
+
 	return err
 }
 
 func (r *DbService) UpdateOrder(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
 	if newOrder <= 0 {
-		return errors.New("Incorrect order for pipeline")
+		return errors.New("incorrect order for pipeline")
 	}
 
 	var changeOperator string

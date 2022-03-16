@@ -190,5 +190,6 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusNotFound)
 		return
 	}
+
 	httpext.JSON(w, card, http.StatusOK)
 }

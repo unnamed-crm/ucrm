@@ -8,6 +8,5 @@ func RegisterRouter(r chi.Router, controller *Controller) {
 			r.Post("/sign-up", controller.SignUp)
 			r.Post("/sign-in", controller.SignIn)
 		})
-
 	})
 }
