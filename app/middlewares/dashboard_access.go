@@ -21,6 +21,7 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 				var payload struct {
 					DashboardId string `json:"dashboard_id"`
 				}
+
 				body, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
@@ -29,6 +30,7 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 					}, http.StatusBadRequest)
 					return
 				}
+
 				reader := ioutil.NopCloser(bytes.NewReader(body))
 				r.Body = reader
 				err = json.Unmarshal(body, &payload)
@@ -39,8 +41,10 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 					}, http.StatusBadRequest)
 					return
 				}
+
 				id = payload.DashboardId
 			}
+
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[DashboardAccessGuard]/wrong id",
@@ -48,6 +52,7 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 				}, http.StatusBadRequest)
 				return
 			}
+
 			userId := auth.GetUserIdFromContext(ctx)
 			dashboard, err := repo.GetOneDashboardWithUserAccess(id, userId, accessType)
 			if err != nil {
@@ -57,12 +62,14 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 				}, http.StatusInternalServerError)
 				return
 			}
+
 			for _, d := range dashboard.Users {
 				if d.UserId == userId && d.Access == accessType {
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return
 				}
 			}
+
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Forbidden"))
 		})

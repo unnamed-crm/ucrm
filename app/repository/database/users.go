@@ -11,18 +11,24 @@ import (
 
 func (r *DbService) AddUser(email string, password string) (*models.User, error) {
 	user := &models.User{}
-	row := sq.Insert("users").Columns("password", "email").
+
+	row := sq.Insert("users").
+		Columns("password", "email").
 		Values(password, email).
 		Suffix("returning id,password,email,created_at").
-		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
 	if err := row.Scan(&user.Id, &user.Password, &user.Email, &user.CreatedAt); err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
 func (r *DbService) GetOneUserByEmail(email string, password string) (*models.User, error) {
 	user := &models.User{}
+
 	row := sq.Select("id,email,password,avatar_url,created_at").
 		From("users").
 		Where(sq.Eq{"email": email, "password": password}).
@@ -35,5 +41,6 @@ func (r *DbService) GetOneUserByEmail(email string, password string) (*models.Us
 		}
 		return nil, err
 	}
+
 	return user, nil
 }

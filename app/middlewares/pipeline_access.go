@@ -21,6 +21,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 				var payload struct {
 					PipelineId string `json:"pipeline_id"`
 				}
+
 				body, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
@@ -29,6 +30,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 					}, http.StatusBadRequest)
 					return
 				}
+
 				reader := ioutil.NopCloser(bytes.NewReader(body))
 				r.Body = reader
 				err = json.Unmarshal(body, &payload)
@@ -39,8 +41,10 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 					}, http.StatusBadRequest)
 					return
 				}
+				
 				id = payload.PipelineId
 			}
+
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[PipelineAccessGuard]/wrong id",
@@ -48,6 +52,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 				}, http.StatusBadRequest)
 				return
 			}
+
 			userId := auth.GetUserIdFromContext(ctx)
 			ok, err := repo.GetAccessPipelineById(id, userId, accessType)
 			if err != nil {
@@ -57,10 +62,12 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 				}, http.StatusInternalServerError)
 				return
 			}
+
 			if ok {
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
+
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Forbidden"))
 		})

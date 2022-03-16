@@ -20,8 +20,8 @@ func IsAdminGuard(repo repository.DashboardRepository) func(next http.Handler) h
 					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
-
 			}
+
 			userId := auth.GetUserIdFromContext(ctx)
 			dashboard, err := repo.GetOneDashboardWithUserAccess(id, userId, "rw")
 			if err != nil {
@@ -31,6 +31,7 @@ func IsAdminGuard(repo repository.DashboardRepository) func(next http.Handler) h
 				}, http.StatusInternalServerError)
 				return
 			}
+
 			if dashboard.AuthorId == userId {
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return

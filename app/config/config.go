@@ -30,11 +30,13 @@ func confFromFile(fileName string) (*CorsConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var conf CorsConfig
 	defer file.Close()
 	if err := yaml.NewDecoder(file).Decode(&conf); err != nil {
 		return nil, err
 	}
+
 	return &conf, nil
 }
 
