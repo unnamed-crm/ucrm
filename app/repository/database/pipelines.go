@@ -133,7 +133,7 @@ func (r *DbService) DeletePipelineById(pipelineId string) error {
 	return err
 }
 
-func (r *DbService) UpdateOrder(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
+func (r *DbService) UpdateOrderForPipeline(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
 	if newOrder <= 0 {
 		return errors.New("incorrect order for pipeline")
 	}

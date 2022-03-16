@@ -7,4 +7,5 @@ type CardRepository interface {
 	UpdateCard(cardId string, name string) (*models.Card, error)
 	GetOneCard(cardId string) (*models.Card, error)
 	DeleteOneCard(cardId string) error
+	UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error
 }

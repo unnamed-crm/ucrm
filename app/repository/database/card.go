@@ -1,6 +1,11 @@
 package database
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"strconv"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
 )
@@ -62,6 +67,46 @@ func (r *DbService) DeleteOneCard(cardId string) error {
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *DbService) UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error {
+	if newOrder <= 0 {
+		return errors.New("incorrect order for pipeline")
+	}
+
+	var changeOperator string
+	var comparisionMark string
+
+	if newOrder > oldOrder {
+		changeOperator = "-"
+		comparisionMark = "<="
+	} else {
+		changeOperator = "+"
+		comparisionMark = ">="
+	}
+
+	_, err :=
+		sq.Update("cards c").
+			Set(`"order"`,
+				sq.Case().
+					When(sq.Expr("c.id = ?", cardId), strconv.Itoa(newOrder)).
+					When(sq.Expr(fmt.Sprintf("c.order %s ?", comparisionMark), strconv.Itoa(newOrder)),
+						fmt.Sprintf("c.order %s 1", changeOperator)).
+					Else(sq.Expr(`"order"`)),
+			).
+			Where(sq.Eq{"pipeline_id": pipelineId}).
+			RunWith(r.pool.Write()).
+			PlaceholderFormat(sq.Dollar).
+			Exec()
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
 		return err
 	}
 

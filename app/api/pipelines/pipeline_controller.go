@@ -151,7 +151,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.UpdateOrder(pipelineId, dashboardId, payload.OldOrder, newOrder)
+	err = c.repo.UpdateOrderForPipeline(pipelineId, dashboardId, payload.OldOrder, newOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
