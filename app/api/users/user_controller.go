@@ -49,6 +49,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 	pwd := sha1.New()
 	pwd.Write([]byte(payload.Password))
 	pwd.Write([]byte(c.auth.GetHashSalt()))
+
 	user, err := c.repo.AddUser(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
 	if err != nil {
 		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
@@ -98,6 +99,7 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	if user == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "user not found",
@@ -105,6 +107,7 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusNotFound)
 		return
 	}
+
 	ctx := r.Context()
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
@@ -119,5 +122,4 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		User:  *user,
 		Token: accessToken,
 	}, http.StatusCreated)
-
 }

@@ -21,6 +21,7 @@ func NewController(repo repository.PipelineRepository) *Controller {
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	var payload CreateOnePayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -29,6 +30,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	pipeline, err := c.repo.AddPipeline(payload.Name, payload.DashboardId, payload.Order)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -37,10 +39,12 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	var Response struct {
 		Pipeline models.Pipeline `json:"pipeline"`
 	}
 	Response.Pipeline = *pipeline
+
 	httpext.JSON(w, Response, http.StatusCreated)
 }
 
@@ -48,6 +52,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Name string `json:"name"`
 	}
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -56,6 +61,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	id := chi.URLParam(r, "pipelineId")
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
@@ -64,6 +70,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	err = c.repo.UpdatePipelineName(id, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -71,6 +78,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -83,6 +91,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	err := c.repo.DeletePipelineById(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -90,6 +99,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 	}
+	
 	w.WriteHeader(http.StatusOK)
 }
 

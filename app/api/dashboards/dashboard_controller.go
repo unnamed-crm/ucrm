@@ -24,6 +24,7 @@ func NewController(repo repository.DashboardRepository, webhookRepo repository.C
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateDashboardPayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -32,6 +33,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	userId := auth.GetUserIdFromContext(ctx)
 	dashboard, err := c.repo.AddDashboard(payload.Name, userId)
 	if err != nil {
@@ -41,6 +43,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	httpext.JSON(w, CreateDashboardResponse{
 		Dashboard: *dashboard,
 	}, http.StatusCreated)
@@ -57,6 +60,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusBadRequest)
 		return
 	}
+
 	err = payload.Validate()
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -65,6 +69,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusBadRequest)
 		return
 	}
+
 	dashboard, err := c.repo.GetOneDashboard(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -73,6 +78,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	if dashboard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "dashboard not found",
@@ -80,6 +86,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusNotFound)
 		return
 	}
+
 	if dashboard.AuthorId == payload.UserId {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "user author this dashboard",
@@ -87,6 +94,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusBadRequest)
 		return
 	}
+
 	id, err := c.repo.AddUserToDashboard(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -95,6 +103,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	httpext.JSON(w, AddUserToDashboardResponse{
 		UserDashboardId: *id,
 	}, 201)
@@ -114,6 +123,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	var payload UpdateNamePayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -122,6 +132,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	if len(payload.Name) < 2 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "name too short",
@@ -129,6 +140,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	err = c.repo.UpdateDashboardName(id, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -137,11 +149,13 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
+
 	err := c.repo.DeleteDashboardById(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -150,12 +164,14 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	var payload AddWebhookPayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -164,6 +180,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	if len(payload.Url) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "url to short",
@@ -171,6 +188,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	err = c.webhookRepo.AddCardWebhook(id, payload.Url, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -192,6 +210,7 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	var payload AddSettingsPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -214,5 +233,6 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+	
 	httpext.JSON(w, settings, http.StatusOK)
 }
