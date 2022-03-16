@@ -38,6 +38,6 @@ func SendCardUpdatesToSubscriber(hostUrl string, newState interface{}, oldState 
 	if err != nil {
 		blogger.Errorf("[Trigger] url webhook: %s, [Error] :%s", hostUrl, err.Error())
 	}
-	
+
 	blogger.Infof("[Trigger] url webhook: %s, [Result] :%s", hostUrl, resp.Status)
 }

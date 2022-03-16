@@ -7,7 +7,7 @@ import (
 
 func (r *DbService) AddCard(name string, order int, pipelineId string) (*models.Card, error) {
 	card := &models.Card{}
-	
+
 	row := sq.Insert("cards").
 		Columns("name", "pipeline_id", `"order"`).
 		Values(name, pipelineId, order).
@@ -64,6 +64,6 @@ func (r *DbService) DeleteOneCard(cardId string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }

@@ -39,7 +39,7 @@ func (c *Controller) WsEndpoint(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		blogger.Error(err.Error())
 	}
-	
+
 	blogger.Info(settings.DashboardId)
 	blogger.Infof("[Connected :%s]", r.Host)
 }

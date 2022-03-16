@@ -58,6 +58,6 @@ func (s *DbService) GetCardWebhookByPipelineId(pipelineId string) (*models.CardW
 		}
 		return nil, err
 	}
-	
+
 	return &webhook, nil
 }

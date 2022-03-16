@@ -99,7 +99,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 	}
-	
+
 	w.WriteHeader(http.StatusOK)
 }
 

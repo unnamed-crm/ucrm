@@ -233,6 +233,6 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-	
+
 	httpext.JSON(w, settings, http.StatusOK)
 }

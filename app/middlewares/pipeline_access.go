@@ -41,7 +41,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 					}, http.StatusBadRequest)
 					return
 				}
-				
+
 				id = payload.PipelineId
 			}
 

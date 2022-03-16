@@ -57,7 +57,7 @@ func (r *DbService) GetAccessPipelineById(pipelineId string, userId string, acce
 	} else {
 		builder.Where(sq.Eq{"du.access": accessType})
 	}
-	
+
 	row := builder.RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
@@ -87,7 +87,7 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 		}
 		return nil, err
 	}
-	
+
 	defer rows.Close()
 	for rows.Next() {
 		var p models.Pipeline

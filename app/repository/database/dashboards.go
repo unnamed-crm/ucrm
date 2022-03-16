@@ -54,7 +54,7 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		dashboardUsers = append(dashboardUsers, da)
 	}
 	dashboard.Users = dashboardUsers
-	
+
 	return &dashboard, nil
 }
 
