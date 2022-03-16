@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/log/logrusadapter"
@@ -54,8 +52,8 @@ func (s *SingleConnection) Close(ctx context.Context) error {
 	return s.conn.Close()
 }
 
-func NewSingle(ctx context.Context, config Config) (*SingleConnection, error) {
-	db, err := OpenDb(config)
+func NewSingle(ctx context.Context, config Config, withLogger bool) (*SingleConnection, error) {
+	db, err := OpenDb(config, withLogger)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +67,13 @@ type ReadAndWriteConnection struct {
 	write *sql.DB
 }
 
-func NewReadAndWriteConnection(ctx context.Context, read Config, write Config) (*ReadAndWriteConnection, error) {
-	w, err := OpenDb(read)
+func NewReadAndWriteConnection(ctx context.Context, read Config, write Config, withLogger bool) (*ReadAndWriteConnection, error) {
+	w, err := OpenDb(read, withLogger)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := OpenDb(write)
+	r, err := OpenDb(write, withLogger)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +92,9 @@ func (r *ReadAndWriteConnection) Write() *sql.DB {
 	return r.write
 }
 
-func OpenDb(config Config) (*sql.DB, error) {
-	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
-
+func OpenDb(config Config, withLogger bool) (*sql.DB, error) {
 	var connConfig pgx.ConnConfig
-	if environment == "develop" {
+	if withLogger {
 		connConfig = pgx.ConnConfig{
 			Host:     config.Host,
 			Port:     config.Port,

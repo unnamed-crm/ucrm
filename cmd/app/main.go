@@ -15,7 +15,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/api/users"
 	"github.com/ignavan39/ucrm-go/app/api/ws"
 	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/config"
+	conf "github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 	blogger "github.com/sirupsen/logrus"
@@ -23,7 +23,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	config, err := config.GetConfig()
+	config, err := conf.GetConfig()
 	blogger.SetOutput(os.Stdout)
 	blogger.SetFormatter(&blogger.TextFormatter{})
 
@@ -31,7 +31,11 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
-	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database)
+	withLogger := false
+	if config.Evnironment == conf.DevelopEnironment {
+		withLogger = true
+	}
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
 
 	if err != nil {
 		blogger.Fatal(err.Error())
@@ -48,10 +52,14 @@ func main() {
 	wsController := ws.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
+		if config.Evnironment == conf.DevelopEnironment {
+			v1.Use(
+				chim.Logger,
+				chim.RequestID,
+			)
+		}
 		v1.Use(
-			chim.Logger,
 			chim.Recoverer,
-			chim.RequestID,
 		)
 		users.RegisterRouter(v1, userController)
 		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)

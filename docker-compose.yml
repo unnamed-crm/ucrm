@@ -68,11 +68,9 @@ services:
   app:
     depends_on:
       - postgres
-    links:
-      - postgres
     build:
       context: ./
-      dockerfile: docker/develop/app.Dockerfile
+      dockerfile: docker/develop/app.dockerfile
     env_file:
       - .env
     image: app:docker

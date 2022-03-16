@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"os"
 	"strconv"
@@ -12,6 +13,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	DevelopEnironment    = "develop"
+	ProductionEnironment = "production"
+)
+
+var environments = [...]string{DevelopEnironment, ProductionEnironment}
+
 type JWTConfig struct {
 	HashSalt       string        `env:"JWT_HASH_SALT"`
 	SigningKey     string        `env:"JWT_SIGNING_KEY"`
@@ -19,9 +27,19 @@ type JWTConfig struct {
 }
 
 type Config struct {
-	Database pg.Config
-	JWT      JWTConfig
-	Cors     CorsConfig
+	Database    pg.Config
+	JWT         JWTConfig
+	Cors        CorsConfig
+	Evnironment string
+}
+
+func validateEnvironment(env string) bool {
+	for _, e := range environments {
+		if e == env {
+			return true
+		}
+	}
+	return false
 }
 
 func confFromFile(fileName string) (*CorsConfig, error) {
@@ -51,6 +69,15 @@ func GetConfig() (*Config, error) {
 		return nil, err
 	}
 
+	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
+	if len(environment) == 0 {
+		environment = DevelopEnironment
+	}
+	finded := validateEnvironment(environment)
+	if !finded {
+		return nil, fmt.Errorf("[Environment] Undeclared name :%s", environment)
+	}
+
 	pgCong := pg.Config{
 		Password: os.Getenv("DATABASE_PASS"),
 		Host:     os.Getenv("DATABASE_HOST"),
@@ -71,6 +98,7 @@ func GetConfig() (*Config, error) {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
-		Cors: *cors,
+		Cors:        *cors,
+		Evnironment: environment,
 	}, nil
 }
