@@ -65,17 +65,24 @@ services:
         ipv4_address: 172.4.4.3
         aliases:
           - ucrm.db.loc
-  app:
+  app: 
     depends_on:
       - postgres
     build:
       context: ./
-      dockerfile: docker/develop/app.dockerfile
+      dockerfile: docker/develop/app.debug.dockerfile
     env_file:
       - .env
     image: app:docker
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
     ports:
       - 8081:8081
+      - 2345:2345
+    entrypoint: 
+      ['/dlv', '--listen=:2345', '--headless=true', '--api-version=2', '--accept-multiclient', 'exec', '/usr/local/bin/app/main']
     deploy:
       resources:
         limits:
