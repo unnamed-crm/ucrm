@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/core/triggers"
@@ -26,6 +27,7 @@ func NewController(repo repository.CardRepository, cardWebhookRepo repository.Ca
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var payload CreateOnePayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -38,9 +40,8 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	card, err := c.repo.AddCard(payload.Name, payload.Order, payload.PipelineId)
-	ctx := r.Context()
-	blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 	if err != nil {
+		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,
@@ -50,13 +51,13 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 
 	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(payload.PipelineId)
 	if err != nil {
+		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[CreateOne] failed to get webhook",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
-	blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 
 	go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
 	httpext.JSON(w, card, http.StatusOK)
@@ -192,4 +193,64 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpext.JSON(w, card, http.StatusOK)
+}
+
+func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+	cardId := chi.URLParam(r, "cardId")
+	pipelineId := chi.URLParam(r, "pipelineId")
+	orderQuery := chi.URLParam(r, "order")
+
+	if len(cardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing cardId: cards/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if len(pipelineId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing pipelineId: cards/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if len(orderQuery) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing order: cards/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	newOrder, err := strconv.Atoi(orderQuery)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing order: cards/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var payload UpdateOrder
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload: pipelines/createOne",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = c.repo.UpdateOrderForCard(cardId, pipelineId, payload.OldOrder, newOrder)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -13,3 +13,7 @@ type UpdateOnePayload struct {
 	// TODO custom fields
 	Fields *map[string]models.CardField `json:"fields,omitempty"`
 }
+
+type UpdateOrder struct {
+	OldOrder int `json:"old_order"`
+}
