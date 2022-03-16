@@ -74,12 +74,32 @@ services:
     env_file:
       - .env
     image: app:docker
+    ports:
+      - 8081:8081
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "100M"
+        reservations:
+          cpus: "0.25"
+          memory: 30M
+
+  app-debug: 
+    depends_on:
+      - postgres
+    build:
+      context: ./
+      dockerfile: docker/develop/app.debug.dockerfile
+    env_file:
+      - .env
+    image: app:docker
     security_opt:
       - seccomp:unconfined
     cap_add:
       - SYS_PTRACE
     ports:
-      - 8080:8080
+      - 8082:8081
       - 2345:2345
     entrypoint: 
       ['/dlv', '--listen=:2345', '--headless=true', '--api-version=2', '--accept-multiclient', 'exec', '/usr/local/bin/app/main']
@@ -93,9 +113,21 @@ services:
           memory: 30M
     networks:
       ucrm:
-        ipv4_address: 172.4.4.2
+        ipv4_address: 172.4.4.3
         aliases:
           - ucrm.api.loc
+  frontend:
+    hostname: "ucrm-frontend"
+    build:
+      context: ./
+      dockerfile: docker/develop/frontend.dockerfile
+    ports:
+      - 8080:80
+    networks:
+      ucrm:
+        ipv4_address: 172.4.4.12
+        aliases:
+          - ucrm.api.frontend.loc
 networks:
   ucrm:
     name: ucrm

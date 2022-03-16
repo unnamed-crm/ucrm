@@ -2,6 +2,8 @@ FROM golang:1.16-alpine as builder
 
 WORKDIR /.
 
+RUN CGO_ENABLED=0 go get -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv
+
 COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
@@ -19,4 +21,4 @@ FROM alpine:3.14
 COPY /config/ /usr/local/bin/app
 COPY --from=builder /app /usr/local/bin/app
 
-ENTRYPOINT ["/usr/local/bin/app/main"]
+COPY --from=builder /go/bin/dlv /

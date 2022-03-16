@@ -41,7 +41,7 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
-	web := api.NewAPIServer(":8080").
+	web := api.NewAPIServer(":8081").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)

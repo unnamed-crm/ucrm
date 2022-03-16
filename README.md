@@ -15,13 +15,17 @@ or do it yourself / the bottom line is that you need to create a subnet in docke
 for example:
 ```bash
 $ docker network create ucrm --subnet 172.4.4.0/24
-$ docker-compose up --build
+$ docker-compose up --build app frontend
 ```
 
 subsequent runs can simply be
 ```bash
-$ docker-compose up --build
+$ docker-compose up --build app frontend
 ```
+
+### Debug
+
+docker-compose up --build app-debug frontend
 ## Database scheme
 
 ![scheme](./.assets/scheme.png)
