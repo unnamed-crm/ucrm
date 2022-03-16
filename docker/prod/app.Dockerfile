@@ -13,11 +13,9 @@ COPY /cmd ./cmd
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o app ./cmd/app/main.go
 
-
 FROM alpine:3.14
 
 COPY /config/ /usr/local/bin/app
 COPY --from=builder /app /usr/local/bin/app
-
 
 ENTRYPOINT ["/usr/local/bin/app/main"]
