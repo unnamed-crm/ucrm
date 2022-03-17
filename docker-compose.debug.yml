@@ -70,7 +70,7 @@ services:
       - postgres
     build:
       context: ./
-      dockerfile: docker/develop/app.debug.dockerfile
+      dockerfile: docker/app.debug.dockerfile
     env_file:
       - .env
     image: app:docker
@@ -97,10 +97,12 @@ services:
         aliases:
           - ucrm.api.loc
   frontend:
+    depends_on:
+      - app
     hostname: "ucrm-frontend"
     build:
       context: ./
-      dockerfile: docker/develop/frontend.dockerfile
+      dockerfile: docker/frontend.dockerfile
     ports:
       - 8080:80
     networks:
