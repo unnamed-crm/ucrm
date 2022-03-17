@@ -22,6 +22,10 @@ subsequent runs can simply be
 ```bash
 $ docker-compose up --build
 ```
+
+### Debug
+
+docker-compose up --build -f docker-compose.debug.yml
 ## Database scheme
 
 ![scheme](./.assets/scheme.png)
