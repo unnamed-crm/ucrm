@@ -47,24 +47,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      # Hack by dahack for next step
-      - name: Copy files to workdir
-        id: copy-backend
-        shell: bash
-        run: |
-          cp -r ./config ./docker
-          cp -r ./app ./docker
-          cp -r ./cmd ./docker
-          cp -r ./pkg ./docker
-          cp -r ./frontend ./docker
-          cp go.sum  ./docker
-          cp go.mod ./docker
-
       - name: Build and push Backend
         id: build-and-push
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: docker
+          context: .
           file: docker/app.Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
