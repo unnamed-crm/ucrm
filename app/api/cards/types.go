@@ -18,6 +18,6 @@ type UpdateOrder struct {
 }
 
 type AddCustomField struct { 
-	name string `json:"value"`
-	isNullable bool `json:"is_nullable"`
+	Name string `json:"value"`
+	IsNullable bool `json:"is_nullable"`
 }

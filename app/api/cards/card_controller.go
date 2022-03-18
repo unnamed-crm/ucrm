@@ -286,7 +286,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	field, err := c.repo.AddCustomFieldForCard(dashboardId, cardId, payload.name, payload.isNullable)
+	field, err := c.repo.AddCustomFieldForCard(dashboardId, cardId, payload.Name, payload.IsNullable)
 	if err != nil {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
