@@ -28,12 +28,12 @@
 <script>
   export default {
     methods: {
-      register: function () {
+      register: () => {
         let data = {
           name: this.name,
           email: this.email,
           password: this.password,
-          is_admin: this.is_admin
+          isAdmin: this.isAdmin
         }
         this.$store.dispatch('register', data)
        .then(() => this.$router.push('/'))
