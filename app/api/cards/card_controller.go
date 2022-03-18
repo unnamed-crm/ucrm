@@ -254,3 +254,47 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	dashboardId := chi.URLParam(r, "dashboardId")
+	cardId := chi.URLParam(r, "cardId")
+
+	if len(cardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing dashboardId: cards/addCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if len(dashboardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing cardId: cards/addCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var payload AddCustomField
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload: cards/addCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	field, err := c.repo.AddCustomFieldForCard(dashboardId, cardId, payload.name, payload.isNullable)
+	if err != nil {
+		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[AddCustomField]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	httpext.JSON(w, field, http.StatusOK)
+}

@@ -10,10 +10,14 @@ type CreateOnePayload struct {
 
 type UpdateOnePayload struct {
 	Name string `json:"name"`
-	// TODO custom fields
 	Fields *map[string]models.CardField `json:"fields,omitempty"`
 }
 
 type UpdateOrder struct {
 	OldOrder int `json:"old_order"`
+}
+
+type AddCustomField struct { 
+	name string `json:"value"`
+	isNullable bool `json:"is_nullable"`
 }

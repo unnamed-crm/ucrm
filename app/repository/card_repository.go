@@ -8,4 +8,5 @@ type CardRepository interface {
 	GetOneCard(cardId string) (*models.Card, error)
 	DeleteOneCard(cardId string) error
 	UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error
+	AddCustomFieldForCard(dashboardId string, cardId string, name string, isNullable bool) (*models.Field, error)
 }
