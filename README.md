@@ -24,8 +24,9 @@ $ docker-compose up --build
 ```
 
 ### Debug
-
-docker-compose -f docker-compose.debug.yml up --build
+```bash
+$ docker-compose -f docker-compose.debug.yml up --build
+```
 ## Database scheme
 
 ![scheme](./.assets/scheme.png)
