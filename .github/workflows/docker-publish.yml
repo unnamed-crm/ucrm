@@ -4,9 +4,9 @@ on:
   push:
     tags:
       - "release.*.*"
-    branches: [release.*.*]
+    branches: [release.*.*, ci/fix-step]
   pull_request:
-    branches: [release.*.*]
+    branches: [release.*.*, ci/fix-step]
 
 env:
   REGISTRY: ghcr.io
@@ -14,13 +14,12 @@ env:
   IMAGE_NAME_FRONT: ${{ github.repository }}-frontend
 
 jobs:
-  build:
+  sign:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       id-token: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -42,17 +41,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+  build-backend:
+    needs: [sign]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
       - name: Extract Docker metadata Backend
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Extract Docker metadata Frontend
-        id: meta-front
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}
 
       - name: Build and push Backend
         id: build-and-push
@@ -64,6 +66,27 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Sign the published Docker image Backend
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
+
+  build-frontend:
+    needs: [sign]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Extract Docker metadata Frontend
+        id: meta-front
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}
+
       - name: Build and Push Frontend
         id: build-and-push-front
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
@@ -74,15 +97,8 @@ jobs:
           tags: ${{ steps.meta-front.outputs.tags }}
           labels: ${{ steps.meta-front.outputs.labels }}
 
-      - name: Sign the published Docker image Backend
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
-
       - name: Sign the published Docker image Frontend
         if: ${{ github.event_name != 'pull_request' }}
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}@${{ steps.build-and-push-front.outputs.digest }}
-
