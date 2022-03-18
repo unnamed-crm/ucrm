@@ -72,7 +72,7 @@ export default createStore({
       });
     },
     logout({ commit }) {
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         commit("logout");
         localStorage.removeItem("token");
         delete axios.defaults.headers.common["Authorization"];

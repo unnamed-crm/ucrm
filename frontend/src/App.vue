@@ -16,20 +16,20 @@
 <script>
 export default {
   computed: {
-    isLoggedIn: function () {
+    isLoggedIn: () => {
       return this.$store.getters.isLoggedIn;
     },
   },
   methods: {
-    logout: function () {
+    logout: () => {
       this.$store.dispatch("logout").then(() => {
         this.$router.push("/login");
       });
     },
-    login: function () {
+    login: () => {
       this.$router.push("/login");
     },
-    register: function () {
+    register: () => {
       this.$router.push("/register");
     },
   },
