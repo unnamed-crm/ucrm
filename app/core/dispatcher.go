@@ -1,7 +1,6 @@
 package core
 
 import (
-
 	"github.com/streadway/amqp"
 )
 
@@ -19,7 +18,7 @@ func NewDispatcher(conn *amqp.Connection) *Dispatcher {
 	}
 }
 
-func (d *Dispatcher) GetChannel(dashboardId string) (*Reciever) {
+func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	reciever, found := d.recievers[dashboardId]
 	if found {
 		return reciever
@@ -29,4 +28,3 @@ func (d *Dispatcher) GetChannel(dashboardId string) (*Reciever) {
 	d.recievers[dashboardId] = newReciever
 	return newReciever
 }
-

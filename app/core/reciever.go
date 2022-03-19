@@ -8,14 +8,14 @@ import (
 )
 
 type Reciever struct {
-	pool     map[string][]*ClientQueue
+	pool     map[string]*ClientQueue
 	queueOut chan *ClientQueuePayload
 	conn     *amqp.Connection
 }
 
 func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
 	return &Reciever{
-		pool:     map[string][]*ClientQueue{},
+		pool:     make(map[string]*ClientQueue),
 		queueOut: queueOut,
 		conn:     conn,
 	}
@@ -27,55 +27,39 @@ func (d *Reciever) AddQueue(
 	chatId string,
 	userId string,
 ) (*ClientQueue, error) {
-	queues, found := d.pool[dashboardId]
 	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, d.conn)
 	if err != nil {
 		return nil, err
 	}
-	if !found {
-		queues = []*ClientQueue{queue}
-	} else {
-		queues = append(queues, queue)
-	}
-	d.pool[dashboardId] = queues
+	
+	d.pool[queue.config.QueueName] = queue
 	return queue, nil
 }
 
-func (d *Reciever) Subscribe(dashboardId string, queueName string) error {
-	queues, found := d.pool[dashboardId]
+func (d *Reciever) Subscribe(queueName string) error {
+	queue, found := d.pool[queueName]
 	if !found {
 		return errors.New("queue not found")
 	}
-	for _, q := range queues {
-		if q.config.QueueName == queueName {
-			q.Start(d.queueOut)
-			return nil
-		}
-	}
-	return errors.New("queue not found")
+
+	queue.Start(d.queueOut)
+	return nil
 }
 
-func (d *Reciever) Unsubscribe(dashboardId string, queueName string) (bool,error) {
-	queues, found := d.pool[dashboardId]
+func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
+	queue, found := d.pool[queueName]
+
 	if !found {
-		return false,errors.New("queue not found")
+		return false, errors.New("queue not found")
 	}
-	index := -1
-	for idx, q := range queues {
-		if q.config.QueueName == queueName {
-			index = idx
-			err := q.Stop()
-			if err != nil {
-				return true,err
-			}
-		}
+
+	err := queue.Stop()
+	if err != nil {
+		return true, err
 	}
-	if index == -1 {
-		return false,errors.New("queue not found")
-	}
-	queues = append(queues[:index], queues[index+1:]...)
-	d.pool[dashboardId] = queues
-	return false,nil 
+
+	delete(d.pool, queueName)
+	return false, nil
 }
 
 func (d *Reciever) Out() <-chan *ClientQueuePayload {

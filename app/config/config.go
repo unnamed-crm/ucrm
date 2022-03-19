@@ -106,7 +106,7 @@ func GetConfig() (*Config, error) {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
-		RabbitMq: rmq,
+		RabbitMq:    rmq,
 		Cors:        *cors,
 		Evnironment: environment,
 	}, nil

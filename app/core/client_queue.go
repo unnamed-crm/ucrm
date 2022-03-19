@@ -32,11 +32,11 @@ type ClientQueue struct {
 }
 
 func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId string, userId string, conn *amqp.Connection) (*ClientQueue, error) {
-
 	amqpChannel, err := conn.Channel()
 	if err != nil {
 		return nil, err
 	}
+
 	pwd := sha1.New()
 	pwd.Write([]byte(fmt.Sprintf("%s%s%s", dashboardId, chatId, userId)))
 	pwd.Write([]byte(conf.Salt))
@@ -56,10 +56,12 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 	if err != nil {
 		return nil, err
 	}
+
 	err = amqpChannel.QueueBind(name, name, "amq.topic", true, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	msgs, err := amqpChannel.Consume(
 		name,
 		"",
@@ -101,12 +103,15 @@ func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 		}
 	}()
 }
+
 func (c *ClientQueue) Stop() error {
 	go func() {
 		c.stop <- true
 		close(c.stop)
 	}()
+
 	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
+	
 	if err != nil {
 		blogger.Errorf("[%s] : %s", c.config.QueueName, err.Error())
 		return err

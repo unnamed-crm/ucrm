@@ -40,7 +40,7 @@ func main() {
 		withLogger = true
 	}
 	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
-	
+
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
@@ -62,8 +62,8 @@ func main() {
 	dashboardController := dashboards.NewController(dbService, dbService)
 	pipelineController := pipelines.NewController(dbService)
 	cardController := cards.NewController(dbService, dbService)
-	wsController := ws.NewController(dbService,dispatcher)
-	connectController := connect.NewController(dispatcher,dbService,*config)
+	wsController := ws.NewController(dbService, dispatcher)
+	connectController := connect.NewController(dispatcher, dbService, *config)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Evnironment == conf.DevelopEnironment {
@@ -80,7 +80,7 @@ func main() {
 		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
 		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
 		ws.RegisterRouter(v1, wsController)
-		connect.RegisterRouter(v1,connectController,config.JWT)
+		connect.RegisterRouter(v1, connectController, config.JWT)
 	})
 	web.Start()
 

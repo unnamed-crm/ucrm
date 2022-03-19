@@ -32,7 +32,7 @@ func (r *DbService) AddCard(name string, order int, pipelineId string) (*models.
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
-	if err := chatRow.Scan(&chat.Id,&chat.CardId,&chat.LastSender,&chat.LastEmployeeId,&chat.LastMessageId); err != nil {
+	if err := chatRow.Scan(&chat.Id, &chat.CardId, &chat.LastSender, &chat.LastEmployeeId, &chat.LastMessageId); err != nil {
 		return nil, err
 	}
 	card.Chat = &chat

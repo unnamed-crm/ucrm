@@ -11,13 +11,13 @@ import (
 )
 
 type Controller struct {
-	repo repository.DashboardRepository
+	repo       repository.DashboardRepository
 	dispatcher *core.Dispatcher
 }
 
-func NewController(repo repository.DashboardRepository,dispatcher *core.Dispatcher) *Controller {
+func NewController(repo repository.DashboardRepository, dispatcher *core.Dispatcher) *Controller {
 	return &Controller{
-		repo: repo,
+		repo:       repo,
 		dispatcher: dispatcher,
 	}
 }

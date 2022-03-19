@@ -62,7 +62,7 @@ func (c *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reciever := c.dispatcher.GetChannel(payload.DashboardId)
-	err = reciever.Subscribe(payload.DashboardId, payload.QueueName)
+	err = reciever.Subscribe(payload.QueueName)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -85,7 +85,7 @@ func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reciever := c.dispatcher.GetChannel(payload.DashboardId)
-	isInternal, err := reciever.Unsubscribe(payload.DashboardId, payload.QueueName)
+	isInternal, err := reciever.Unsubscribe(payload.QueueName)
 	if err != nil {
 		if isInternal {
 			httpext.JSON(w, httpext.CommonError{
