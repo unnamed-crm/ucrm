@@ -6,7 +6,7 @@ type CardRepository interface {
 	AddCard(name string, order int, pipelineId string) (*models.Card, error)
 	UpdateCard(cardId string, name string) (*models.Card, error)
 	GetOneCard(cardId string) (*models.Card, error)
+	GetOneCardWithRelations(cardId string, relations []string) (*models.Card, error)
 	DeleteOneCard(cardId string) error
 	UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error
-	AddCustomFieldForCard(dashboardId string, cardId string, name string, isNullable bool) (*models.Field, error)
 }
