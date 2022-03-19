@@ -16,7 +16,6 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Pipeli
 			r.Get("/{cardId}", controller.GetOne)
 			r.Patch("/{cardId}", controller.Update)
 			r.Patch("/order/{pipelineId}/{cardId}/{order}", controller.UpdateOrder)
-			r.Post("/custom-field/{dashboardId}/{cardId}", controller.CreateCustomField)
 		})
 	})
 }

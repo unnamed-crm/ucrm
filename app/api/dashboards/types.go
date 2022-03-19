@@ -43,3 +43,8 @@ type UpdateNamePayload struct {
 type AddSettingsPayload struct {
 	Secret string `json:"secret"`
 }
+
+type AddCustomField struct {
+	Name       string `json:"name"`
+	IsNullable bool   `json:"is_nullable"`
+}
