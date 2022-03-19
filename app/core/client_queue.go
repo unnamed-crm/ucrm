@@ -74,6 +74,7 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 	if err != nil {
 		return nil, err
 	}
+	
 	return &ClientQueue{
 		config:      *queueConfig,
 		queueIn:     make(chan *ClientQueuePayload),
@@ -111,7 +112,7 @@ func (c *ClientQueue) Stop() error {
 	}()
 
 	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
-	
+
 	if err != nil {
 		blogger.Errorf("[%s] : %s", c.config.QueueName, err.Error())
 		return err

@@ -23,8 +23,10 @@ func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	if found {
 		return reciever
 	}
+
 	channel := make(chan *ClientQueuePayload)
 	newReciever := NewReciever(channel, d.conn)
 	d.recievers[dashboardId] = newReciever
+	
 	return newReciever
 }
