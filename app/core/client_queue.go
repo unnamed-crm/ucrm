@@ -96,7 +96,6 @@ func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 				err := json.Unmarshal(d.Body, &payload)
 				if err != nil {
 					blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
-					// c.err <- err
 				} else {
 					queueOut <- &payload
 				}
