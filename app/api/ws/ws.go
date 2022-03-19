@@ -5,17 +5,20 @@ import (
 
 	"github.com/go-chi/chi"
 	websocket "github.com/gorilla/websocket"
+	"github.com/ignavan39/ucrm-go/app/core"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	blogger "github.com/sirupsen/logrus"
 )
 
 type Controller struct {
 	repo repository.DashboardRepository
+	dispatcher *core.Dispatcher
 }
 
-func NewController(repo repository.DashboardRepository) *Controller {
+func NewController(repo repository.DashboardRepository,dispatcher *core.Dispatcher) *Controller {
 	return &Controller{
 		repo: repo,
+		dispatcher: dispatcher,
 	}
 }
 

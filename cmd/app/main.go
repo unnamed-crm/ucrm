@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,11 +14,14 @@ import (
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
 	"github.com/ignavan39/ucrm-go/app/api/pipelines"
 	"github.com/ignavan39/ucrm-go/app/api/users"
+	"github.com/ignavan39/ucrm-go/app/core"
+
 	"github.com/ignavan39/ucrm-go/app/api/ws"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	conf "github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
+	"github.com/ignavan39/ucrm-go/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
 
@@ -36,11 +40,21 @@ func main() {
 		withLogger = true
 	}
 	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
-
+	
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
-
+	fmt.Println(config.RabbitMq.Port)
+	rabbitMqConn, err := rmq.NewConnection(
+		config.RabbitMq.User,
+		config.RabbitMq.Password,
+		config.RabbitMq.Host,
+		config.RabbitMq.Port,
+	)
+	if err != nil {
+		blogger.Fatal(err.Error())
+	}
+	dispatcher := core.NewDispatcher(rabbitMqConn)
 	web := api.NewAPIServer(":8081").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
@@ -49,7 +63,7 @@ func main() {
 	dashboardController := dashboards.NewController(dbService, dbService)
 	pipelineController := pipelines.NewController(dbService)
 	cardController := cards.NewController(dbService, dbService)
-	wsController := ws.NewController(dbService)
+	wsController := ws.NewController(dbService,dispatcher)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Evnironment == conf.DevelopEnironment {
