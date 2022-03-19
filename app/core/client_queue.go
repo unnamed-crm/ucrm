@@ -1,7 +1,9 @@
 package core
 
 import (
+	"crypto/sha1"
 	"encoding/json"
+	"fmt"
 
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/streadway/amqp"
@@ -29,19 +31,37 @@ type ClientQueue struct {
 	channel     *amqp.Channel
 }
 
-func NewClientQueue(config ClientQueueConfig, conn *amqp.Connection) (*ClientQueue, error) {
+func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId string, userId string, conn *amqp.Connection) (*ClientQueue, error) {
 
 	amqpChannel, err := conn.Channel()
 	if err != nil {
 		return nil, err
 	}
+	pwd := sha1.New()
+	pwd.Write([]byte(fmt.Sprintf("%s%s%s", dashboardId, chatId, userId)))
+	pwd.Write([]byte(conf.Salt))
 
-	queue, err := amqpChannel.QueueDeclare(config.QueueName, true, false, false, false, nil)
+	name := fmt.Sprintf("%s-%x", logPrefix(), pwd.Sum(nil))
+	queueConfig := &ClientQueueConfig{
+		RoutingKey:     name,
+		QueueName:      name,
+		Exchange:       "amq.topic",
+		ChatId:         chatId,
+		DashboardId:    dashboardId,
+		UserId:         userId,
+		RabbitMqConfig: conf,
+	}
+
+	queue, err := amqpChannel.QueueDeclare(name, true, false, false, false, nil)
+	if err != nil {
+		return nil, err
+	}
+	err = amqpChannel.QueueBind(name, name, "amq.topic", true, nil)
 	if err != nil {
 		return nil, err
 	}
 	msgs, err := amqpChannel.Consume(
-		config.QueueName,
+		name,
 		"",
 		false,
 		false,
@@ -53,7 +73,7 @@ func NewClientQueue(config ClientQueueConfig, conn *amqp.Connection) (*ClientQue
 		return nil, err
 	}
 	return &ClientQueue{
-		config:      config,
+		config:      *queueConfig,
 		queueIn:     make(chan *ClientQueuePayload),
 		err:         make(chan error),
 		Delivery:    msgs,
@@ -65,27 +85,39 @@ func NewClientQueue(config ClientQueueConfig, conn *amqp.Connection) (*ClientQue
 
 func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 	go func() {
-		for d := range c.Delivery {
-			var payload ClientQueuePayload
-			err := json.Unmarshal(d.Body, &payload)
-			if err != nil {
+		select {
+		default:
+			for {
+				d := <-c.Delivery
+				var payload ClientQueuePayload
+				err := json.Unmarshal(d.Body, &payload)
+				if err != nil {
 
+				}
+				queueOut <- &payload
 			}
-			queueOut <- &payload
+		case <-c.stop:
+			return
 		}
 	}()
-	<-c.stop
 }
 func (c *ClientQueue) Stop() error {
-	_, err := c.channel.QueueDelete(c.config.QueueName, true, true, true)
+	go func() {
+		c.stop <- true
+		close(c.stop)
+	}()
+	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
 	if err != nil {
-		blogger.Errorf("[%s] : %s",c.config.QueueName,err.Error())
+		blogger.Errorf("[%s] : %s", c.config.QueueName, err.Error())
 		return err
 	}
-	c.stop <- true
 	return nil
 }
 
 func (c *ClientQueue) GetOptions() ClientQueueConfig {
 	return c.config
+}
+
+func logPrefix() string {
+	return "mqtt-sub"
 }

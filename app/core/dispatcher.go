@@ -1,8 +1,6 @@
 package core
 
 import (
-	"errors"
-	"fmt"
 
 	"github.com/streadway/amqp"
 )
@@ -21,13 +19,14 @@ func NewDispatcher(conn *amqp.Connection) *Dispatcher {
 	}
 }
 
-func (d *Dispatcher) AddChannel(dashboardId string) error {
-	_, found := d.recievers[dashboardId]
+func (d *Dispatcher) GetChannel(dashboardId string) (*Reciever) {
+	reciever, found := d.recievers[dashboardId]
 	if found {
-		return errors.New(fmt.Sprintf("[%s] channel exsist", dashboardId))
+		return reciever
 	}
 	channel := make(chan *ClientQueuePayload)
-	reciever := NewReciever(channel, d.conn)
-	d.recievers[dashboardId] = reciever
-	return nil
+	newReciever := NewReciever(channel, d.conn)
+	d.recievers[dashboardId] = newReciever
+	return newReciever
 }
+

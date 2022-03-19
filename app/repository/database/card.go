@@ -24,6 +24,18 @@ func (r *DbService) AddCard(name string, order int, pipelineId string) (*models.
 		return nil, err
 	}
 
+	var chat models.Chat
+	chatRow := sq.Insert("chats").
+		Columns("card_id").
+		Values(card.Id).
+		Suffix(`returning id,card_id,last_sender,last_employee_id,last_message`).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	if err := chatRow.Scan(&chat.Id,&chat.CardId,&chat.LastSender,&chat.LastEmployeeId,&chat.LastMessageId); err != nil {
+		return nil, err
+	}
+	card.Chat = &chat
 	return card, nil
 }
 

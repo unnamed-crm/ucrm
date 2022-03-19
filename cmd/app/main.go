@@ -11,6 +11,7 @@ import (
 	chim "github.com/go-chi/chi/middleware"
 	"github.com/ignavan39/ucrm-go/app/api"
 	"github.com/ignavan39/ucrm-go/app/api/cards"
+	"github.com/ignavan39/ucrm-go/app/api/connect"
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
 	"github.com/ignavan39/ucrm-go/app/api/pipelines"
 	"github.com/ignavan39/ucrm-go/app/api/users"
@@ -44,7 +45,6 @@ func main() {
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
-	fmt.Println(config.RabbitMq.Port)
 	rabbitMqConn, err := rmq.NewConnection(
 		config.RabbitMq.User,
 		config.RabbitMq.Password,
@@ -64,6 +64,7 @@ func main() {
 	pipelineController := pipelines.NewController(dbService)
 	cardController := cards.NewController(dbService, dbService)
 	wsController := ws.NewController(dbService,dispatcher)
+	connectController := connect.NewController(dispatcher,dbService,*config)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Evnironment == conf.DevelopEnironment {
@@ -80,6 +81,7 @@ func main() {
 		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
 		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
 		ws.RegisterRouter(v1, wsController)
+		connect.RegisterRouter(v1,connectController,config.JWT)
 	})
 	web.Start()
 
