@@ -29,6 +29,7 @@ type JWTConfig struct {
 type Config struct {
 	Database    pg.Config
 	JWT         JWTConfig
+	RabbitMq    RabbitMqConfig
 	Cors        CorsConfig
 	Evnironment string
 }
@@ -86,6 +87,13 @@ func GetConfig() (*Config, error) {
 		DB:       os.Getenv("DATABASE_NAME"),
 	}
 
+	rmq := RabbitMqConfig{
+		Password: os.Getenv("RABBITMQ_PASSWORD"),
+		Host:     os.Getenv("RABBITMQ_HOST"),
+		User:     os.Getenv("RABBITMQ_USER"),
+		Port:     os.Getenv("RABBITMQ_PORT"),
+	}
+
 	cors, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
 		return nil, err
@@ -98,6 +106,7 @@ func GetConfig() (*Config, error) {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
+		RabbitMq:    rmq,
 		Cors:        *cors,
 		Evnironment: environment,
 	}, nil
