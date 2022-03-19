@@ -8,9 +8,10 @@ import (
 )
 
 type Reciever struct {
-	pool     map[string]*ClientQueue
-	queueOut chan *ClientQueuePayload
-	conn     *amqp.Connection
+	pool        map[string]*ClientQueue
+	queueOut    chan *ClientQueuePayload
+	conn        *amqp.Connection
+	middlewares []Middleware
 }
 
 func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
@@ -31,7 +32,7 @@ func (d *Reciever) AddQueue(
 	if err != nil {
 		return nil, err
 	}
-	
+
 	d.pool[queue.config.QueueName] = queue
 	return queue, nil
 }
@@ -64,4 +65,10 @@ func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
 
 func (d *Reciever) Out() <-chan *ClientQueuePayload {
 	return d.queueOut
+}
+
+func (d *Reciever) WithMiddleware(m Middleware) *Reciever {
+	d.middlewares = append(d.middlewares, m)
+	m.Start()
+	return d
 }

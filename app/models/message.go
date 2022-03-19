@@ -14,4 +14,5 @@ type Message struct {
 	CreatedAt time.Time      `json:"created_at"`
 	Deleted   bool           `json:"deleted"`
 	Status    string         `json:"status"`
+	ChatId    string         `json:"chat_id"`
 }
