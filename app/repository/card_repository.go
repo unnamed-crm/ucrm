@@ -1,12 +1,17 @@
 package repository
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import (
+	"context"
+
+	"github.com/ignavan39/ucrm-go/app/models"
+)
 
 type CardRepository interface {
-	AddCard(name string, order int, pipelineId string) (*models.Card, error)
-	UpdateCard(cardId string, name string) (*models.Card, error)
-	GetOneCard(cardId string) (*models.Card, error)
-	GetOneCardWithRelations(cardId string, relations []string) (*models.Card, error)
-	DeleteOneCard(cardId string) error
-	UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error
+	AddCard(ctx context.Context, name string, order int, pipelineId string) (*models.Card, error)
+	UpdateCard(ctx context.Context, cardId string, name string, cardFields *map[string]string) (*models.Card, error)
+	CheckCardExists(ctx context.Context, cardId string) (bool, error)
+	GetOneCard(ctx context.Context, cardId string) (*models.Card, error)
+	GetOneCardWithoutRelations(ctx context.Context, cardId string) (*models.Card, error)
+	DeleteOneCard(ctx context.Context, cardId string) error
+	UpdateOrderForCard(ctx context.Context, cardId string, pipelineId string, oldOrder int, newOrder int) error
 }
