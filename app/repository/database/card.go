@@ -30,56 +30,194 @@ func (r *DbService) AddCard(ctx context.Context, name string, order int, pipelin
 	return card, nil
 }
 
-func (r *DbService) UpdateCard(cardId string, name string) (*models.Card, error) {
+func (r *DbService) CheckCardExists(ctx context.Context, cardId string) (bool, error) {
+	query, _, err := sq.Select("1").
+		From("cards").
+		Where("id = ?").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	if err != nil {
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return false, err
+	}
+
+	completeSql := fmt.Sprintf(`select exists (%s) as "exists"`, query)
+	rows, err := r.pool.Write().
+		Query(completeSql, cardId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return false, err
+		}
+
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return false, err
+	}
+
+	var isExists bool
+	if err := rows.Scan(&isExists); err != nil {
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return false, err
+	}
+
+	return isExists, nil
+}
+
+func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, cardFields *map[string]string) (*models.Card, error) {
 	card := &models.Card{}
 
-	row := sq.Update("cards").
-		Set("name", name).
-		Suffix(`returning id,name,pipeline_id,updated_at,"order"`).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		return nil, err
+	if cardFields != nil {
+		tx, err := r.pool.Write().Begin()
+		if err != nil {
+			blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return nil, err
+		}
+
+		for key, value := range *cardFields {
+			_, err := sq.Update("card_fields c").
+				Set("value", value).
+				Where(sq.Eq{"c.id": key}).
+				RunWith(r.pool.Write()).
+				PlaceholderFormat(sq.Dollar).
+				Exec()
+			if err != nil {
+				if err = tx.Rollback(); err != nil {
+					blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+					return nil, err
+				}
+
+				if errors.Is(err, sql.ErrNoRows) {
+					return nil, nil
+				}
+				return nil, err
+			}
+		}
+
+		updateSql, _, err := sq.Update("cards").
+			Set("name", name).
+			Where("id = ?").
+			Suffix(`returning id, pipiline_id, name, updated_at, "order"`).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			if err = tx.Rollback(); err != nil {
+				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+				return nil, err
+			}
+			return nil, err
+		}
+
+		completeSql := fmt.Sprintf(`
+			with updated as (%s) 
+			select updated.*, card_fields.* from updated
+			left join card_fields
+			on updated.id = card_fields.card_id
+		`, updateSql)
+
+		rows, err := r.pool.Write().Query(completeSql, cardId)
+		if err != nil {
+			if err = tx.Rollback(); err != nil {
+				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+				return nil, err
+			}
+
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		if err = tx.Commit(); err != nil {
+			blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return nil, err
+		}
+
+		defer rows.Close()
+		fields := []models.CardField{}
+
+		for rows.Next() {
+			var field models.CardField
+			if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
+				&field.Id, &field.CardId, &field.FieldId, &field.Value,
+			); err != nil {
+				return nil, err
+			}
+
+			fields = append(fields, field)
+		}
+		card.Fields = fields
+
+		return card, nil
+	} else {
+		rows, err := sq.Update("cards").
+			Set("name", name).
+			Where("id = ?").
+			Suffix(`returning id, pipiline_id, name, updated_at, "order"`).
+			PlaceholderFormat(sq.Dollar).
+			Query()
+		if err != nil {
+			return nil, err
+		}
+
+		if err = rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+			return nil, err
+		}
 	}
 
 	return card, nil
 }
 
-func (r *DbService) GetOneCard(cardId string) (*models.Card, error) {
+func (r *DbService) GetOneCard(ctx context.Context, cardId string) (*models.Card, error) {
+	card := &models.Card{}
+
+	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at", `c."order"`,"f.name", "cf.*").
+		From("cards c").
+		Where(sq.Eq{"c.id": cardId}).
+		LeftJoin("card_fields cf on cf.card_id = c.id").
+		LeftJoin("fields f on f.id = cf.field_id").
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	defer rows.Close()
+	fields := []models.CardField{}
+
+	for rows.Next() {
+		var field models.CardField
+		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
+			&field.Name,
+			&field.Id, &field.CardId, &field.FieldId, &field.Value,
+		); err != nil {
+			blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return nil, err
+		}
+
+		fields = append(fields, field)
+	}
+	card.Fields = fields
+
+	return card, nil
+}
+
+func (r *DbService) GetOneCardWithoutRelations(ctx context.Context, cardId string) (*models.Card, error) {
 	card := &models.Card{}
 
 	row := sq.Select("id", "name", "pipeline_id", "updated_at", `"order"`).
-		From("cards").
+		From("cards c").
 		Where(sq.Eq{"id": cardId}).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		return nil, err
-	}
-
-	return card, nil
-}
-
-func (r *DbService) GetOneCardWithRelations(cardId string, relations []string) (*models.Card, error) {
-	card := &models.Card{}
-
-	qb := sq.Select("id", "name", "pipeline_id", "updated_at", `"order"`).
-		From("cards c").
-		Where(sq.Eq{"id": cardId})
-
-	for _, relation := range relations {
-		if relation == "card_fields" {
-			qb.LeftJoin("card_fields cf on f.id = cf.card_id = c.id")
-			break
-		}
-	}
-
-	row := qb.RunWith(r.pool.Read()).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
