@@ -1,7 +1,5 @@
 package cards
 
-import "github.com/ignavan39/ucrm-go/app/models"
-
 type CreateOnePayload struct {
 	PipelineId string `json:"pipeline_id"`
 	Order      int    `json:"order"`
@@ -9,8 +7,8 @@ type CreateOnePayload struct {
 }
 
 type UpdateOnePayload struct {
-	Name   string              `json:"name"`
-	Fields *[]models.CardField `json:"fields,omitempty"`
+	Name   string             `json:"name"`
+	Fields *map[string]string `json:"fields,omitempty"`
 }
 
 type UpdateOrder struct {
