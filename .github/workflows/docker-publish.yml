@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - "release.*.*"
-    branches: [release.*.*]
-  pull_request:
-    branches: [release.*.*]
 
 env:
   REGISTRY: ghcr.io
