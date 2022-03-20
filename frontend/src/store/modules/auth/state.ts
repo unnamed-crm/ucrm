@@ -12,8 +12,15 @@ export type State = {
 };
 
 export type SignInPayload = {
-  user: any;
+  user: User;
   token: string;
+};
+
+export type User = {
+  id: string;
+  created_at: Date;
+  email: string;
+  password: string;
 };
 
 export const state: State = {
