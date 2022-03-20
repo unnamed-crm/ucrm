@@ -2,7 +2,7 @@ import { HOST_URL } from "@/store";
 import axios from "axios";
 import { ActionContext, ActionTree } from "vuex";
 import { Mutations, MutationTypes } from "./mutations";
-import { State } from "./state";
+import { State, User } from "./state";
 
 export enum ActionTypes {
   Login = "login",
@@ -34,7 +34,7 @@ export const actions: ActionTree<State, State> & Actions = {
       });
 
       const token = resp.data.token;
-      const userFromResponse = resp.data.user;
+      const userFromResponse = resp.data.user as User;
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
@@ -54,7 +54,7 @@ export const actions: ActionTree<State, State> & Actions = {
       });
 
       const token = resp.data.token;
-      const userFromResponse = resp.data.user;
+      const userFromResponse = resp.data.user as User;
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
