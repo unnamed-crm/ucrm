@@ -2,10 +2,6 @@
   <div>
     <h4>Register</h4>
     <form @submit.prevent="register">
-      <label for="name">Name</label>
-      <div>
-          <input id="name" type="text" v-model="name" required autofocus>
-      </div>
       <label for="email" >E-Mail Address</label>
       <div>
           <input id="email" type="email" v-model="email" required>
@@ -28,9 +24,8 @@
 <script>
   export default {
     methods: {
-      register: () => {
+      register: function() {
         let data = {
-          name: this.name,
           email: this.email,
           password: this.password,
           isAdmin: this.isAdmin
