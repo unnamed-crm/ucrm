@@ -244,7 +244,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 
 	if len(dashboardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "missing cardId: cards/addCustomField",
+			Error: "missing dashboardId: cards/addCustomField",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
