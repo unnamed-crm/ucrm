@@ -1,8 +1,7 @@
 <template>
   <header class="header">
     <nav class="nav">
-      <span><router-link to="/">Home</router-link></span>
-      <span><router-link to="/about">About</router-link></span>
+      <span v-if="isLoggedIn"><router-link to="/">Home</router-link></span>
       <span v-if="isLoggedIn"><a @click="logout">Logout</a></span>
       <span v-if="!isLoggedIn"><a @click="login">Login</a></span>
       <span v-if="!isLoggedIn"><a @click="register">Register</a></span>
