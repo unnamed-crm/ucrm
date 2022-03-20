@@ -1,13 +1,14 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-      <span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
+      <div id="menu">
+        <span v-if="isLoggedIn"><router-link to="/">Home</router-link></span>
+        <span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
 
-      <span v-if="!isLoggedIn"> | <a @click="login">Login</a></span>
+        <span v-if="!isLoggedIn"> <a @click="login">Login</a></span>
 
-      <span v-if="!isLoggedIn"> | <a @click="register">Register</a></span>
+        <span v-if="!isLoggedIn"> | <a @click="register">Register</a></span>
+      </div>
     </div>
     <router-view />
   </div>
@@ -16,19 +17,19 @@
 <script>
 export default {
   computed: {
-    isLoggedIn: function() {
+    isLoggedIn: function () {
       return this.$store.getters.isLoggedIn;
     },
   },
   methods: {
-    logout: function() {
-      this.$store.dispatch("logout")
+    logout: function () {
+      this.$store.dispatch("logout");
       this.$router.push("/login");
     },
-    login: function() {
+    login: function () {
       this.$router.push("/login");
     },
-    register: function() {
+    register: function () {
       this.$router.push("/register");
     },
   },
@@ -36,24 +37,34 @@ export default {
 </script>
 
 <style>
+* {
+  padding: 0;
+  margin: 0;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  display: flex;
+  flex-direction: column;
 }
 
-#nav {
-  padding: 30px;
-}
 
 #nav a {
   font-weight: bold;
-  color: #2c3e50;
+  color: white;
 }
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+#menu {
+  background-color:#2c3e50;
+  padding: 2rem;
+  
 }
 </style>
