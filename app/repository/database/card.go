@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -8,9 +9,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+	blogger "github.com/sirupsen/logrus"
 )
 
-func (r *DbService) AddCard(name string, order int, pipelineId string) (*models.Card, error) {
+func (r *DbService) AddCard(ctx context.Context, name string, order int, pipelineId string) (*models.Card, error) {
 	card := &models.Card{}
 
 	row := sq.Insert("cards").
@@ -21,6 +23,7 @@ func (r *DbService) AddCard(name string, order int, pipelineId string) (*models.
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -83,20 +86,21 @@ func (r *DbService) GetOneCardWithRelations(cardId string, relations []string) (
 	return card, nil
 }
 
-func (r *DbService) DeleteOneCard(cardId string) error {
+func (r *DbService) DeleteOneCard(ctx context.Context, cardId string) error {
 	_, err := sq.Delete("cards").
 		Where(sq.Eq{"id": cardId}).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (r *DbService) UpdateOrderForCard(cardId string, pipelineId string, oldOrder int, newOrder int) error {
+func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, pipelineId string, oldOrder int, newOrder int) error {
 	if newOrder <= 0 {
 		return errors.New("incorrect order for pipeline")
 	}
@@ -130,6 +134,8 @@ func (r *DbService) UpdateOrderForCard(cardId string, pipelineId string, oldOrde
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
+
+		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
