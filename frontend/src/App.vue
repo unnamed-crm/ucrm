@@ -1,36 +1,16 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-      <span v-if="isLoggedIn"> | <a @click="logout">Logout</a></span>
-
-      <span v-if="!isLoggedIn"> | <a @click="login">Login</a></span>
-
-      <span v-if="!isLoggedIn"> | <a @click="register">Register</a></span>
-    </div>
+    <Header />
     <router-view />
   </div>
 </template>
 
 <script>
+import Header from "./components/Header.vue";
+
 export default {
-  computed: {
-    isLoggedIn: function() {
-      return this.$store.getters.isLoggedIn;
-    },
-  },
-  methods: {
-    logout: function() {
-      this.$store.dispatch("logout")
-      this.$router.push("/login");
-    },
-    login: function() {
-      this.$router.push("/login");
-    },
-    register: function() {
-      this.$router.push("/register");
-    },
+  components: {
+    Header,
   },
 };
 </script>
@@ -42,18 +22,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
 }
 </style>
