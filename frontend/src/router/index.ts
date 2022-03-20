@@ -9,6 +9,9 @@ const routes: Array<RouteRecordRaw> = [
     path: "/",
     name: "home",
     component: Home,
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: "/login",
