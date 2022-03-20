@@ -17,7 +17,6 @@
 export default {
   computed: {
     isLoggedIn: function() {
-      console.log(this.$store);
       return this.$store.getters.isLoggedIn;
     },
   },
