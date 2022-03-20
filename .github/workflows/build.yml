@@ -20,6 +20,7 @@ jobs:
         run:  CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ucrm.app ./cmd/app/main.go
 
   front-build:
+    name: Vue build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -31,4 +32,5 @@ jobs:
         run: |
           cd ./frontend
           yarn
+          export NODE_OPTIONS=--openssl-legacy-provider
           yarn build
