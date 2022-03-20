@@ -1,9 +1,6 @@
 name: Build and Lint
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
 
 jobs:
@@ -21,3 +18,22 @@ jobs:
 
       - name: Build
         run:  CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ucrm.app ./cmd/app/main.go
+        
+  front-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 17
+  
+      - name: 'Setup Workdir'
+        run: |
+          cd ./frontend
+        
+      - name: 'Yarn install'
+        run: |
+          yarn
+      - name: 'Build'
+        run: |
+          yarn build
