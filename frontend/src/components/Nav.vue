@@ -2,7 +2,6 @@
   <el-menu
     :router="true"
     :default-active="$route.path"
-    class="el-menu-demo"
     mode="horizontal"
     background-color="#545c64"
     text-color="#fff"
@@ -27,19 +26,19 @@
   </el-menu>
 </template>
 
-<script>
-export default {
-  computed: {
-    isLoggedIn() {
-      return this.$store.getters.isLoggedIn;
-    },
-  },
-  methods: {
-    logout() {
-      this.$store.dispatch("logout");
-      this.$router.push("/login");
-    },
-  },
+<script lang="ts" setup>
+import { computed } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+
+const store = useStore();
+const router = useRouter();
+
+const isLoggedIn = computed(() => store.getters.isLoggedIn);
+
+const logout = () => {
+  store.dispatch("logout");
+  router.push("/login");
 };
 </script>
 

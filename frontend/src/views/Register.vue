@@ -1,16 +1,22 @@
 <template>
   <el-row justify="center">
     <el-col :xs="20" :sm="12" :md="8" :lg="6" :xl="4">
-      <el-form class="form" @submit.prevent="register" label-position="top">
+      <el-form
+        class="form"
+        :model="formData"
+        @submit.prevent="register"
+        label-position="top"
+        novalidate
+      >
         <h1 class="title">Register</h1>
         <el-form-item label="Email">
-          <el-input v-model="email" type="email" />
+          <el-input v-model="formData.email" />
         </el-form-item>
         <el-form-item label="Password">
-          <el-input v-model="password" type="password" show-password />
+          <el-input v-model="formData.password" show-password />
         </el-form-item>
         <el-form-item label="Confirm Password">
-          <el-input v-model="confirmPassword" type="password" show-password />
+          <el-input v-model="formData.confirmPassword" show-password />
         </el-form-item>
         <el-button native-type="submit" type="primary">Register</el-button>
       </el-form>
@@ -18,29 +24,26 @@
   </el-row>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      email: "",
-      password: "",
-      confirmPassword: "",
-      isAdmin: false,
-    };
-  },
-  methods: {
-    register() {
-      const data = {
-        email: this.email,
-        password: this.password,
-        isAdmin: this.isAdmin,
-      };
-      this.$store
-        .dispatch("register", data)
-        .then(() => this.$router.push("/"))
-        .catch((err) => console.log(err));
-    },
-  },
+<script lang="ts" setup>
+import { reactive } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+
+const store = useStore();
+const router = useRouter();
+
+const formData = reactive({
+  email: "",
+  password: "",
+  confirmPassword: "",
+  isAdmin: false,
+});
+
+const register = () => {
+  store
+    .dispatch("register", { ...formData })
+    .then(() => router.push("/"))
+    .catch((err) => console.log(err));
 };
 </script>
 
