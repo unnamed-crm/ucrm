@@ -167,7 +167,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
 	}
 
-	httpext.JSON(w, card, http.StatusOK)
+	httpext.JSON(w, updatedCard, http.StatusOK)
 }
 
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {

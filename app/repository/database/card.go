@@ -145,10 +145,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, 
 
 			for key, value := range *cardFields { 
 				if field.Id == key {
-					blogger.Printf("%s", value)
-					str := value + ""
-					field.Value = &str
-					blogger.Printf("%s", field)
+					field.Value = &value
 					break
 				}
 			}
@@ -157,7 +154,6 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, 
 		}
 
 		card.Fields = fields
-
 	} else {
 		rows:= sq.Update("cards c").
 			Set("name", name).
