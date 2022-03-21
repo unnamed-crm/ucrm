@@ -11,6 +11,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/api"
 	"github.com/ignavan39/ucrm-go/app/api/cards"
 	"github.com/ignavan39/ucrm-go/app/api/connect"
+	"github.com/ignavan39/ucrm-go/app/api/contact"
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
 	"github.com/ignavan39/ucrm-go/app/api/pipelines"
 	"github.com/ignavan39/ucrm-go/app/api/users"
@@ -26,11 +27,11 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-	config, err := conf.GetConfig()
 	blogger.SetOutput(os.Stdout)
 	blogger.SetFormatter(&blogger.TextFormatter{})
 
+	ctx := context.Background()
+	config, err := conf.GetConfig()
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
@@ -39,11 +40,12 @@ func main() {
 	if config.Evnironment == conf.DevelopEnironment {
 		withLogger = true
 	}
-	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
 
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
+
 	rabbitMqConn, err := rmq.NewConnection(
 		config.RabbitMq.User,
 		config.RabbitMq.Password,
@@ -53,6 +55,7 @@ func main() {
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
+
 	web := api.NewAPIServer(":8081").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
@@ -65,6 +68,7 @@ func main() {
 	cardController := cards.NewController(dbService, dbService)
 	wsController := ws.NewController(dbService, dispatcher)
 	connectController := connect.NewController(dispatcher, dbService, *config)
+	contactController := contact.NewController(dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Evnironment == conf.DevelopEnironment {
@@ -82,6 +86,7 @@ func main() {
 		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
 		ws.RegisterRouter(v1, wsController)
 		connect.RegisterRouter(v1, connectController, config.JWT)
+		contact.RegisterRouter(v1, contactController, dbService, config.JWT)
 	})
 	web.Start()
 
