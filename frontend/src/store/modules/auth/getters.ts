@@ -8,5 +8,5 @@ export type Getters = {
 
 export const getters: GetterTree<State, State> & Getters = {
   isLoggedIn: (state: State) => !!state.token,
-  authStatus: (state: State) => state.status
+  authStatus: (state: State) => state.status,
 };

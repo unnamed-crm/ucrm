@@ -74,7 +74,7 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &ClientQueue{
 		config:      *queueConfig,
 		queueIn:     make(chan *ClientQueuePayload),
@@ -95,9 +95,10 @@ func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 				var payload ClientQueuePayload
 				err := json.Unmarshal(d.Body, &payload)
 				if err != nil {
-
+					blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
+				} else {
+					queueOut <- &payload
 				}
-				queueOut <- &payload
 			}
 		case <-c.stop:
 			return

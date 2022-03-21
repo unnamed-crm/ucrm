@@ -53,10 +53,11 @@ func main() {
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
-	dispatcher := core.NewDispatcher(rabbitMqConn)
 	web := api.NewAPIServer(":8081").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
+
+	dispatcher := core.NewDispatcher(rabbitMqConn, dbService)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := users.NewController(authorizer, dbService)
 	dashboardController := dashboards.NewController(dbService, dbService)

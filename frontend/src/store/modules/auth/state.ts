@@ -7,17 +7,24 @@ export enum StateStatus {
 
 export type State = {
   status: StateStatus;
-  user: any;
+  user: User;
   token: string;
 };
 
+export type User = {
+  id: string;
+  created_at: Date;
+  email: string;
+  password: string;
+};
+
 export type SignInPayload = {
-  user: any;
+  user: User;
   token: string;
 };
 
 export const state: State = {
   status: StateStatus.Loading,
-  user: {},
+  user: null,
   token: localStorage.getItem("token") || "",
 };
