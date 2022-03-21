@@ -97,7 +97,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, 
 		updateSql, _, err := sq.Update("cards").
 			Set("name", name).
 			Where("id = ?").
-			Suffix(`returning id, pipiline_id, name, updated_at, "order"`).
+			Suffix(`returning id, name, pipeline_id, updated_at, "order"`).
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
 		if err != nil {
@@ -115,7 +115,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, 
 			on updated.id = card_fields.card_id
 		`, updateSql)
 
-		rows, err := r.pool.Write().Query(completeSql, cardId)
+		rows, err := r.pool.Write().Query(completeSql, name, cardId)
 		if err != nil {
 			if err = tx.Rollback(); err != nil {
 				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
@@ -139,28 +139,34 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name string, 
 		for rows.Next() {
 			var field models.CardField
 			if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
-				&field.Id, &field.CardId, &field.FieldId, &field.Value,
-			); err != nil {
+				&field.Id, &field.CardId, &field.FieldId, &field.Value); err != nil {
 				return nil, err
+			}
+
+			for key, value := range *cardFields { 
+				if field.Id == key {
+					blogger.Printf("%s", value)
+					str := value + ""
+					field.Value = &str
+					blogger.Printf("%s", field)
+					break
+				}
 			}
 
 			fields = append(fields, field)
 		}
+
 		card.Fields = fields
 
-		return card, nil
 	} else {
-		rows, err := sq.Update("cards").
+		rows:= sq.Update("cards c").
 			Set("name", name).
-			Where("id = ?").
-			Suffix(`returning id, pipiline_id, name, updated_at, "order"`).
+			Where(sq.Eq{"c.id": cardId}).
+			Suffix(`returning id, pipeline_id, name, updated_at, "order"`).
 			PlaceholderFormat(sq.Dollar).
-			Query()
-		if err != nil {
-			return nil, err
-		}
-
-		if err = rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+			RunWith(r.pool.Read()).
+			QueryRow()
+		if err := rows.Scan(&card.Id, &card.PipelineId, &card.Name, &card.UpdatedAt, &card.Order); err != nil {
 			return nil, err
 		}
 	}

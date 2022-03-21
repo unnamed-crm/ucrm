@@ -145,7 +145,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedCard, err := c.repo.UpdateCard(ctx, payload.Name, id, payload.Fields)
+	updatedCard, err := c.repo.UpdateCard(ctx, id, payload.Name, payload.Fields)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Update]:%s", err.Error()),
@@ -154,7 +154,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(ctx, updatedCard.PipelineId)
+	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(card.PipelineId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[Update] failed to get pipeline",
@@ -163,7 +163,10 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
+	if webhook != nil {
+		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
+	}
+
 	httpext.JSON(w, card, http.StatusOK)
 }
 
