@@ -1,12 +1,30 @@
 <template>
-  <header class="header">
-    <nav class="nav">
-      <span v-if="isLoggedIn"><router-link to="/">Home</router-link></span>
-      <span v-if="isLoggedIn"><a @click="logout">Logout</a></span>
-      <span v-if="!isLoggedIn"><a @click="login">Login</a></span>
-      <span v-if="!isLoggedIn"><a @click="register">Register</a></span>
-    </nav>
-  </header>
+  <el-menu
+    :router="true"
+    :default-active="$route.path"
+    class="el-menu-demo"
+    mode="horizontal"
+    background-color="#545c64"
+    text-color="#fff"
+    active-text-color="#42b983"
+  >
+    <!-- eslint-disable-next-line vue/no-v-for-template-key -->
+    <template v-for="route in $router.options.routes" :key="route.path">
+      <template v-if="route?.meta?.requiresAuth && isLoggedIn">
+        <el-menu-item :index="route.path" :route="route.path">
+          {{ route.name }}
+        </el-menu-item>
+      </template>
+      <template v-else-if="!route?.meta?.requiresAuth && !isLoggedIn">
+        <el-menu-item :index="route.path" :route="route.path">
+          {{ route.name }}
+        </el-menu-item>
+      </template>
+    </template>
+    <el-menu-item v-if="isLoggedIn" index="logout" @click="logout">
+      Logout
+    </el-menu-item>
+  </el-menu>
 </template>
 
 <script>
@@ -21,43 +39,13 @@ export default {
       this.$store.dispatch("logout");
       this.$router.push("/login");
     },
-    login() {
-      this.$router.push("/login");
-    },
-    register() {
-      this.$router.push("/register");
-    },
   },
 };
 </script>
 
-<style>
-a {
-  list-style: none;
-}
-
-.nav > span {
-  font-weight: bold;
-  color: #2c3e50;
-  position: relative;
-  padding: 0 10px;
-}
-
-.nav > *:not(:last-child)::after {
-  content: "";
-  background-color: #000;
-  position: absolute;
-  width: 1px;
-  top: 0;
-  bottom: 0;
-  right: 0;
-}
-
-a:hover {
-  cursor: pointer;
-}
-
-a.router-link-exact-active {
-  color: #42b983;
+<style scoped lang="scss" rel="stylesheet/scss">
+.el-menu {
+  padding: 0 0.5rem;
+  justify-content: flex-end;
 }
 </style>
