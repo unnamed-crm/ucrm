@@ -154,6 +154,14 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updatedCard == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "card not found",
+			Code:  http.StatusBadRequest,
+		}, http.StatusNotFound)
+		return
+	}
+
 	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(card.PipelineId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
