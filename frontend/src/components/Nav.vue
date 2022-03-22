@@ -3,9 +3,9 @@
     :router="true"
     :default-active="$route.path"
     mode="horizontal"
-    background-color="#545c64"
+    background-color="#1976d2"
     text-color="#fff"
-    active-text-color="#42b983"
+    active-text-color="#7af581"
   >
     <!-- eslint-disable-next-line vue/no-v-for-template-key -->
     <template v-for="route in $router.options.routes" :key="route.path">
@@ -42,7 +42,7 @@ const logout = () => {
 };
 </script>
 
-<style scoped lang="scss" rel="stylesheet/scss">
+<style lang="scss" scoped>
 .el-menu {
   padding: 0 0.5rem;
   justify-content: flex-end;

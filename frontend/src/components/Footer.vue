@@ -1,10 +1,10 @@
 <template>
-  <el-footer> </el-footer>
+  <el-footer class="footer"> </el-footer>
 </template>
 
-<style scoped lang="scss" rel="stylesheet/scss">
-.el-footer {
+<style lang="scss" scoped>
+.footer {
   padding: 0;
-  background-color: #545c64;
+  background-color: $primary;
 }
 </style>

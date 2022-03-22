@@ -1,5 +1,5 @@
 <template>
-  <el-header>
+  <el-header class="header">
     <Nav />
   </el-header>
 </template>
@@ -8,8 +8,8 @@
 import Nav from "./Nav.vue";
 </script>
 
-<style scoped lang="scss" rel="stylesheet/scss">
-.el-header {
+<style lang="scss" scoped>
+.header {
   padding: 0;
 }
 </style>
