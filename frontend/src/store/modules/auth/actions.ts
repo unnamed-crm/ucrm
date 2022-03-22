@@ -19,7 +19,7 @@ type ActionAugments = Omit<ActionContext<State, State>, "commit"> & {
 
 export type Actions = {
   [ActionTypes.Login](context: ActionAugments, user: any): void;
-  [ActionTypes.Register](context: ActionAugments, user: any);
+  [ActionTypes.Register](context: ActionAugments, user: any): void;
   [ActionTypes.Logout](context: ActionAugments): void;
 };
 
