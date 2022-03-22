@@ -1,23 +1,21 @@
 <template>
-  <el-row justify="center">
-    <el-col :xs="20" :sm="12" :md="8" :lg="6" :xl="4">
-      <el-form
-        class="form"
-        :model="formData"
-        @submit.prevent="register"
-        label-position="top"
-        novalidate
-      >
-        <h1 class="title">Register</h1>
-        <el-form-item label="Email">
+  <el-form
+    class="form"
+    :model="formData"
+    @submit.prevent="register"
+    label-position="top"
+    novalidate
+  >
+    <h1 class="title">Register</h1>
+    <el-form-item label="Email">
       <el-input
         v-model="formData.email"
         prop="email"
         type="email"
         placeholder="email@domain.com"
       />
-        </el-form-item>
-        <el-form-item label="Password">
+    </el-form-item>
+    <el-form-item label="Password">
       <el-input
         v-model="formData.password"
         prop="password"
@@ -25,8 +23,8 @@
         show-password
         placeholder="password..."
       />
-        </el-form-item>
-        <el-form-item label="Confirm Password">
+    </el-form-item>
+    <el-form-item label="Confirm Password">
       <el-input
         v-model="formData.confirmPassword"
         prop="confirmPassword"
@@ -34,11 +32,9 @@
         show-password
         placeholder="password..."
       />
-        </el-form-item>
-        <el-button native-type="submit" type="primary">Register</el-button>
-      </el-form>
-    </el-col>
-  </el-row>
+    </el-form-item>
+    <el-button native-type="submit" type="primary">Register</el-button>
+  </el-form>
 </template>
 
 <script lang="ts" setup>
@@ -73,5 +69,10 @@ const register = () => {
 .form {
   display: flex;
   flex-direction: column;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: $background;
+  border-radius: $border-radius;
 }
 </style>

@@ -20,12 +20,13 @@ import Footer from "./components/Footer.vue";
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", Arial, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 .container {
   height: 100vh;
-  margin: 0 auto;
+  background-color: $background;
 }
 </style>
