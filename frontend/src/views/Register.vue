@@ -10,13 +10,30 @@
       >
         <h1 class="title">Register</h1>
         <el-form-item label="Email">
-          <el-input v-model="formData.email" />
+      <el-input
+        v-model="formData.email"
+        prop="email"
+        type="email"
+        placeholder="email@domain.com"
+      />
         </el-form-item>
         <el-form-item label="Password">
-          <el-input v-model="formData.password" show-password />
+      <el-input
+        v-model="formData.password"
+        prop="password"
+        type="password"
+        show-password
+        placeholder="password..."
+      />
         </el-form-item>
         <el-form-item label="Confirm Password">
-          <el-input v-model="formData.confirmPassword" show-password />
+      <el-input
+        v-model="formData.confirmPassword"
+        prop="confirmPassword"
+        type="password"
+        show-password
+        placeholder="password..."
+      />
         </el-form-item>
         <el-button native-type="submit" type="primary">Register</el-button>
       </el-form>

@@ -10,10 +10,19 @@
       >
         <h1 class="title">Sign in</h1>
         <el-form-item label="Email">
-          <el-input v-model="formData.email" type="email" />
+      <el-input
+        v-model="formData.email"
+        type="email"
+        placeholder="email@domain.com"
+      />
         </el-form-item>
         <el-form-item label="Password">
-          <el-input v-model="formData.password" type="password" show-password />
+      <el-input
+        v-model="formData.password"
+        type="password"
+        show-password
+        placeholder="password..."
+      />
         </el-form-item>
         <el-button native-type="submit" type="primary">Login</el-button>
       </el-form>
