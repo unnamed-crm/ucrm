@@ -18,14 +18,14 @@ type ActionAugments = Omit<ActionContext<State, State>, "commit"> & {
 };
 
 export type Actions = {
-  [ActionTypes.Login](context: ActionAugments, user: any): void;
-  [ActionTypes.Register](context: ActionAugments, user: any): void;
+  [ActionTypes.Login](context: ActionAugments, user: User): void;
+  [ActionTypes.Register](context: ActionAugments, user: User): void;
   [ActionTypes.Logout](context: ActionAugments): void;
 };
 
 export const actions: ActionTree<State, State> & Actions = {
   async [ActionTypes.Login]({ commit }, user) {
-    commit(MutationTypes.AuthRequest, user);
+    commit(MutationTypes.AuthRequest);
     try {
       const resp = await axios({
         url: `${HOST_URL}/users/sign-in`,
@@ -38,14 +38,14 @@ export const actions: ActionTree<State, State> & Actions = {
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
-      commit(MutationTypes.AuthSuccess, { token, userFromResponse });
+      commit(MutationTypes.AuthSuccess, { token, user: userFromResponse });
     } catch (err) {
       commit(MutationTypes.AuthError);
       localStorage.removeItem("token");
     }
   },
   async [ActionTypes.Register]({ commit }, user) {
-    commit(MutationTypes.AuthRequest, user);
+    commit(MutationTypes.AuthRequest);
     try {
       const resp = await axios({
         url: `${HOST_URL}/users/sign-up`,
@@ -58,7 +58,7 @@ export const actions: ActionTree<State, State> & Actions = {
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
-      commit(MutationTypes.AuthSuccess, { token, userFromResponse });
+      commit(MutationTypes.AuthSuccess, { token, user: userFromResponse });
     } catch (err) {
       commit(MutationTypes.AuthError, err);
       localStorage.removeItem("token");
