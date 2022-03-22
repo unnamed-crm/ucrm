@@ -107,7 +107,45 @@ func (c *Controller) Rename(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
-	//ctx := r.Context()
+	ctx := r.Context()
+	var payload UpdatePayload
+
+	contactId := chi.URLParam(r, "contactId")
+	if len(contactId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Rename] wrong id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Update] failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Update]: Invalid params for update",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = c.contactRepo.UpdateContact(ctx, contactId, payload.Name, payload.Phone, payload.City)
+	if err != nil {
+		blogger.Errorf("[contact/Update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[Update]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
 }
 
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
