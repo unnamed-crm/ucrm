@@ -30,8 +30,8 @@ const router = createRouter({
   routes,
 });
 router.beforeEach((to, from, next) => {
-  if (!to?.meta?.requiresAuth) next();
-  if (store.getters.isLoggedIn) next();
+  if (!to?.meta?.requiresAuth) return next();
+  if (store.getters.isLoggedIn) return next();
   next("/login");
 });
 

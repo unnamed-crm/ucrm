@@ -3,9 +3,11 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -170,4 +172,67 @@ func (r *DbService) GetDashboardSettings(xClientToken string) (*models.Dashboard
 	}
 
 	return &res, nil
+}
+
+func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNullable bool) (*models.Field, error) {
+	field := &models.Field{}
+
+	row := sq.Insert("fields").
+		Columns("name", "dashboard_id", "is_nullable", "type").
+		Values(name, dashboardId, isNullable, repository.CardFieldType).
+		Suffix(`returning id, name, dashboard_id, is_nullable, type`).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+
+	if err := row.Scan(&field.Id, &field.Name, &field.DashboardId, &field.IsNullable, &field.Type); err != nil {
+		return nil, err
+	}
+
+	selectQuery, _, err := sq.Select("id").
+		From("pipelines").
+		Where("dashboard_id = ?").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	completeSql := fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
+	rows, err := r.pool.Read().
+		Query(completeSql, dashboardId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cardIds []string
+	for rows.Next() {
+		var cardId string
+		if err := rows.Scan(&cardId); err != nil {
+			return nil, err
+		}
+		cardIds = append(cardIds, cardId)
+	}
+
+	qb := sq.Insert("card_fields").
+		Columns("card_id", "field_id", "value")
+
+	for _, cardId := range cardIds {
+		qb = qb.Values(cardId, field.Id, nil)
+	}
+
+	_, err = qb.
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Write()).
+		Exec()
+	if err != nil {
+		return nil, err
+	}
+
+	return field, nil
 }
