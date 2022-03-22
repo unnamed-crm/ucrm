@@ -2,8 +2,7 @@
   <el-footer> </el-footer>
 </template>
 
-<style scoped lang="scss" rel="stylesheet/scss">
-.el-footer {
+<style lang="scss" scoped>
   padding: 0;
   background-color: #545c64;
 }

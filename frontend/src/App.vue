@@ -15,7 +15,7 @@ import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 </script>
 
-<style lang="scss" rel="stylesheet/scss">
+<style lang="scss">
 * {
   margin: 0;
   padding: 0;

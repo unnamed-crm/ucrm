@@ -8,8 +8,7 @@
 import Nav from "./Nav.vue";
 </script>
 
-<style scoped lang="scss" rel="stylesheet/scss">
-.el-header {
+<style lang="scss" scoped>
   padding: 0;
 }
 </style>

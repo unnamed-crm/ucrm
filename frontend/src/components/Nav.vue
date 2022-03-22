@@ -42,7 +42,7 @@ const logout = () => {
 };
 </script>
 
-<style scoped lang="scss" rel="stylesheet/scss">
+<style lang="scss" scoped>
 .el-menu {
   padding: 0 0.5rem;
   justify-content: flex-end;

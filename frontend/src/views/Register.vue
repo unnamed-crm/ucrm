@@ -47,7 +47,7 @@ const register = () => {
 };
 </script>
 
-<style scoped lang="scss" rel="stylesheet/scss">
+<style lang="scss" scoped>
 .title {
   text-align: center;
   margin-bottom: 1rem;
