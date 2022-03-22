@@ -165,7 +165,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 			Where(sq.Eq{"c.id": cardId}).
 			Suffix(`returning id, pipeline_id, name, updated_at, "order"`).
 			PlaceholderFormat(sq.Dollar).
-			RunWith(r.pool.Read()).
+			RunWith(r.pool.Write()).
 			QueryRow()
 		if err := rows.Scan(&card.Id, &card.PipelineId, &card.Name, &card.UpdatedAt, &card.Order); err != nil {
 			return nil, err
