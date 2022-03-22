@@ -81,10 +81,17 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 		}
 
 		for key, value := range *cardFields {
-			_, err := sq.Update("card_fields c").
+			qb := sq.Update("card_fields c").
 				Set("value", value).
-				Where(sq.Eq{"c.id": key}).
-				RunWith(r.pool.Write()).
+				Where(sq.Eq{"c.id": key})
+
+			if isUpdateWithTransaction {
+				qb = qb.RunWith(tx)
+			} else {
+				qb = qb.RunWith(r.pool.Write())
+			}
+
+			_, err := qb.
 				PlaceholderFormat(sq.Dollar).
 				Exec()
 
@@ -124,7 +131,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 				on updated.id = card_fields.card_id
 			`, updateSql)
 
-			rows, err := r.pool.Write().Query(completeSql, &name, cardId)
+			rows, err := tx.Query(completeSql, &name, cardId)
 			if err != nil {
 				if err = tx.Rollback(); err != nil {
 					blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
@@ -134,11 +141,6 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 				if errors.Is(err, sql.ErrNoRows) {
 					return nil, nil
 				}
-				return nil, err
-			}
-
-			if err = tx.Commit(); err != nil {
-				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 				return nil, err
 			}
 
@@ -153,6 +155,11 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 				}
 
 				fields = append(fields, field)
+			}
+
+			if err = tx.Commit(); err != nil {
+				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+				return nil, err
 			}
 
 			card.Fields = fields
