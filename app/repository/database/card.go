@@ -160,9 +160,6 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 			return r.GetOneCard(ctx, cardId)
 		}
 	} else {
-		if (name == nil) { 
-			return nil, errors.New("Invalid params for update")
-		}
 		rows := sq.Update("cards c").
 			Set("name", name).
 			Where(sq.Eq{"c.id": cardId}).

@@ -128,6 +128,15 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Update] Incorect params for update",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
 	card, err := c.repo.GetOneCard(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
