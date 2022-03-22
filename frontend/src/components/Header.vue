@@ -4,14 +4,8 @@
   </el-header>
 </template>
 
-<script>
+<script lang="ts" setup>
 import Nav from "./Nav.vue";
-
-export default {
-  components: {
-    Nav,
-  },
-};
 </script>
 
 <style scoped lang="scss" rel="stylesheet/scss">
