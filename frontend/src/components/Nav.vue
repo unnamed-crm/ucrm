@@ -38,7 +38,7 @@ const router = useRouter();
 const isLoggedIn = computed(() => store.getters.isLoggedIn);
 
 const logout = () => {
-  store.dispatch(ActionTypes.Logout);
+  store.dispatch("register");
   router.push("/login");
 };
 </script>
