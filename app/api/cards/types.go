@@ -7,7 +7,7 @@ type CreateOnePayload struct {
 }
 
 type UpdateOnePayload struct {
-	Name   string             `json:"name"`
+	Name   *string            `json:"name"`
 	Fields *map[string]string `json:"fields,omitempty"`
 }
 

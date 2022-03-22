@@ -131,7 +131,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	card, err := c.repo.GetOneCard(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: fmt.Sprintf("[GetOne]:%s", err.Error()),
+			Error: fmt.Sprintf("[Update]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
@@ -176,7 +176,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "[Update] wrong id",
+			Error: "[GetOne] wrong id",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -245,7 +245,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload: pipelines/createOne",
+			Error: "failed decode payload: cards/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return

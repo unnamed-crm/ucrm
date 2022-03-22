@@ -8,7 +8,7 @@ import (
 
 type CardRepository interface {
 	AddCard(ctx context.Context, name string, order int, pipelineId string) (*models.Card, error)
-	UpdateCard(ctx context.Context, cardId string, name string, cardFields *map[string]string) (*models.Card, error)
+	UpdateCard(ctx context.Context, cardId string, name *string, cardFields *map[string]string) (*models.Card, error)
 	CheckCardExists(ctx context.Context, cardId string) (bool, error)
 	GetOneCard(ctx context.Context, cardId string) (*models.Card, error)
 	GetOneCardWithoutRelations(ctx context.Context, cardId string) (*models.Card, error)

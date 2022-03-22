@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -175,11 +176,10 @@ func (r *DbService) GetDashboardSettings(xClientToken string) (*models.Dashboard
 
 func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNullable bool) (*models.Field, error) {
 	field := &models.Field{}
-	fieldType := "card"
 
 	row := sq.Insert("fields").
 		Columns("name", "dashboard_id", "is_nullable", "type").
-		Values(name, dashboardId, isNullable, fieldType).
+		Values(name, dashboardId, isNullable, repository.CardFieldType).
 		Suffix(`returning id, name, dashboard_id, is_nullable, type`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
@@ -200,7 +200,7 @@ func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNu
 	}
 
 	completeSql := fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
-	rows, err := r.pool.Write().
+	rows, err := r.pool.Read().
 		Query(completeSql, dashboardId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
