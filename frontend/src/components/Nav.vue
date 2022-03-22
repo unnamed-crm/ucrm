@@ -30,7 +30,6 @@
 import { computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import { ActionTypes } from "../store/modules/auth/actions";
 
 const store = useStore();
 const router = useRouter();
