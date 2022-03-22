@@ -15,6 +15,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
 				r.Post("/addUser", controller.AddUserToDashboard)
+				r.Post("/{dashboardId}/custom-field", controller.CreateCustomField)
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.DashboardAccessGuard(repo, "r"))

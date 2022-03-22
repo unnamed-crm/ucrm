@@ -39,7 +39,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.AddCard(payload.Name, payload.Order, payload.PipelineId)
+	card, err := c.repo.AddCard(ctx, payload.Name, payload.Order, payload.PipelineId)
 	if err != nil {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -64,8 +64,9 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
-	card, err := c.repo.GetOneCard(id)
+	card, err := c.repo.GetOneCardWithoutRelations(ctx, id)
 
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -83,7 +84,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.DeleteOneCard(id)
+	err = c.repo.DeleteOneCard(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Delete]:%s", err.Error()),
@@ -106,6 +107,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var payload UpdateOnePayload
 	id := chi.URLParam(r, "cardId")
 
@@ -126,10 +128,19 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.GetOneCard(id)
+	err = payload.Validate()
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: fmt.Sprintf("[GetOne]:%s", err.Error()),
+			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	card, err := c.repo.GetOneCard(ctx, id)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[Update]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
@@ -143,12 +154,20 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedCard, err := c.repo.UpdateCard(payload.Name, id)
+	updatedCard, err := c.repo.UpdateCard(ctx, id, payload.Name, payload.Fields)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Update]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
+		return
+	}
+
+	if updatedCard == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "card not found",
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
 		return
 	}
 
@@ -161,21 +180,26 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go triggers.SendCardUpdatesToSubscriber(webhook.Url, updatedCard, card)
-	httpext.JSON(w, card, http.StatusOK)
+	if webhook != nil {
+		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
+	}
+
+	httpext.JSON(w, updatedCard, http.StatusOK)
 }
 
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
+
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "[Update] wrong id",
+			Error: "[GetOne] wrong id",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
-	card, err := c.repo.GetOneCard(id)
+	card, err := c.repo.GetOneCard(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[GetOne]:%s", err.Error()),
@@ -196,6 +220,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")
 	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
@@ -237,13 +262,13 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload: pipelines/createOne",
+			Error: "failed decode payload: cards/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
-	err = c.repo.UpdateOrderForCard(cardId, pipelineId, payload.OldOrder, newOrder)
+	err = c.repo.UpdateOrderForCard(ctx, cardId, pipelineId, payload.OldOrder, newOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
