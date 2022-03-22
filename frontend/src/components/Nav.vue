@@ -30,6 +30,7 @@
 import { computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import { ActionTypes } from "../store/modules/auth/actions";
 
 const store = useStore();
 const router = useRouter();
@@ -37,7 +38,7 @@ const router = useRouter();
 const isLoggedIn = computed(() => store.getters.isLoggedIn);
 
 const logout = () => {
-  store.dispatch("logout");
+  store.dispatch(ActionTypes.Logout);
   router.push("/login");
 };
 </script>

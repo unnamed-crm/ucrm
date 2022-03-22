@@ -25,6 +25,7 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import { ActionTypes } from "../store/modules/auth/actions";
 
 const store = useStore();
 const router = useRouter();
@@ -35,9 +36,8 @@ const formData = reactive({
 });
 
 const login = () => {
-  console.log(store);
   store
-    .dispatch("login", { ...formData })
+    .dispatch(ActionTypes.Login, formData)
     .then(() => router.push("/"))
     .catch((err) => console.log(err));
 };
