@@ -131,7 +131,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	err = payload.Validate()
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "[Update] Incorect params for update",
+			Error: err.Error(),
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -166,7 +166,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if updatedCard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
-			Code:  http.StatusBadRequest,
+			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}

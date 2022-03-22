@@ -260,6 +260,15 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
 	field, err := c.repo.AddCustomFieldForCards(dashboardId, payload.Name, payload.IsNullable)
 	if err != nil {
 		blogger.Errorf("[dashboards/createCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
