@@ -26,6 +26,7 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err != nil {
 		return nil, err
 	}
+	
 	return dashboard, nil
 }
 
@@ -103,6 +104,10 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		pipeline, found := pipelines[p.Id]
 		if !found {
 			pipeline = p
+		}
+
+		if pipeline.Cards == nil {
+			pipeline.Cards = make([]models.Card, 0)
 		}
 
 		var c models.Card
