@@ -64,7 +64,7 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 			}
 
 			for _, d := range dashboard.Users {
-				if d.UserId == userId && d.Access == accessType {
+				if d.UserId == userId {
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return
 				}
