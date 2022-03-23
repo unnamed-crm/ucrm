@@ -71,7 +71,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	dashboard, err := c.repo.GetOneDashboard(payload.DashboardId)
+	dashboard, err := c.repo.GetOneDashboardInternal(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -119,6 +119,26 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
+	dashboard, err := c.repo.GetOneDashboard(id)
+	if err != nil {
+		blogger.Error("[dashboard/getOnde] ERROR :%s", err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	if dashboard == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "dashboard not found",
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
+		return
+	}
+
+	httpext.JSON(w, dashboard, http.StatusOK)
 }
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {

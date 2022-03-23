@@ -26,10 +26,11 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err != nil {
 		return nil, err
 	}
+	
 	return dashboard, nil
 }
 
-func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
+func (r *DbService) GetOneDashboardInternal(dashboardId string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
 
 	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
@@ -56,6 +57,76 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		dashboardUsers = append(dashboardUsers, da)
 	}
 	dashboard.Users = dashboardUsers
+
+	return &dashboard, nil
+}
+
+func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
+	var dashboard models.Dashboard
+
+	rows, err := sq.Select("d.*", "p.id", `p."order"`, "p.name", "c.name", `c."order"`, "c.id", "c.pipeline_id").
+		From("dashboards d").
+		LeftJoin("pipelines p on d.id = p.dashboard_id").
+		LeftJoin("cards c on c.pipeline_id = p.id").
+		Where(sq.Eq{"d.id": dashboardId}).
+		OrderBy(`p."order"`,`c."order"`).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	pipelines := make(map[string]models.Pipeline)
+
+	for rows.Next() {
+		var p models.Pipeline
+		var order sql.NullInt64
+		var name, id, pipelineId sql.NullString
+
+		if err := rows.Scan(
+			&dashboard.Id,
+			&dashboard.UpdatedAt,
+			&dashboard.Name,
+			&dashboard.AuthorId,
+			&p.Id,
+			&p.Order,
+			&p.Name,
+			&name,
+			&order,
+			&id,
+			&pipelineId); err != nil {
+			return nil, err
+		}
+
+		pipeline, found := pipelines[p.Id]
+		if !found {
+			pipeline = p
+		}
+
+		if pipeline.Cards == nil {
+			pipeline.Cards = make([]models.Card, 0)
+		}
+
+		var c models.Card
+		if name.Valid {
+			c.Name = name.String
+			c.Order = int(order.Int64)
+			c.Id = id.String
+			c.PipelineId = pipelineId.String
+
+			pipeline.Cards = append(pipeline.Cards, c)
+		}
+
+		pipelines[p.Id] = pipeline
+	}
+
+	for _, p := range pipelines {
+		dashboard.Pipelines = append(dashboard.Pipelines, p)
+	}
 
 	return &dashboard, nil
 }
