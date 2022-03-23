@@ -69,6 +69,7 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		LeftJoin("pipelines p on d.id = p.dashboard_id").
 		LeftJoin("cards c on c.pipeline_id = p.id").
 		Where(sq.Eq{"d.id": dashboardId}).
+		OrderBy(`p."order"`,`c."order"`).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
