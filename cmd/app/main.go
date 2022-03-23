@@ -68,7 +68,7 @@ func main() {
 	cardController := cards.NewController(dbService, dbService)
 	wsController := ws.NewController(dbService, dispatcher)
 	connectController := connect.NewController(dispatcher, dbService, *config)
-	contactController := contact.NewController(dbService)
+	contactController := contact.NewController(dbService, dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Evnironment == conf.DevelopEnironment {

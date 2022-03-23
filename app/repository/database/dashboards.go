@@ -7,7 +7,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -112,6 +111,7 @@ func (r *DbService) AddUserToDashboard(dashboardId string, userId string, access
 
 	return id, nil
 }
+
 func (r *DbService) UpdateDashboardName(dashboardId string, name string) error {
 	_, err := sq.Update("dashboards").
 		Set("name", name).
@@ -174,12 +174,12 @@ func (r *DbService) GetDashboardSettings(xClientToken string) (*models.Dashboard
 	return &res, nil
 }
 
-func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNullable bool) (*models.Field, error) {
+func (r *DbService) AddCustomField(dashboardId string, name string, isNullable bool, fieldType string) (*models.Field, error) {
 	field := &models.Field{}
 
 	row := sq.Insert("fields").
 		Columns("name", "dashboard_id", "is_nullable", "type").
-		Values(name, dashboardId, isNullable, repository.CardFieldType).
+		Values(name, dashboardId, isNullable, fieldType).
 		Suffix(`returning id, name, dashboard_id, is_nullable, type`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
@@ -199,7 +199,17 @@ func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNu
 		return nil, err
 	}
 
-	completeSql := fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
+	var tableForQuery string
+	var idColumnName string
+	if fieldType == "card" {
+		tableForQuery = "cards"
+		idColumnName = "card_id"
+	} else if fieldType == "contact" {
+		tableForQuery = "contacts"
+		idColumnName = "contact_id"
+	}
+
+	completeSql := fmt.Sprintf("with p as (%s) select id from %s where pipeline_id in (select * from p)", selectQuery, tableForQuery)
 	rows, err := r.pool.Read().
 		Query(completeSql, dashboardId)
 	if err != nil {
@@ -210,20 +220,20 @@ func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNu
 	}
 	defer rows.Close()
 
-	var cardIds []string
+	var fieldIds []string
 	for rows.Next() {
-		var cardId string
-		if err := rows.Scan(&cardId); err != nil {
+		var id string
+		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		cardIds = append(cardIds, cardId)
+		fieldIds = append(fieldIds, id)
 	}
 
-	qb := sq.Insert("card_fields").
-		Columns("card_id", "field_id", "value")
+	qb := sq.Insert(tableForQuery).
+		Columns(idColumnName, "field_id", "value")
 
-	for _, cardId := range cardIds {
-		qb = qb.Values(cardId, field.Id, nil)
+	for _, id := range fieldIds {
+		qb = qb.Values(id, field.Id, nil)
 	}
 
 	_, err = qb.

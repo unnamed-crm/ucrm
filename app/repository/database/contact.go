@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
@@ -11,11 +13,40 @@ import (
 func (r *DbService) GetOneContact(ctx context.Context, contactId string) (*models.Contact, error) {
 	contact := &models.Contact{}
 
-	// row = sq.Select("id, dashboardId, card_id, name, phone, city").
-	// 	From("contacts c").Where(sq.Eq{"c.id": contactId}).
-	// 	RunWith(r.pool.Read()).
-	// 	PlaceholderFormat(sq.Dollar).
-	// 	QueryRow()
+	rows, err := sq.Select("c.id", "c.dashboard_id", "c.card_id", "c.name",
+		"c.phone", "c.city", "f.name", "cf.*").
+		From("contacts c").
+		Where(sq.Eq{"c.id": contactId}).
+		LeftJoin("card_fields cf on cf.card_id = c.id").
+		LeftJoin("fields f on f.id = cf.field_id").
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		blogger.Errorf("[card/GetOneCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	defer rows.Close()
+	fields := []models.ContactField{}
+
+	for rows.Next() {
+		var field models.ContactField
+		if err := rows.Scan(&contact.Id, &contact.DashboardId, &contact.CardId, &contact.Name,
+			&contact.Phone, &contact.City,
+			&field.Name, &field.Id, &field.ContactId, &field.Value,
+		); err != nil {
+			blogger.Errorf("[card/GetOneCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return nil, err
+		}
+
+		fields = append(fields, field)
+	}
+	contact.Fields = fields
 
 	return contact, nil
 }
@@ -58,6 +89,21 @@ func (r *DbService) RenameContact(ctx context.Context, contactId string, newName
 
 func (r *DbService) DeleteContact(ctx context.Context, contactId string) error {
 	_, err := sq.Delete("contacts").
+		Where(sq.Eq{"id": contactId}).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		blogger.Errorf("[contact/Delete] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *DbService) ChangeCard(ctx context.Context, contactId string, cardId string) error {
+	_, err := sq.Update("contacts").
+		Set("card_id", cardId).
 		Where(sq.Eq{"id": contactId}).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).

@@ -2,6 +2,7 @@ package dashboards
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/ignavan39/ucrm-go/app/models"
 )
@@ -47,11 +48,17 @@ type AddSettingsPayload struct {
 type AddCustomField struct {
 	Name       string `json:"name"`
 	IsNullable bool   `json:"is_nullable"`
+	FieldType  string `json:"field_type"`
 }
 
 func (p *AddCustomField) Validate() error {
 	if len(p.Name) == 0 {
 		return errors.New("Incorrect params for custom field add")
+	}
+
+	p.FieldType = strings.ToLower(p.FieldType)
+	if p.FieldType != "card" && p.FieldType != "contact" {
+		return errors.New("Incorrect value for type")
 	}
 
 	return nil

@@ -19,7 +19,10 @@ type Controller struct {
 }
 
 func NewController(repo repository.DashboardRepository, webhookRepo repository.CardWebhookRepository) *Controller {
-	return &Controller{repo: repo, webhookRepo: webhookRepo}
+	return &Controller{
+		repo:        repo,
+		webhookRepo: webhookRepo,
+	}
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
@@ -269,7 +272,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	field, err := c.repo.AddCustomFieldForCards(dashboardId, payload.Name, payload.IsNullable)
+	field, err := c.repo.AddCustomField(dashboardId, payload.Name, payload.IsNullable, payload.FieldType)
 	if err != nil {
 		blogger.Errorf("[dashboards/createCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{

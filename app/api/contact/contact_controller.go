@@ -13,11 +13,13 @@ import (
 
 type Controller struct {
 	contactRepo repository.ContactRepository
+	cardRepo    repository.CardRepository
 }
 
-func NewController(contactRepo repository.ContactRepository) *Controller {
+func NewController(contactRepo repository.ContactRepository, cardRepo repository.CardRepository) *Controller {
 	return &Controller{
 		contactRepo: contactRepo,
+		cardRepo:    cardRepo,
 	}
 }
 
@@ -168,4 +170,48 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+}
+
+func (c *Controller) ChangeCard(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	contactId := chi.URLParam(r, "contactId")
+	cardId := chi.URLParam(r, "cardId")
+
+	if len(contactId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Rename] wrong id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if len(cardId) != 0 {
+		cardExists, err := c.cardRepo.CheckCardExists(ctx, cardId)
+		if err != nil {
+			httpext.JSON(w, httpext.CommonError{
+				Error: fmt.Sprintf("[ChangeCard]:%s", err.Error()),
+				Code:  http.StatusInternalServerError,
+			}, http.StatusInternalServerError)
+			return
+		}
+
+		if cardExists == false {
+			httpext.JSON(w, httpext.CommonError{
+				Error: "[ChangeCard]: card not found",
+				Code:  http.StatusNotFound,
+			}, http.StatusNotFound)
+			return
+		}
+	}
+
+	err := c.contactRepo.ChangeCard(ctx, contactId, cardId)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[ChangeCard]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

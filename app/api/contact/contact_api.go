@@ -14,6 +14,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Contac
 			r.Post("/create", controller.CreateOne)
 			r.Delete("/{contactId}", controller.Delete)
 			r.Get("/{contactId}", controller.GetOne)
+			r.Patch("/change-card/{cardId}/{contactId}", controller.ChangeCard)
 			r.Patch("/{contactId}/{newName}", controller.Rename)
 			r.Patch("/{contactId}", controller.Update)
 		})
