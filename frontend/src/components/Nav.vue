@@ -20,26 +20,16 @@
         </el-menu-item>
       </template>
     </template>
-    <el-menu-item v-if="isLoggedIn" index="logout" @click="logout">
-      Logout
-    </el-menu-item>
   </el-menu>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
 
 const store = useStore();
-const router = useRouter();
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn);
-
-const logout = () => {
-  store.dispatch("register");
-  router.push("/login");
-};
 </script>
 
 <style lang="scss" scoped>

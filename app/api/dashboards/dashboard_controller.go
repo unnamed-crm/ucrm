@@ -10,6 +10,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	blogger "github.com/sirupsen/logrus"
 )
 
 type Controller struct {
@@ -70,7 +71,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	dashboard, err := c.repo.GetOneDashboard(payload.DashboardId)
+	dashboard, err := c.repo.GetOneDashboardInternal(payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -118,6 +119,26 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
+	dashboard, err := c.repo.GetOneDashboard(id)
+	if err != nil {
+		blogger.Error("[dashboard/getOnde] ERROR :%s", err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	if dashboard == nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "dashboard not found",
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
+		return
+	}
+
+	httpext.JSON(w, dashboard, http.StatusOK)
 }
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
@@ -235,4 +256,48 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpext.JSON(w, settings, http.StatusOK)
+}
+
+func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	dashboardId := chi.URLParam(r, "dashboardId")
+
+	if len(dashboardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing dashboardId: dashboards/createCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var payload AddCustomField
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload: dashboards/createCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	field, err := c.repo.AddCustomFieldForCards(dashboardId, payload.Name, payload.IsNullable)
+	if err != nil {
+		blogger.Errorf("[dashboards/createCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[CreateCustomField]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	httpext.JSON(w, field, http.StatusOK)
 }

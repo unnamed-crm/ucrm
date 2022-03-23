@@ -23,6 +23,17 @@ const routes: Array<RouteRecordRaw> = [
     name: "Register",
     component: Register,
   },
+  {
+    path: "/logout",
+    name: "Logout",
+    redirect: () => {
+      store.dispatch("logout");
+      return "/login";
+    },
+    meta: {
+      requiresAuth: true,
+    },
+  },
 ];
 
 const router = createRouter({

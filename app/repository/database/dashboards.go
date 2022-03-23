@@ -3,9 +3,11 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -24,10 +26,11 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err != nil {
 		return nil, err
 	}
+	
 	return dashboard, nil
 }
 
-func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
+func (r *DbService) GetOneDashboardInternal(dashboardId string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
 
 	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at", "du.user_id", "du.access").
@@ -54,6 +57,76 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		dashboardUsers = append(dashboardUsers, da)
 	}
 	dashboard.Users = dashboardUsers
+
+	return &dashboard, nil
+}
+
+func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, error) {
+	var dashboard models.Dashboard
+
+	rows, err := sq.Select("d.*", "p.id", `p."order"`, "p.name", "c.name", `c."order"`, "c.id", "c.pipeline_id").
+		From("dashboards d").
+		LeftJoin("pipelines p on d.id = p.dashboard_id").
+		LeftJoin("cards c on c.pipeline_id = p.id").
+		Where(sq.Eq{"d.id": dashboardId}).
+		OrderBy(`p."order"`,`c."order"`).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	pipelines := make(map[string]models.Pipeline)
+
+	for rows.Next() {
+		var p models.Pipeline
+		var order sql.NullInt64
+		var name, id, pipelineId sql.NullString
+
+		if err := rows.Scan(
+			&dashboard.Id,
+			&dashboard.UpdatedAt,
+			&dashboard.Name,
+			&dashboard.AuthorId,
+			&p.Id,
+			&p.Order,
+			&p.Name,
+			&name,
+			&order,
+			&id,
+			&pipelineId); err != nil {
+			return nil, err
+		}
+
+		pipeline, found := pipelines[p.Id]
+		if !found {
+			pipeline = p
+		}
+
+		if pipeline.Cards == nil {
+			pipeline.Cards = make([]models.Card, 0)
+		}
+
+		var c models.Card
+		if name.Valid {
+			c.Name = name.String
+			c.Order = int(order.Int64)
+			c.Id = id.String
+			c.PipelineId = pipelineId.String
+
+			pipeline.Cards = append(pipeline.Cards, c)
+		}
+
+		pipelines[p.Id] = pipeline
+	}
+
+	for _, p := range pipelines {
+		dashboard.Pipelines = append(dashboard.Pipelines, p)
+	}
 
 	return &dashboard, nil
 }
@@ -170,4 +243,67 @@ func (r *DbService) GetDashboardSettings(xClientToken string) (*models.Dashboard
 	}
 
 	return &res, nil
+}
+
+func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNullable bool) (*models.Field, error) {
+	field := &models.Field{}
+
+	row := sq.Insert("fields").
+		Columns("name", "dashboard_id", "is_nullable", "type").
+		Values(name, dashboardId, isNullable, repository.CardFieldType).
+		Suffix(`returning id, name, dashboard_id, is_nullable, type`).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+
+	if err := row.Scan(&field.Id, &field.Name, &field.DashboardId, &field.IsNullable, &field.Type); err != nil {
+		return nil, err
+	}
+
+	selectQuery, _, err := sq.Select("id").
+		From("pipelines").
+		Where("dashboard_id = ?").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	completeSql := fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
+	rows, err := r.pool.Read().
+		Query(completeSql, dashboardId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cardIds []string
+	for rows.Next() {
+		var cardId string
+		if err := rows.Scan(&cardId); err != nil {
+			return nil, err
+		}
+		cardIds = append(cardIds, cardId)
+	}
+
+	qb := sq.Insert("card_fields").
+		Columns("card_id", "field_id", "value")
+
+	for _, cardId := range cardIds {
+		qb = qb.Values(cardId, field.Id, nil)
+	}
+
+	_, err = qb.
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Write()).
+		Exec()
+	if err != nil {
+		return nil, err
+	}
+
+	return field, nil
 }

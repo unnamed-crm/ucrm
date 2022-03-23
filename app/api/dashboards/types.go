@@ -43,3 +43,16 @@ type UpdateNamePayload struct {
 type AddSettingsPayload struct {
 	Secret string `json:"secret"`
 }
+
+type AddCustomField struct {
+	Name       string `json:"name"`
+	IsNullable bool   `json:"is_nullable"`
+}
+
+func (p *AddCustomField) Validate() error {
+	if len(p.Name) == 0 {
+		return errors.New("Incorrect params for custom field add")
+	}
+
+	return nil
+}
