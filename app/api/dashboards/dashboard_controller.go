@@ -96,7 +96,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.repo.AddAccessToDashboard(payload.DashboardId, payload.UserId, payload.Access)
+	err = c.repo.AddAccessToDashboard(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

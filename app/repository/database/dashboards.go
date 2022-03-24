@@ -168,19 +168,17 @@ func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId str
 	return &dashboard, nil
 }
 
-func (r *DbService) AddAccessToDashboard(dashboardId string, userId string, access string) (*string, error) {
-	var id *string
-	row := sq.Insert("dashboards_user").Columns("user_id", "dashboard_id", "access").
+func (r *DbService) AddAccessToDashboard(dashboardId string, userId string, access string) error {
+	_, err := sq.Insert("dashboards_user").Columns("user_id", "dashboard_id", "access").
 		Values(userId, dashboardId, access).
-		Suffix("returning id").
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&id); err != nil {
-		return nil, err
+		Exec()
+	if err != nil {
+		return err
 	}
 
-	return id, nil
+	return nil
 }
 func (r *DbService) UpdateDashboardName(dashboardId string, name string) error {
 	_, err := sq.Update("dashboards").
