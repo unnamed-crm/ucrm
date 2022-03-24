@@ -26,7 +26,6 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err != nil {
 		return nil, err
 	}
-
 	return dashboard, nil
 }
 
