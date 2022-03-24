@@ -26,7 +26,7 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return dashboard, nil
 }
 
@@ -69,7 +69,7 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 		LeftJoin("pipelines p on d.id = p.dashboard_id").
 		LeftJoin("cards c on c.pipeline_id = p.id").
 		Where(sq.Eq{"d.id": dashboardId}).
-		OrderBy(`p."order"`,`c."order"`).
+		OrderBy(`p."order"`, `c."order"`).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
@@ -169,7 +169,7 @@ func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId str
 	return &dashboard, nil
 }
 
-func (r *DbService) AddUserToDashboard(dashboardId string, userId string, access string) (*string, error) {
+func (r *DbService) AddAccessToDashboard(dashboardId string, userId string, access string) (*string, error) {
 	var id *string
 	row := sq.Insert("dashboards_user").Columns("user_id", "dashboard_id", "access").
 		Values(userId, dashboardId, access).
@@ -306,4 +306,28 @@ func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNu
 	}
 
 	return field, nil
+}
+
+func (d *DbService) UpdateAccessDashboard(dashboardId string, userId string, access string) error {
+	_, err := sq.Update("dashboards_user").
+		Set("access", access).
+		Where(sq.And{sq.Eq{"dashboard_id": dashboardId}, sq.Eq{"user_id": userId}}).
+		RunWith(d.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (d *DbService) RemoveAccessDashboard(dashboardId string, userId string) error {
+	_, err := sq.Delete("dashboards_user").
+		Where(sq.And{sq.Eq{"dashboard_id": dashboardId}, sq.Eq{"user_id": userId}}).
+		RunWith(d.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		return err
+	}
+	return nil
 }

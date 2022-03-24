@@ -14,7 +14,6 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 			r.Post("/create", controller.CreateOne)
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))
-				r.Post("/addUser", controller.AddUserToDashboard)
 				r.Post("/{dashboardId}/custom-field", controller.CreateCustomField)
 			})
 			r.Group(func(r chi.Router) {
@@ -23,10 +22,15 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 			})
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.IsAdminGuard(repo))
-				r.Patch("/{dashboardId}", controller.UpdateName)
-				r.Delete("/{dashboardId}", controller.DeleteById)
-				r.Post("/{dashboardId}/webhook", controller.AddWebhook)
-				r.Post("/{dashboardId}/settings", controller.AddSettings)
+				r.Route("/admin", func(r chi.Router) {
+					r.Patch("/{dashboardId}", controller.UpdateName)
+					r.Delete("/{dashboardId}", controller.DeleteById)
+					r.Post("/{dashboardId}/webhook", controller.AddWebhook)
+					r.Post("/{dashboardId}/settings", controller.AddSettings)
+					r.Delete("/removeAccess/{dashboardId}/{userId}", controller.RemoveAccess)
+					r.Patch("/updateAccess", controller.UpdateAccess)
+					r.Post("/addAccess", controller.AddAccess)
+				})
 			})
 		})
 	})

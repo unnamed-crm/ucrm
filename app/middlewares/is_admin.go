@@ -1,6 +1,9 @@
 package middlewares
 
 import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -14,6 +17,33 @@ func IsAdminGuard(repo repository.DashboardRepository) func(next http.Handler) h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			id := chi.URLParam(r, "dashboardId")
+			if len(id) == 0 {
+				var payload struct {
+					DashboardId string `json:"dashboard_id"`
+				}
+
+				body, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					httpext.JSON(w, httpext.CommonError{
+						Error: "failed decode payload",
+						Code:  http.StatusBadRequest,
+					}, http.StatusBadRequest)
+					return
+				}
+
+				reader := ioutil.NopCloser(bytes.NewReader(body))
+				r.Body = reader
+				err = json.Unmarshal(body, &payload)
+				if err != nil {
+					httpext.JSON(w, httpext.CommonError{
+						Error: "failed decode payload",
+						Code:  http.StatusBadRequest,
+					}, http.StatusBadRequest)
+					return
+				}
+				id = payload.DashboardId
+			}
+
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "wrong dashboard id",
