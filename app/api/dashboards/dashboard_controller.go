@@ -51,7 +51,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
-	var payload AddAccessToDashboardPayload
+	var payload AddAccessPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -335,7 +335,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var payload AddAccessToDashboardPayload
+	var payload AddAccessPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {

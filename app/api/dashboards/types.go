@@ -14,13 +14,13 @@ type CreateDashboardResponse struct {
 	Dashboard models.Dashboard `json:"dashboard"`
 }
 
-type AddAccessToDashboardPayload struct {
+type AddAccessPayload struct {
 	DashboardId string `json:"dashboard_id"`
 	Access      string `json:"access"`
 	UserId      string `json:"user_id"`
 }
 
-func (p *AddAccessToDashboardPayload) Validate() error {
+func (p *AddAccessPayload) Validate() error {
 	if p.Access != "r" && p.Access != "rw" {
 		return errors.New("invalid access")
 	}
