@@ -65,9 +65,28 @@ services:
         ipv4_address: 172.4.4.3
         aliases:
           - ucrm.db.loc
+  rabbitmq:
+    container_name: ucrm-go-rabbitmq
+    build:
+      context: ./
+      dockerfile: ./docker/rabbitmq.Dockerfile
+    image: rabbitmq:docker
+    environment:
+      - "RABBITMQ_USER=${RABBITMQ_USER:-guest}"
+      - "RABBITMQ_PASS=${RABBITMQ_PASSWORD:-guest}"
+    ports:
+      - 1883:1883
+      - 5672:5672
+      - 15672:15672
+    networks:
+      ucrm:
+        ipv4_address: 172.4.4.20
+        aliases:
+          - ucrm.rabbitmq.loc
   app: 
     depends_on:
       - postgres
+      - rabbitmq
     build:
       context: ./
       dockerfile: docker/app.debug.Dockerfile
