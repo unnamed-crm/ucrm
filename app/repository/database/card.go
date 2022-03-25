@@ -158,7 +158,7 @@ func (r *DbService) UpdateCard(ctx context.Context, cardId string, name *string,
 
 			defer rows.Close()
 
-			fields := []models.CardField{}
+			fields := make([]models.CardField, 0)
 			for rows.Next() {
 				var field models.CardField
 				if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
@@ -214,7 +214,7 @@ func (r *DbService) GetOneCard(ctx context.Context, cardId string) (*models.Card
 	}
 
 	defer rows.Close()
-	fields := []models.CardField{}
+	fields := make([]models.CardField, 0)
 
 	for rows.Next() {
 		var field models.CardField
