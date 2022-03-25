@@ -14,21 +14,21 @@ type CreateDashboardResponse struct {
 	Dashboard models.Dashboard `json:"dashboard"`
 }
 
-type AddUserToDashboardPayload struct {
+type AddAccessPayload struct {
 	DashboardId string `json:"dashboard_id"`
 	Access      string `json:"access"`
 	UserId      string `json:"user_id"`
 }
 
-func (p *AddUserToDashboardPayload) Validate() error {
-	if p.Access != "r" || p.Access == "rw" {
-		return errors.New("invalid access")
-	}
-	return nil
-}
+var Access = []string{"rw", "admin", "r"}
 
-type AddUserToDashboardResponse struct {
-	UserDashboardId string `json:"user_dashboard_id"`
+func (p *AddAccessPayload) Validate() error {
+	for _, a := range Access {
+		if a == p.Access {
+			return nil
+		}
+	}
+	return errors.New("invalid access")
 }
 
 type AddWebhookPayload struct {

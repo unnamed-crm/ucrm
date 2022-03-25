@@ -50,8 +50,8 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	}, http.StatusCreated)
 }
 
-func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) {
-	var payload AddUserToDashboardPayload
+func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
+	var payload AddAccessPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -88,15 +88,16 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if dashboard.AuthorId == payload.UserId {
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if payload.UserId == currentUser {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "user author this dashboard",
+			Error: "you can't changed your access",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
-	id, err := c.repo.AddUserToDashboard(payload.DashboardId, payload.UserId, payload.Access)
+	err = c.repo.AddAccessToDashboard(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -105,9 +106,7 @@ func (c *Controller) AddUserToDashboard(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	httpext.JSON(w, AddUserToDashboardResponse{
-		UserDashboardId: *id,
-	}, 201)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
@@ -300,4 +299,90 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpext.JSON(w, field, http.StatusOK)
+}
+
+func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id := chi.URLParam(r, "dashboardId")
+	if len(id) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	userId := chi.URLParam(r, "userId")
+	if len(userId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong user id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if userId == currentUser {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err := c.repo.RemoveAccessDashboard(id, userId)
+	if err != nil {
+		blogger.Errorf("[dashboards/RemoveAccess] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[RemoveAccess]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var payload AddAccessPayload
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if payload.UserId == currentUser {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = c.repo.UpdateAccessDashboard(payload.DashboardId, payload.UserId, payload.Access)
+	if err != nil {
+		blogger.Errorf("[dashboards/UpdateAccess] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[UpdateAccess]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
