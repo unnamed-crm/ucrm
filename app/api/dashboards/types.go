@@ -20,11 +20,15 @@ type AddAccessPayload struct {
 	UserId      string `json:"user_id"`
 }
 
+var Access = []string{"rw", "admin", "r"}
+
 func (p *AddAccessPayload) Validate() error {
-	if p.Access != "r" && p.Access != "rw" {
-		return errors.New("invalid access")
+	for _, a := range Access {
+		if a == p.Access {
+			return nil
+		}
 	}
-	return nil
+	return errors.New("invalid access")
 }
 
 type AddWebhookPayload struct {

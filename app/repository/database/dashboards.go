@@ -20,7 +20,7 @@ func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard,
 		return nil, err
 	}
 	_, err := sq.Insert("dashboards_user").Columns("dashboard_id", "user_id", "access").
-		Values(dashboard.Id, userId, "rw").
+		Values(dashboard.Id, userId, "admin").
 		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
@@ -130,6 +130,9 @@ func (r *DbService) GetOneDashboard(dashboardId string) (*models.Dashboard, erro
 	return &dashboard, nil
 }
 
+var AdminAccess = []string{"rw", "r", "admin"}
+var RWAccess = []string{"rw", "r"}
+
 func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId string, accessType string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
 
@@ -137,8 +140,10 @@ func (r *DbService) GetOneDashboardWithUserAccess(dashboardId string, userId str
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
 		Where(sq.Eq{"d.id": dashboardId, "du.user_id": userId})
-	if accessType == "r" {
-		builder.Where(sq.Or{sq.Eq{"du.access": accessType}, sq.Eq{"du.access": "rw"}})
+	if accessType == "admin" {
+		builder.Where(sq.Eq{"du.access": AdminAccess})
+	} else if accessType == "rw" {
+		builder.Where(sq.Eq{"du.access": RWAccess})
 	} else {
 		builder.Where(sq.Eq{"du.access": accessType})
 	}

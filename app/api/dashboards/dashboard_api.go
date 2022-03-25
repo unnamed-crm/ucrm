@@ -21,7 +21,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 				r.Get("/{dashboardId}", controller.GetOneDashboard)
 			})
 			r.Group(func(r chi.Router) {
-				r.Use(middlewares.IsAdminGuard(repo))
+				r.Use(middlewares.DashboardAccessGuard(repo, "admin"))
 				r.Route("/admin", func(r chi.Router) {
 					r.Patch("/{dashboardId}", controller.UpdateName)
 					r.Delete("/{dashboardId}", controller.DeleteById)

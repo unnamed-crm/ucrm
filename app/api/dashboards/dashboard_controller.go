@@ -88,9 +88,10 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if dashboard.AuthorId == payload.UserId {
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if payload.UserId == currentUser {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "user author this dashboard",
+			Error: "you can't changed your access",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -320,6 +321,15 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if userId == currentUser {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
 	err := c.repo.RemoveAccessDashboard(id, userId)
 	if err != nil {
 		blogger.Errorf("[dashboards/RemoveAccess] CTX: [%v], ERROR:[%s]", ctx, err.Error())
@@ -350,6 +360,15 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	currentUser := auth.GetUserIdFromContext(r.Context())
+	if payload.UserId == currentUser {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "you can't changed your access",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
