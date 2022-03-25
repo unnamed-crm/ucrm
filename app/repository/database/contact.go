@@ -45,7 +45,7 @@ func (r *DbService) GetOneContact(ctx context.Context, contactId string) (*model
 			return nil, err
 		}
 
-		if name.Valid { 
+		if name.Valid {
 			field.Name = name.String
 			field.Id = id.String
 			field.ContactId = contactId.String
@@ -124,29 +124,29 @@ func (r *DbService) UpdateContact(ctx context.Context, contactId string, name *s
 		}
 	}
 
-	if isContactDataUpdate { 
+	if isContactDataUpdate {
 		qb := sq.Update("contacts")
 		if name != nil {
 			qb = qb.Set("name", name)
 		}
-	
+
 		if phone != nil {
 			qb = qb.Set("phone", phone)
 		}
-	
+
 		if city != nil {
 			qb = qb.Set("city", city)
 		}
-	
+
 		qb = qb.Where(sq.Eq{"id": contactId}).
 			PlaceholderFormat(sq.Dollar)
-	
+
 		if isUpdateWithTransaction {
 			qb = qb.RunWith(tx)
 		} else {
 			qb = qb.RunWith(r.pool.Write())
 		}
-	
+
 		_, err := qb.Exec()
 		if err != nil {
 			if isUpdateWithTransaction {
@@ -155,13 +155,13 @@ func (r *DbService) UpdateContact(ctx context.Context, contactId string, name *s
 					return err
 				}
 			}
-	
+
 			if errors.Is(err, sql.ErrNoRows) {
 				return nil
 			}
 			return err
 		}
-	
+
 		if isUpdateWithTransaction {
 			if err = tx.Commit(); err != nil {
 				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
@@ -191,26 +191,6 @@ func (r *DbService) RenameContact(ctx context.Context, contactId string, newName
 func (r *DbService) DeleteContact(ctx context.Context, contactId string) error {
 	_, err := sq.Delete("contacts").
 		Where(sq.Eq{"id": contactId}).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
-		Exec()
-	if err != nil {
-		blogger.Errorf("[contact/Delete] CTX: [%v], ERROR:[%s]", ctx, err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (r *DbService) ChangeCard(ctx context.Context, contactId string, cardId *string) error {
-	qb := sq.Update("contacts")
-
-	if cardId == nil {
-		qb = qb.Set("card_id", nil)
-	} else { 
-		qb = qb.Set("card_id", *cardId)
-	}
-	_, err := qb.Where(sq.Eq{"id": contactId}).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		Exec()

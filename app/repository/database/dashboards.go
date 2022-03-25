@@ -205,13 +205,13 @@ func (r *DbService) AddCustomField(dashboardId string, name string, isNullable b
 		if err != nil {
 			return nil, err
 		}
-		
+
 		completeSql = fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
 	} else if fieldType == "contact" {
 		idColumnName = "contact_id"
 		tableForInsert = "contact_fields"
 		var err error
-	
+
 		completeSql, _, err = sq.Select("id").
 			From("contacts").
 			Where("dashboard_id = ?").
@@ -233,7 +233,7 @@ func (r *DbService) AddCustomField(dashboardId string, name string, isNullable b
 	}
 	defer rows.Close()
 
-	if len (fieldIds) != 0 {
+	if len(fieldIds) != 0 {
 		for rows.Next() {
 			var id string
 			if err := rows.Scan(&id); err != nil {
