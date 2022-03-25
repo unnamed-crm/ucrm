@@ -7,7 +7,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/app/repository"
 )
 
 func (r *DbService) AddDashboard(name string, userId string) (*models.Dashboard, error) {
@@ -185,6 +184,7 @@ func (r *DbService) AddAccessToDashboard(dashboardId string, userId string, acce
 
 	return nil
 }
+
 func (r *DbService) UpdateDashboardName(dashboardId string, name string) error {
 	_, err := sq.Update("dashboards").
 		Set("name", name).
@@ -247,12 +247,12 @@ func (r *DbService) GetDashboardSettings(xClientToken string) (*models.Dashboard
 	return &res, nil
 }
 
-func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNullable bool) (*models.Field, error) {
+func (r *DbService) AddCustomField(dashboardId string, name string, isNullable bool, fieldType string) (*models.Field, error) {
 	field := &models.Field{}
 
 	row := sq.Insert("fields").
 		Columns("name", "dashboard_id", "is_nullable", "type").
-		Values(name, dashboardId, isNullable, repository.CardFieldType).
+		Values(name, dashboardId, isNullable, fieldType).
 		Suffix(`returning id, name, dashboard_id, is_nullable, type`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
@@ -262,49 +262,73 @@ func (r *DbService) AddCustomFieldForCards(dashboardId string, name string, isNu
 		return nil, err
 	}
 
-	selectQuery, _, err := sq.Select("id").
-		From("pipelines").
-		Where("dashboard_id = ?").
-		PlaceholderFormat(sq.Dollar).
-		ToSql()
+	var idColumnName string
+	var completeSql string
+	var tableForInsert string
 
-	if err != nil {
-		return nil, err
+	if fieldType == "card" {
+		idColumnName = "card_id"
+		tableForInsert = "card_fields"
+
+		selectQuery, _, err := sq.Select("id").
+			From("pipelines").
+			Where("dashboard_id = ?").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		completeSql = fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
+	} else if fieldType == "contact" {
+		idColumnName = "contact_id"
+		tableForInsert = "contact_fields"
+		var err error
+
+		completeSql, _, err = sq.Select("id").
+			From("contacts").
+			Where("dashboard_id = ?").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	completeSql := fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
+	var fieldIds []string
+
 	rows, err := r.pool.Read().
 		Query(completeSql, dashboardId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+		if !(errors.Is(err, sql.ErrNoRows)) {
+			return nil, err
 		}
-		return nil, err
 	}
 	defer rows.Close()
 
-	var cardIds []string
-	for rows.Next() {
-		var cardId string
-		if err := rows.Scan(&cardId); err != nil {
+	if len(fieldIds) != 0 {
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				return nil, err
+			}
+			fieldIds = append(fieldIds, id)
+		}
+
+		qb := sq.Insert(tableForInsert).
+			Columns(idColumnName, "field_id", "value")
+
+		for _, id := range fieldIds {
+			qb = qb.Values(id, field.Id, nil)
+		}
+
+		_, err = qb.
+			PlaceholderFormat(sq.Dollar).
+			RunWith(r.pool.Write()).
+			Exec()
+		if err != nil {
 			return nil, err
 		}
-		cardIds = append(cardIds, cardId)
-	}
-
-	qb := sq.Insert("card_fields").
-		Columns("card_id", "field_id", "value")
-
-	for _, cardId := range cardIds {
-		qb = qb.Values(cardId, field.Id, nil)
-	}
-
-	_, err = qb.
-		PlaceholderFormat(sq.Dollar).
-		RunWith(r.pool.Write()).
-		Exec()
-	if err != nil {
-		return nil, err
 	}
 
 	return field, nil
