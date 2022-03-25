@@ -10,7 +10,7 @@ import (
 func RegisterRouter(r chi.Router, controller *Controller, repo repository.ContactRepository, config config.JWTConfig) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthGuard(config))
-		r.Route("/contact", func(r chi.Router) {
+		r.Route("/contacts", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
 			r.Delete("/{contactId}", controller.Delete)
 			r.Get("/{contactId}", controller.GetOne)

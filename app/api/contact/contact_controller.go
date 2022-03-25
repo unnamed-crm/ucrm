@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/repository"
@@ -139,7 +140,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.contactRepo.UpdateContact(ctx, contactId, payload.Name, payload.Phone, payload.City)
+	err = c.contactRepo.UpdateContact(ctx, contactId, payload.Name, payload.Phone, payload.City, payload.Fields)
 	if err != nil {
 		blogger.Errorf("[contact/Update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -179,32 +180,47 @@ func (c *Controller) ChangeCard(w http.ResponseWriter, r *http.Request) {
 
 	if len(contactId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "[Rename] wrong id",
+			Error: "[Rename] wrong contact id",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
+	if len(cardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Rename] wrong card id",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	
+	var cardIdPtr *string
 	if len(cardId) != 0 {
-		cardExists, err := c.cardRepo.CheckCardExists(ctx, cardId)
-		if err != nil {
-			httpext.JSON(w, httpext.CommonError{
-				Error: fmt.Sprintf("[ChangeCard]:%s", err.Error()),
-				Code:  http.StatusInternalServerError,
-			}, http.StatusInternalServerError)
-			return
-		}
+		if strings.ToLower(cardId) == "nil" { 
+			cardIdPtr = nil
+		} else { 
+			cardExists, err := c.cardRepo.CheckCardExists(ctx, cardId)
+			if err != nil {
+				httpext.JSON(w, httpext.CommonError{
+					Error: fmt.Sprintf("[ChangeCard]:%s", err.Error()),
+					Code:  http.StatusInternalServerError,
+				}, http.StatusInternalServerError)
+				return
+			}
 
-		if cardExists == false {
-			httpext.JSON(w, httpext.CommonError{
-				Error: "[ChangeCard]: card not found",
-				Code:  http.StatusNotFound,
-			}, http.StatusNotFound)
-			return
+			if cardExists == false {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "[ChangeCard]: card not found",
+					Code:  http.StatusNotFound,
+				}, http.StatusNotFound)
+				return
+			}
+			
+			cardIdPtr = &cardId
 		}
 	}
 
-	err := c.contactRepo.ChangeCard(ctx, contactId, cardId)
+	err := c.contactRepo.ChangeCard(ctx, contactId, cardIdPtr)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[ChangeCard]:%s", err.Error()),

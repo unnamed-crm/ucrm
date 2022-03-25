@@ -189,59 +189,73 @@ func (r *DbService) AddCustomField(dashboardId string, name string, isNullable b
 		return nil, err
 	}
 
-	selectQuery, _, err := sq.Select("id").
-		From("pipelines").
-		Where("dashboard_id = ?").
-		PlaceholderFormat(sq.Dollar).
-		ToSql()
-
-	if err != nil {
-		return nil, err
-	}
-
-	var tableForQuery string
 	var idColumnName string
+	var completeSql string
+	var tableForInsert string
+
 	if fieldType == "card" {
-		tableForQuery = "cards"
 		idColumnName = "card_id"
+		tableForInsert = "card_fields"
+
+		selectQuery, _, err := sq.Select("id").
+			From("pipelines").
+			Where("dashboard_id = ?").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		
+		completeSql = fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
 	} else if fieldType == "contact" {
-		tableForQuery = "contacts"
 		idColumnName = "contact_id"
+		tableForInsert = "contact_fields"
+		var err error
+	
+		completeSql, _, err = sq.Select("id").
+			From("contacts").
+			Where("dashboard_id = ?").
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	completeSql := fmt.Sprintf("with p as (%s) select id from %s where pipeline_id in (select * from p)", selectQuery, tableForQuery)
+	var fieldIds []string
+
 	rows, err := r.pool.Read().
 		Query(completeSql, dashboardId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+		if !(errors.Is(err, sql.ErrNoRows)) {
+			return nil, err
 		}
-		return nil, err
 	}
 	defer rows.Close()
 
-	var fieldIds []string
-	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
+	if len (fieldIds) != 0 {
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				return nil, err
+			}
+			fieldIds = append(fieldIds, id)
+		}
+
+		qb := sq.Insert(tableForInsert).
+			Columns(idColumnName, "field_id", "value")
+
+		for _, id := range fieldIds {
+			qb = qb.Values(id, field.Id, nil)
+		}
+
+		_, err = qb.
+			PlaceholderFormat(sq.Dollar).
+			RunWith(r.pool.Write()).
+			Exec()
+		if err != nil {
 			return nil, err
 		}
-		fieldIds = append(fieldIds, id)
-	}
-
-	qb := sq.Insert(tableForQuery).
-		Columns(idColumnName, "field_id", "value")
-
-	for _, id := range fieldIds {
-		qb = qb.Values(id, field.Id, nil)
-	}
-
-	_, err = qb.
-		PlaceholderFormat(sq.Dollar).
-		RunWith(r.pool.Write()).
-		Exec()
-	if err != nil {
-		return nil, err
 	}
 
 	return field, nil
