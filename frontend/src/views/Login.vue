@@ -11,6 +11,7 @@
       <el-input
         v-model="formData.email"
         type="email"
+        autocomplete="email"
         placeholder="email@domain.com"
       />
     </el-form-item>
@@ -18,11 +19,14 @@
       <el-input
         v-model="formData.password"
         type="password"
+        autocomplete="current-password"
         show-password
         placeholder="password..."
       />
     </el-form-item>
-    <el-button native-type="submit" type="primary">Login</el-button>
+    <el-button class="button" native-type="submit" type="primary">
+      Login
+    </el-button>
   </el-form>
 </template>
 
@@ -30,16 +34,48 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import * as yup from "yup";
 
 const store = useStore();
 const router = useRouter();
 
-const formData = reactive({
+const formSchema = yup.object({
+  email: yup
+    .string()
+    .required("This field is required")
+    .email("Email is not valid"),
+  password: yup.string().required("This field is required"),
+});
+type FormSchema = yup.InferType<typeof formSchema>;
+
+const formData = reactive<FormSchema>({
   email: "",
   password: "",
 });
+const errors = reactive({ ...formData });
 
-const login = () => {
+const handleValidationErrors = (e: yup.ValidationError) => {
+  if (!e.inner.length) {
+    errors[e.path] = e.message;
+    return;
+  }
+  e.inner.forEach((el) => handleValidationErrors(el));
+};
+
+const resetErrors = () => Object.keys(errors).map((key) => (errors[key] = ""));
+
+const checkIsFormValid = () => Object.values(errors).every((el) => !el);
+
+const login = async () => {
+  resetErrors();
+
+  await formSchema
+    .validate(formData, { abortEarly: false })
+    .catch(handleValidationErrors);
+
+  const isValid = checkIsFormValid();
+  if (!isValid) return;
+
   store
     .dispatch("login", formData)
     .then(() => router.push("/"))
@@ -61,5 +97,9 @@ const login = () => {
   padding: 2rem;
   background-color: $background;
   border-radius: $border-radius;
+}
+
+.button {
+  margin-top: 0.5rem;
 }
 </style>
