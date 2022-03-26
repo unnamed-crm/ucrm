@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
@@ -88,37 +89,37 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 }
 
 func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
-	select {
-	case <-c.stop:
-		{
-			close(c.stop)
-			return
-		}
-	default:
-		for d := range c.Delivery {
-			var payload ClientQueuePayload
-			err := json.Unmarshal(d.Body, &payload)
-			if err != nil {
-				blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
-			} else {
-				queueOut <- &payload
+	go func() {
+		var wg sync.WaitGroup
+		wg.Add(1)
+		defer close(c.stop)
+		go func() {
+			defer wg.Done()
+			blogger.Infof("[QUEUE] start consume for: %s", c.config.QueueName)
+			for d := range c.Delivery {
+				var payload ClientQueuePayload
+				err := json.Unmarshal(d.Body, &payload)
+				if err != nil {
+					blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
+				} else {
+					queueOut <- &payload
+				}
 			}
-		}
-	}
+		}()
+		c.stop <- 1
+		wg.Wait()
+	}()
 }
 
-func (c *ClientQueue) Stop(errorChan chan error) {
-
-	c.stop <- 1
+func (c *ClientQueue) Stop() error {
+	<-c.stop
 	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
 
 	if err != nil {
 		blogger.Errorf("[%s] : %s", c.config.QueueName, err.Error())
-		errorChan <- err
-		return
+		return err
 	}
-	errorChan <- nil
-
+	return nil
 }
 
 func (c *ClientQueue) GetOptions() ClientQueueConfig {

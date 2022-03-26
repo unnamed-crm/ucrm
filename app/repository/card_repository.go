@@ -6,6 +6,8 @@ import (
 	"github.com/ignavan39/ucrm-go/app/models"
 )
 
+const CardFieldType string = "card"
+
 type CardRepository interface {
 	AddCard(ctx context.Context, name string, order int, pipelineId string) (*models.Card, error)
 	UpdateCard(ctx context.Context, cardId string, name *string, cardFields *map[string]string) (*models.Card, error)

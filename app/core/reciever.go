@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"runtime"
 	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
@@ -42,7 +41,7 @@ func (d *Reciever) AddQueue(
 		return nil, err
 	}
 
-	go queue.Start(d.queueOut)
+	queue.Start(d.queueOut)
 	d.pool[queue.config.QueueName] = queue
 
 	return queue, nil
@@ -50,23 +49,18 @@ func (d *Reciever) AddQueue(
 
 func (d *Reciever) RemoveUselessQueues() {
 	for {
-		time.Sleep(10 * time.Second)
-		fmt.Println(runtime.NumGoroutine())
+		time.Sleep(15 * time.Second)
 		for _, q := range d.pool {
 			if time.Now().Add(time.Duration(-10) * time.Second).Before(q.lastPing) {
 				blogger.Infof("Try to stop queue:%s", q.config.QueueName)
-				errorChan := make(chan error)
 
-				go q.Stop(errorChan)
-
-				err := <-errorChan
+				err := q.Stop()
 				if err != nil {
 					blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
 				} else {
 					delete(d.pool, q.config.QueueName)
 					blogger.Infof("queue stopped:%s", q.config.QueueName)
 				}
-				close(errorChan)
 			}
 		}
 	}
@@ -91,9 +85,8 @@ func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
 
 	errorChan := make(chan error)
 	defer close(errorChan)
-	go queue.Stop(errorChan)
 
-	err := <- errorChan
+	err := queue.Stop()
 	if err != nil {
 		return true, err
 	}

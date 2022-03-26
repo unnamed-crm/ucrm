@@ -62,7 +62,7 @@ services:
           memory: 4G
     networks:
       ucrm:
-        ipv4_address: 172.4.4.3
+        ipv4_address: ${NETWORK_PREFIX:-172.4}.4.3
         aliases:
           - ucrm.db.loc
   rabbitmq:
@@ -80,7 +80,7 @@ services:
       - 15672:15672
     networks:
       ucrm:
-        ipv4_address: 172.4.4.20
+        ipv4_address: ${NETWORK_PREFIX:-172.4}.4.20
         aliases:
           - ucrm.rabbitmq.loc
   app:
@@ -105,7 +105,7 @@ services:
           memory: 30M
     networks:
       ucrm:
-        ipv4_address: 172.4.4.10
+        ipv4_address: ${NETWORK_PREFIX:-172.4}.4.10
         aliases:
           - ucrm.api.loc
   frontend:
@@ -117,7 +117,7 @@ services:
       - 8080:80
     networks:
       ucrm:
-        ipv4_address: 172.4.4.12
+        ipv4_address: ${NETWORK_PREFIX:-172.4}.4.12
         aliases:
           - ucrm.api.frontend.loc
 networks:
@@ -125,4 +125,4 @@ networks:
     name: ucrm
     ipam:
       config:
-        - subnet: "172.4.4.0/24"
+        - subnet: "${NETWORK_PREFIX:-172.4}.4.0/24"

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
@@ -34,6 +35,11 @@ func main() {
 	config, err := conf.GetConfig()
 	if err != nil {
 		blogger.Fatal(err.Error())
+	}
+
+	if config.Evnironment == conf.DevelopEnironment {
+		// await rabbitmq starting
+		time.Sleep(15 * time.Second)
 	}
 
 	withLogger := false
