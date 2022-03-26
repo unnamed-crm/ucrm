@@ -25,6 +25,12 @@ func NewController(dispatcher *core.Dispatcher, dashboardRepo repository.Dashboa
 	}
 }
 
+// CreateQueue godoc
+// @Summary      Create queue
+// @Description  Create queue
+// @Tags         connect
+// @Success      200  
+// @Router       /connect/create [post]
 func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateQueuePayload
@@ -50,6 +56,12 @@ func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, queue.GetOptions(), http.StatusOK)
 }
 
+// CreateQueue godoc
+// @Summary      Create queue
+// @Description  Create queue
+// @Tags         connect
+// @Success      200  
+// @Router       /connect/ping [post]
 func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 	var payload PingPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -81,6 +93,11 @@ func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Unsubscribe godoc
+// @Summary      Unsubscribe
+// @Tags         connect
+// @Success      200  
+// @Router       /connect/unsubscribe [post]
 func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	var payload SubscribePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)

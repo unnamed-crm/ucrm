@@ -15,6 +15,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/api/contact"
 	"github.com/ignavan39/ucrm-go/app/api/dashboards"
 	"github.com/ignavan39/ucrm-go/app/api/pipelines"
+	"github.com/ignavan39/ucrm-go/app/api/swagger"
 	"github.com/ignavan39/ucrm-go/app/api/users"
 	"github.com/ignavan39/ucrm-go/app/core"
 
@@ -26,6 +27,10 @@ import (
 	"github.com/ignavan39/ucrm-go/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
+
+// @title Unnamed URCM
+// @version 1.0
+// @description Unnamed URCM
 
 func main() {
 	blogger.SetOutput(os.Stdout)
@@ -92,6 +97,7 @@ func main() {
 		ws.RegisterRouter(v1, wsController)
 		connect.RegisterRouter(v1, connectController, config.JWT)
 		contact.RegisterRouter(v1, contactController, dbService, config.JWT)
+		swagger.RegisterRouter(v1)
 	})
 
 	if err := web.Start(); err != nil {

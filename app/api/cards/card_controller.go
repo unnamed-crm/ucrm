@@ -26,6 +26,14 @@ func NewController(repo repository.CardRepository, cardWebhookRepo repository.Ca
 	}
 }
 
+// CreateOne godoc
+// @Summary      Create card
+// @Description  
+// @Tags         cards
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.Card
+// @Router       /cards [post]
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateOnePayload
@@ -63,6 +71,13 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
+// Delete godoc
+// @Summary      Delete card
+// @Description  
+// @Tags         cards
+// @Param id 
+// @Success      200  {object} models.Card
+// @Router       /cards [delete]
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
@@ -106,6 +121,13 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
+// Update godoc
+// @Summary      Update card
+// @Description  
+// @Tags         cards
+// @Param 			 cardId query string 
+// @Success      200  
+// @Router       /cards [patch]
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload UpdateOnePayload
@@ -187,6 +209,13 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, updatedCard, http.StatusOK)
 }
 
+// GetOne godoc
+// @Summary      Get one card
+// @Description  Get one card by id
+// @Tags         cards
+// @Param 			 cardId query string 
+// @Success      200  
+// @Router       /cards/{cardId} [get]
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
@@ -219,6 +248,15 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
+// UpdateOrder godoc
+// @Summary      Update order
+// @Description  Update order
+// @Tags         cards
+// @Param 			 cardId query string 
+// @Param        pipelineId query string 
+// @Param        order query string
+// @Success      200  
+// @Router       /cards/order/{pipelineId}/{cardId}/order [get]
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")
