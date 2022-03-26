@@ -13,7 +13,7 @@ export interface Mutations<T extends State> extends MutationType<T> {
   [MutationTypes.AuthSuccess](state: T, signInPayload: SignInPayload): void;
   [MutationTypes.AuthError](state: T): void;
   [MutationTypes.Logout](state: T): void;
-};
+}
 
 export const mutations: Mutations<State> = {
   [MutationTypes.AuthRequest](state) {
