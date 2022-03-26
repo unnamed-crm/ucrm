@@ -3,18 +3,16 @@ package api
 import (
 	"context"
 	"net/http"
-	"sync"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/rs/cors"
-
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	server *http.Server
 	router chi.Router
+	done   chan error
 }
 
 func NewAPIServer(listenOn string) *Server {
@@ -23,6 +21,7 @@ func NewAPIServer(listenOn string) *Server {
 	return &Server{
 		server: &http.Server{Addr: listenOn, Handler: router},
 		router: router,
+		done: make(chan error),
 	}
 }
 
@@ -52,21 +51,16 @@ func (a *Server) WithCors(corsConfig config.CorsConfig) *Server {
 	return a
 }
 
-func (a *Server) Start() {
-	var httpServerError = make(chan error)
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+func (a *Server) Start() error {
 	go func() {
-		defer wg.Done()
-		httpServerError <- a.server.ListenAndServe()
+		defer close(a.done)
+		if err := a.server.ListenAndServe();err != nil {
+			a.done <- err
+		}
 	}()
+	return nil
+}
 
-	select {
-	case <-httpServerError:
-		blogger.Fatal("The Logging API service could not be started.", <-httpServerError)
-	default:
-		blogger.Info("Server has been started...")
-	}
-	wg.Wait()
+func (a *Server) WaitForDone () error {
+	return <-a.done
 }

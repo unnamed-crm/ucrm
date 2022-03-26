@@ -94,15 +94,21 @@ func main() {
 		connect.RegisterRouter(v1, connectController, config.JWT)
 		contact.RegisterRouter(v1, contactController, dbService, config.JWT)
 	})
-	web.Start()
+
+	if err := web.Start();err != nil {
+		blogger.Fatalf("API Server crashed with error :[%s]",err.Error())
+	}
+	blogger.Infof("API server has been started...")
 
 	appCloser := make(chan os.Signal)
 	signal.Notify(appCloser, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-appCloser
 		blogger.Info("[os.SIGNAL] close request")
+		
+		dispatcher.Stop()
 		go web.Stop()
 		blogger.Info("[os.SIGNAL] done")
 	}()
-
+	web.WaitForDone()
 }

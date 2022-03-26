@@ -15,6 +15,7 @@ type Reciever struct {
 	queueOut    chan *ClientQueuePayload
 	conn        *amqp.Connection
 	middlewares []Middleware
+	close       chan int
 }
 
 func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
@@ -22,11 +23,12 @@ func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reci
 		pool:     make(map[string]*ClientQueue),
 		queueOut: queueOut,
 		conn:     conn,
+		close:    make(chan int),
 	}
 }
 
 func (r *Reciever) Start() *Reciever {
-	go r.RemoveUselessQueues()
+	r.removeUselessQueues(25*time.Second, false)
 	return r
 }
 
@@ -47,23 +49,26 @@ func (d *Reciever) AddQueue(
 	return queue, nil
 }
 
-func (d *Reciever) RemoveUselessQueues() {
-	for {
-		time.Sleep(15 * time.Second)
-		for _, q := range d.pool {
-			if time.Now().Add(time.Duration(-10) * time.Second).Before(q.lastPing) {
-				blogger.Infof("Try to stop queue:%s", q.config.QueueName)
+func (d *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
+	go func() {
+		for {
+			time.Sleep(timer)
+			for _, q := range d.pool {
+				if time.Now().Add(time.Duration(-10)*time.Second).Before(q.lastPing) || rage {
+					blogger.Infof("Try to stop queue:%s", q.config.QueueName)
 
-				err := q.Stop()
-				if err != nil {
-					blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
-				} else {
-					delete(d.pool, q.config.QueueName)
-					blogger.Infof("queue stopped:%s", q.config.QueueName)
+					err := q.Stop()
+					if err != nil {
+						blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
+					} else {
+						delete(d.pool, q.config.QueueName)
+						blogger.Infof("queue stopped:%s", q.config.QueueName)
+					}
 				}
 			}
+			d.close <- 1
 		}
-	}
+	}()
 }
 
 func (d *Reciever) Ping(queueName string, time time.Time) error {
@@ -103,4 +108,10 @@ func (d *Reciever) WithMiddleware(m Middleware) *Reciever {
 	d.middlewares = append(d.middlewares, m)
 	m.Start()
 	return d
+}
+
+func (d *Reciever) Stop() {
+	d.removeUselessQueues(0 * time.Second, true)
+	<-d.close
+	close(d.close)
 }
