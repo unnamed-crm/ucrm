@@ -357,3 +357,39 @@ func (d *DbService) RemoveAccessDashboard(dashboardId string, userId string) err
 	}
 	return nil
 }
+
+func (d *DbService) GetDashboardsByUser(userId string) ([]models.Dashboard,error) {
+	dashboards := make([]models.Dashboard,0)
+
+	rows,err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at").
+		From("dashboards d").
+		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
+		Where(sq.Eq{"du.user_id": userId}).
+		RunWith(d.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	
+	if err != nil {
+		if errors.Is(err,sql.ErrNoRows) {
+			return dashboards,nil
+		}
+		return dashboards,err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var dashboard models.Dashboard
+		if err := rows.Scan(
+			&dashboard.Name,
+			&dashboard.AuthorId,
+			&dashboard.Id,
+			&dashboard.UpdatedAt,
+		);err != nil {
+			return dashboards,err
+		}
+
+		dashboards = append(dashboards, dashboard)
+	}
+
+	return dashboards,nil
+}
