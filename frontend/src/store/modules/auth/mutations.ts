@@ -1,4 +1,4 @@
-import { MutationTree } from "vuex";
+import { MutationType } from "../types";
 import { State, StateStatus, SignInPayload } from "./state";
 
 export enum MutationTypes {
@@ -8,14 +8,14 @@ export enum MutationTypes {
   Logout = "logout",
 }
 
-export type Mutations = {
-  [MutationTypes.AuthRequest](state: State): void;
-  [MutationTypes.AuthSuccess](state: State, signInPayload: SignInPayload): void;
-  [MutationTypes.AuthError](state: State): void;
-  [MutationTypes.Logout](state: State): void;
+export interface Mutations<T extends State> extends MutationType<T> {
+  [MutationTypes.AuthRequest](state: T): void;
+  [MutationTypes.AuthSuccess](state: T, signInPayload: SignInPayload): void;
+  [MutationTypes.AuthError](state: T): void;
+  [MutationTypes.Logout](state: T): void;
 };
 
-export const mutations: MutationTree<State> & Mutations = {
+export const mutations: Mutations<State> = {
   [MutationTypes.AuthRequest](state) {
     state.status = StateStatus.Loading;
   },
