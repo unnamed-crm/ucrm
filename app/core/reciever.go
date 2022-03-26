@@ -28,7 +28,7 @@ func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reci
 }
 
 func (r *Reciever) Start() *Reciever {
-	r.removeUselessQueues(25*time.Second, false)
+	r.removeUselessQueues(15*time.Second, false)
 	return r
 }
 
