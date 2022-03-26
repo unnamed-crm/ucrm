@@ -2,8 +2,11 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
+	blogger "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 
@@ -12,6 +15,7 @@ type Reciever struct {
 	queueOut    chan *ClientQueuePayload
 	conn        *amqp.Connection
 	middlewares []Middleware
+	close       chan int
 }
 
 func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
@@ -19,56 +23,95 @@ func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reci
 		pool:     make(map[string]*ClientQueue),
 		queueOut: queueOut,
 		conn:     conn,
+		close:    make(chan int),
 	}
 }
 
-func (d *Reciever) AddQueue(
+func (r *Reciever) Start() *Reciever {
+	r.removeUselessQueues(15*time.Second, false)
+	return r
+}
+
+func (r *Reciever) AddQueue(
 	conf config.RabbitMqConfig,
 	dashboardId string,
 	chatId string,
 	userId string,
 ) (*ClientQueue, error) {
-	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, d.conn)
+	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, r.conn)
 	if err != nil {
 		return nil, err
 	}
 
-	d.pool[queue.config.QueueName] = queue
+	queue.Start(r.queueOut)
+	r.pool[queue.config.QueueName] = queue
+
 	return queue, nil
 }
 
-func (d *Reciever) Subscribe(queueName string) error {
-	queue, found := d.pool[queueName]
+func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
+	go func() {
+		for {
+			time.Sleep(timer)
+			for _, q := range r.pool {
+				if time.Now().Add(time.Duration(-10)*time.Second).Before(q.lastPing) || rage {
+					blogger.Infof("Try to stop queue:%s", q.config.QueueName)
+
+					err := q.Stop()
+					if err != nil {
+						blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
+					} else {
+						delete(r.pool, q.config.QueueName)
+						blogger.Infof("queue stopped:%s", q.config.QueueName)
+					}
+				}
+			}
+			r.close <- 1
+		}
+	}()
+}
+
+func (r *Reciever) Ping(queueName string, time time.Time) error {
+	queue, found := r.pool[queueName]
 	if !found {
-		return errors.New("queue not found")
+		return fmt.Errorf("queue with name :%s not fond", queueName)
 	}
 
-	queue.Start(d.queueOut)
+	queue.SetLastPing(time)
 	return nil
 }
 
-func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
-	queue, found := d.pool[queueName]
+func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
+	queue, found := r.pool[queueName]
 
 	if !found {
 		return false, errors.New("queue not found")
 	}
+
+	errorChan := make(chan error)
+	defer close(errorChan)
 
 	err := queue.Stop()
 	if err != nil {
 		return true, err
 	}
 
-	delete(d.pool, queueName)
+	delete(r.pool, queueName)
 	return false, nil
 }
 
-func (d *Reciever) Out() <-chan *ClientQueuePayload {
-	return d.queueOut
+func (r *Reciever) Out() <-chan *ClientQueuePayload {
+	return r.queueOut
 }
 
-func (d *Reciever) WithMiddleware(m Middleware) *Reciever {
-	d.middlewares = append(d.middlewares, m)
+func (r *Reciever) WithMiddleware(m Middleware) *Reciever {
+	r.middlewares = append(r.middlewares, m)
 	m.Start()
-	return d
+	return r
+}
+
+func (r *Reciever) Stop() {
+	r.removeUselessQueues(0*time.Second, true)
+	<-r.close
+	close(r.close)
 }

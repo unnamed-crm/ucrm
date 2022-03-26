@@ -21,6 +21,17 @@ func NewDispatcher(conn *amqp.Connection, messageRepo repository.MessageReposito
 	}
 }
 
+func (d *Dispatcher) GetRecieverByQueueName(queueName string) *Reciever {
+	for _, r := range d.recievers {
+		for name := range r.pool {
+			if name == queueName {
+				return r
+			}
+		}
+	}
+	return nil
+}
+
 func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	reciever, found := d.recievers[dashboardId]
 	if found {
@@ -30,8 +41,15 @@ func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	channel := make(chan *ClientQueuePayload)
 	historyWriter := NewHistroyWriterMiddleware(d.messageRepo, channel)
 	newReciever := NewReciever(channel, d.conn).
-		WithMiddleware(historyWriter)
+		WithMiddleware(historyWriter).
+		Start()
 	d.recievers[dashboardId] = newReciever
 
 	return newReciever
+}
+
+func (d *Dispatcher) Stop() {
+	for _, v := range d.recievers {
+		v.Stop()
+	}
 }

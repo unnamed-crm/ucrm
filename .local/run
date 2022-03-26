@@ -1,3 +1,0 @@
-#!/bin/sh
-docker network create ucrm --subnet 172.4.4.0/24
-docker-compose up --build

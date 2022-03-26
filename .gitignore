@@ -2,3 +2,4 @@ vendor
 ./vscode
 *.env
 !example.env
+./.local

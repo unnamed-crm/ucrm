@@ -50,8 +50,8 @@ func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, queue.GetOptions(), http.StatusOK)
 }
 
-func (c *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
-	var payload SubscribePayload
+func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
+	var payload PingPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -61,15 +61,23 @@ func (c *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reciever := c.dispatcher.GetChannel(payload.DashboardId)
-	err = reciever.Subscribe(payload.QueueName)
-	if err != nil {
+	reciever := c.dispatcher.GetRecieverByQueueName(payload.QueueName)
+	if reciever == nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: err.Error(),
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
+			Error: "queue name not found",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
 		return
 	}
+
+	if err := reciever.Ping(payload.QueueName, payload.Time); err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusNotFound,
+		}, http.StatusNotFound)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

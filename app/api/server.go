@@ -3,18 +3,16 @@ package api
 import (
 	"context"
 	"net/http"
-	"sync"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/rs/cors"
-
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	server *http.Server
 	router chi.Router
+	done   chan error
 }
 
 func NewAPIServer(listenOn string) *Server {
@@ -23,6 +21,7 @@ func NewAPIServer(listenOn string) *Server {
 	return &Server{
 		server: &http.Server{Addr: listenOn, Handler: router},
 		router: router,
+		done:   make(chan error),
 	}
 }
 
@@ -30,11 +29,11 @@ func (s *Server) Router() chi.Router {
 	return s.router
 }
 
-func (a *Server) Stop() {
-	a.server.Shutdown(context.Background())
+func (s *Server) Stop() {
+	s.server.Shutdown(context.Background())
 }
 
-func (a *Server) WithCors(corsConfig config.CorsConfig) *Server {
+func (s *Server) WithCors(corsConfig config.CorsConfig) *Server {
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:     corsConfig.AllowedOrigins,
 		AllowedMethods:     corsConfig.AllowedMethods,
@@ -48,25 +47,20 @@ func (a *Server) WithCors(corsConfig config.CorsConfig) *Server {
 	if corsConfig.UseAllowAllHandler {
 		corsHandler = cors.AllowAll()
 	}
-	a.router.Use(corsHandler.Handler)
-	return a
+	s.router.Use(corsHandler.Handler)
+	return s
 }
 
-func (a *Server) Start() {
-	var httpServerError = make(chan error)
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+func (s *Server) Start() error {
 	go func() {
-		defer wg.Done()
-		httpServerError <- a.server.ListenAndServe()
+		defer close(s.done)
+		if err := s.server.ListenAndServe(); err != nil {
+			s.done <- err
+		}
 	}()
+	return nil
+}
 
-	select {
-	case <-httpServerError:
-		blogger.Fatal("The Logging API service could not be started.", <-httpServerError)
-	default:
-		blogger.Info("Server has been started...")
-	}
-	wg.Wait()
+func (s *Server) WaitForDone() error {
+	return <-s.done
 }

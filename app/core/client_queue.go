@@ -4,6 +4,8 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
 	"github.com/streadway/amqp"
@@ -24,11 +26,11 @@ type ClientQueueConfig struct {
 type ClientQueue struct {
 	config      ClientQueueConfig
 	queueIn     chan *ClientQueuePayload
-	err         chan error
 	Delivery    <-chan amqp.Delivery
-	stop        chan bool
+	stop        chan int
 	rabbitQueue amqp.Queue
 	channel     *amqp.Channel
+	lastPing    time.Time
 }
 
 func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId string, userId string, conn *amqp.Connection) (*ClientQueue, error) {
@@ -78,20 +80,23 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 	return &ClientQueue{
 		config:      *queueConfig,
 		queueIn:     make(chan *ClientQueuePayload),
-		err:         make(chan error),
 		Delivery:    msgs,
-		stop:        make(chan bool),
+		stop:        make(chan int),
 		rabbitQueue: queue,
 		channel:     amqpChannel,
+		lastPing:    time.Now(),
 	}, nil
 }
 
 func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 	go func() {
-		select {
-		default:
-			for {
-				d := <-c.Delivery
+		var wg sync.WaitGroup
+		wg.Add(1)
+		defer close(c.stop)
+		go func() {
+			defer wg.Done()
+			blogger.Infof("[QUEUE] start consume for: %s", c.config.QueueName)
+			for d := range c.Delivery {
 				var payload ClientQueuePayload
 				err := json.Unmarshal(d.Body, &payload)
 				if err != nil {
@@ -100,18 +105,14 @@ func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
 					queueOut <- &payload
 				}
 			}
-		case <-c.stop:
-			return
-		}
+		}()
+		c.stop <- 1
+		wg.Wait()
 	}()
 }
 
 func (c *ClientQueue) Stop() error {
-	go func() {
-		c.stop <- true
-		close(c.stop)
-	}()
-
+	<-c.stop
 	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
 
 	if err != nil {
@@ -125,6 +126,10 @@ func (c *ClientQueue) GetOptions() ClientQueueConfig {
 	return c.config
 }
 
+func (c *ClientQueue) SetLastPing(time time.Time) {
+	c.lastPing = time
+}
+
 func logPrefix() string {
-	return "mqtt-sub"
+	return "cleint-sub"
 }
