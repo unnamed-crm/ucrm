@@ -38,7 +38,6 @@ func main() {
 	}
 
 	if config.Evnironment == conf.DevelopEnironment {
-		// await rabbitmq starting
 		time.Sleep(15 * time.Second)
 	}
 
@@ -105,7 +104,7 @@ func main() {
 	go func() {
 		<-appCloser
 		blogger.Info("[os.SIGNAL] close request")
-		
+
 		dispatcher.Stop()
 		go web.Stop()
 		blogger.Info("[os.SIGNAL] done")

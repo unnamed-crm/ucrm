@@ -32,28 +32,28 @@ func (r *Reciever) Start() *Reciever {
 	return r
 }
 
-func (d *Reciever) AddQueue(
+func (r *Reciever) AddQueue(
 	conf config.RabbitMqConfig,
 	dashboardId string,
 	chatId string,
 	userId string,
 ) (*ClientQueue, error) {
-	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, d.conn)
+	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, r.conn)
 	if err != nil {
 		return nil, err
 	}
 
-	queue.Start(d.queueOut)
-	d.pool[queue.config.QueueName] = queue
+	queue.Start(r.queueOut)
+	r.pool[queue.config.QueueName] = queue
 
 	return queue, nil
 }
 
-func (d *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
+func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 	go func() {
 		for {
 			time.Sleep(timer)
-			for _, q := range d.pool {
+			for _, q := range r.pool {
 				if time.Now().Add(time.Duration(-10)*time.Second).Before(q.lastPing) || rage {
 					blogger.Infof("Try to stop queue:%s", q.config.QueueName)
 
@@ -61,12 +61,12 @@ func (d *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 					if err != nil {
 						blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
 					} else {
-						delete(d.pool, q.config.QueueName)
+						delete(r.pool, q.config.QueueName)
 						blogger.Infof("queue stopped:%s", q.config.QueueName)
 					}
 				}
 			}
-			d.close <- 1
+			r.close <- 1
 		}
 	}()
 }
