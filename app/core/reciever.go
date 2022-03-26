@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
@@ -16,6 +17,7 @@ type Reciever struct {
 	conn        *amqp.Connection
 	middlewares []Middleware
 	close       chan int
+	sync.RWMutex
 }
 
 func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
@@ -38,6 +40,9 @@ func (r *Reciever) AddQueue(
 	chatId string,
 	userId string,
 ) (*ClientQueue, error) {
+
+	r.Lock()
+	defer r.Unlock()
 	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, r.conn)
 	if err != nil {
 		return nil, err
@@ -53,8 +58,9 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 	go func() {
 		for {
 			time.Sleep(timer)
+			r.Lock()
 			for _, q := range r.pool {
-				if time.Now().Add(time.Duration(-10)*time.Second).Before(q.lastPing) || rage {
+				if time.Now().Add(time.Duration(-10)*time.Second).After(q.lastPing) || rage {
 					blogger.Infof("Try to stop queue:%s", q.config.QueueName)
 
 					err := q.Stop()
@@ -66,12 +72,20 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 					}
 				}
 			}
-			r.close <- 1
+
+			r.Unlock()
+			if rage {
+				r.close <- 1
+				return
+			}
 		}
 	}()
 }
 
 func (r *Reciever) Ping(queueName string, time time.Time) error {
+	r.Lock()
+	defer r.Unlock()
+
 	queue, found := r.pool[queueName]
 	if !found {
 		return fmt.Errorf("queue with name :%s not fond", queueName)
@@ -82,6 +96,8 @@ func (r *Reciever) Ping(queueName string, time time.Time) error {
 }
 
 func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
+	r.Lock()
+	defer r.Unlock()
 	queue, found := r.pool[queueName]
 
 	if !found {
