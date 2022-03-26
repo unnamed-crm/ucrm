@@ -11,8 +11,8 @@ func RegisterRouter(r chi.Router, controller *Controller, config config.JWTConfi
 		r.Use(middlewares.AuthGuard(config))
 		r.Route("/connect", func(r chi.Router) {
 			r.Post("/create", controller.CreateQueue)
-			r.Post("/subscribe", controller.Subscribe)
 			r.Post("/unsubscribe", controller.Unsubscribe)
+			r.Post("/ping",controller.Ping)
 		})
 	})
 }

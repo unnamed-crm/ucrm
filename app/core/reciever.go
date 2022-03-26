@@ -2,8 +2,12 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
+	"time"
 
 	"github.com/ignavan39/ucrm-go/app/config"
+	blogger "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 
@@ -22,6 +26,11 @@ func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reci
 	}
 }
 
+func (r *Reciever) Start() *Reciever {
+	go r.RemoveUselessQueues()
+	return r
+}
+
 func (d *Reciever) AddQueue(
 	conf config.RabbitMqConfig,
 	dashboardId string,
@@ -33,17 +42,43 @@ func (d *Reciever) AddQueue(
 		return nil, err
 	}
 
+	queue.Start(d.queueOut)
 	d.pool[queue.config.QueueName] = queue
+
 	return queue, nil
 }
 
-func (d *Reciever) Subscribe(queueName string) error {
+func (d *Reciever) RemoveUselessQueues() {
+	for {
+		time.Sleep(10 * time.Second)
+		fmt.Println(runtime.NumGoroutine())
+		for _, q := range d.pool {
+			if time.Now().Add(time.Duration(-10) * time.Second).Before(q.lastPing) {
+				blogger.Infof("Try to stop queue:%s", q.config.QueueName)
+				errorChan := make(chan error)
+
+				go q.Stop(errorChan)
+
+				err := <-errorChan
+				if err != nil {
+					blogger.Errorf("[QUEUE: %s] Error stop", q.config.QueueName, err.Error())
+				} else {
+					delete(d.pool, q.config.QueueName)
+					blogger.Infof("queue stopped:%s", q.config.QueueName)
+				}
+				close(errorChan)
+			}
+		}
+	}
+}
+
+func (d *Reciever) Ping(queueName string, time time.Time) error {
 	queue, found := d.pool[queueName]
 	if !found {
-		return errors.New("queue not found")
+		return fmt.Errorf("queue with name :%s not fond", queueName)
 	}
 
-	queue.Start(d.queueOut)
+	queue.SetLastPing(time)
 	return nil
 }
 
@@ -54,7 +89,11 @@ func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
 		return false, errors.New("queue not found")
 	}
 
-	err := queue.Stop()
+	errorChan := make(chan error)
+	defer close(errorChan)
+	queue.Stop(errorChan)
+
+	err := <- errorChan
 	if err != nil {
 		return true, err
 	}
