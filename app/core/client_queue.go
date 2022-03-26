@@ -88,30 +88,28 @@ func NewClientQueue(conf config.RabbitMqConfig, dashboardId string, chatId strin
 }
 
 func (c *ClientQueue) Start(queueOut chan *ClientQueuePayload) {
-	go func() {
-		select {
-		case <-c.stop:
+	select {
+	case <-c.stop:
+		{
 			close(c.stop)
 			return
-
-		default:
-			for d := range c.Delivery {
-				var payload ClientQueuePayload
-				err := json.Unmarshal(d.Body, &payload)
-				if err != nil {
-					blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
-				} else {
-					queueOut <- &payload
-				}
+		}
+	default:
+		for d := range c.Delivery {
+			var payload ClientQueuePayload
+			err := json.Unmarshal(d.Body, &payload)
+			if err != nil {
+				blogger.Errorf("[ClientQueue][Queue :%s] failed decode", c.config.QueueName)
+			} else {
+				queueOut <- &payload
 			}
 		}
-	}()
+	}
 }
 
 func (c *ClientQueue) Stop(errorChan chan error) {
-	c.stop <- 1
-	close(c.stop)
 
+	c.stop <- 1
 	_, err := c.channel.QueueDelete(c.config.QueueName, false, false, true)
 
 	if err != nil {
@@ -120,6 +118,7 @@ func (c *ClientQueue) Stop(errorChan chan error) {
 		return
 	}
 	errorChan <- nil
+
 }
 
 func (c *ClientQueue) GetOptions() ClientQueueConfig {

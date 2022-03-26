@@ -42,7 +42,7 @@ func (d *Reciever) AddQueue(
 		return nil, err
 	}
 
-	queue.Start(d.queueOut)
+	go queue.Start(d.queueOut)
 	d.pool[queue.config.QueueName] = queue
 
 	return queue, nil
@@ -91,7 +91,7 @@ func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
 
 	errorChan := make(chan error)
 	defer close(errorChan)
-	queue.Stop(errorChan)
+	go queue.Stop(errorChan)
 
 	err := <- errorChan
 	if err != nil {
