@@ -71,8 +71,8 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 	}()
 }
 
-func (d *Reciever) Ping(queueName string, time time.Time) error {
-	queue, found := d.pool[queueName]
+func (r *Reciever) Ping(queueName string, time time.Time) error {
+	queue, found := r.pool[queueName]
 	if !found {
 		return fmt.Errorf("queue with name :%s not fond", queueName)
 	}
@@ -81,8 +81,8 @@ func (d *Reciever) Ping(queueName string, time time.Time) error {
 	return nil
 }
 
-func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
-	queue, found := d.pool[queueName]
+func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
+	queue, found := r.pool[queueName]
 
 	if !found {
 		return false, errors.New("queue not found")
@@ -96,22 +96,22 @@ func (d *Reciever) Unsubscribe(queueName string) (bool, error) {
 		return true, err
 	}
 
-	delete(d.pool, queueName)
+	delete(r.pool, queueName)
 	return false, nil
 }
 
-func (d *Reciever) Out() <-chan *ClientQueuePayload {
-	return d.queueOut
+func (r *Reciever) Out() <-chan *ClientQueuePayload {
+	return r.queueOut
 }
 
-func (d *Reciever) WithMiddleware(m Middleware) *Reciever {
-	d.middlewares = append(d.middlewares, m)
+func (r *Reciever) WithMiddleware(m Middleware) *Reciever {
+	r.middlewares = append(r.middlewares, m)
 	m.Start()
-	return d
+	return r
 }
 
-func (d *Reciever) Stop() {
-	d.removeUselessQueues(0 * time.Second, true)
-	<-d.close
-	close(d.close)
+func (r *Reciever) Stop() {
+	r.removeUselessQueues(0 * time.Second, true)
+	<-r.close
+	close(r.close)
 }
