@@ -6,19 +6,7 @@
 
 #### Local development
 
-First start:
-```bash
-$ chmod +x ./.local/run  
-$ ./.local/run
-```
-or do it yourself / the bottom line is that you need to create a subnet in docker
-for example:
-```bash
-$ docker network create ucrm --subnet 172.4.4.0/24
-$ docker-compose up --build
-```
-
-subsequent runs can simply be
+Start:
 ```bash
 $ docker-compose up --build
 ```
