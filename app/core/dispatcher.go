@@ -48,8 +48,8 @@ func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	return newReciever
 }
 
-func (d *Dispatcher) Stop () {
-	for _,v := range d.recievers {
+func (d *Dispatcher) Stop() {
+	for _, v := range d.recievers {
 		v.Stop()
 	}
 }

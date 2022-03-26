@@ -111,7 +111,7 @@ func (r *Reciever) WithMiddleware(m Middleware) *Reciever {
 }
 
 func (r *Reciever) Stop() {
-	r.removeUselessQueues(0 * time.Second, true)
+	r.removeUselessQueues(0*time.Second, true)
 	<-r.close
 	close(r.close)
 }

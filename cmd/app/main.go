@@ -94,8 +94,8 @@ func main() {
 		contact.RegisterRouter(v1, contactController, dbService, config.JWT)
 	})
 
-	if err := web.Start();err != nil {
-		blogger.Fatalf("API Server crashed with error :[%s]",err.Error())
+	if err := web.Start(); err != nil {
+		blogger.Fatalf("API Server crashed with error :[%s]", err.Error())
 	}
 	blogger.Infof("API server has been started...")
 

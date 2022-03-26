@@ -21,7 +21,7 @@ func NewAPIServer(listenOn string) *Server {
 	return &Server{
 		server: &http.Server{Addr: listenOn, Handler: router},
 		router: router,
-		done: make(chan error),
+		done:   make(chan error),
 	}
 }
 
@@ -54,13 +54,13 @@ func (s *Server) WithCors(corsConfig config.CorsConfig) *Server {
 func (s *Server) Start() error {
 	go func() {
 		defer close(s.done)
-		if err := s.server.ListenAndServe();err != nil {
+		if err := s.server.ListenAndServe(); err != nil {
 			s.done <- err
 		}
 	}()
 	return nil
 }
 
-func (s *Server) WaitForDone () error {
+func (s *Server) WaitForDone() error {
 	return <-s.done
 }
