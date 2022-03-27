@@ -1,6 +1,8 @@
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 
-export type RootState = {};
+export type RootState = {
+  version: string;
+};
 
 export type ActionAugments<S> = Omit<ActionContext<S, RootState>, "commit"> & {
   commit<K extends keyof MutationFunc<S>>(
