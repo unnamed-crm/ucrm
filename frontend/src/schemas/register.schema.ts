@@ -10,10 +10,6 @@ export const registerSchema = yup.object({
     .string()
     .required("This field is required")
     .oneOf([yup.ref("password"), null], "Passwords must match"),
-  // verificationCode: yup
-  //   .string()
-  //   .notRequired()
-  //   .length(5, "Verification Code are not full"),
 });
 
 export type RegisterSchema = typeof registerSchema;
