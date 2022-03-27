@@ -11,6 +11,7 @@ func RegisterRouter(r chi.Router, controller *Controller, repo repository.Dashbo
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthGuard(config))
 		r.Route("/dashboards", func(r chi.Router) {
+			r.Get("/", controller.GetOneDashboardsByUser)
 			r.Post("/create", controller.CreateOne)
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.DashboardAccessGuard(repo, "rw"))

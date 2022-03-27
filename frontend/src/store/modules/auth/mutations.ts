@@ -1,5 +1,5 @@
-import { MutationTree } from "vuex";
-import { State, StateStatus, SignInPayload } from "./state";
+import { MutationFunc, StateStatus } from "../../types";
+import { State, SignInPayload } from "./state";
 
 export enum MutationTypes {
   AuthRequest = "AuthRequest",
@@ -15,7 +15,7 @@ export type Mutations = {
   [MutationTypes.Logout](state: State): void;
 };
 
-export const mutations: MutationTree<State> & Mutations = {
+export const mutations: MutationFunc<State> & Mutations = {
   [MutationTypes.AuthRequest](state) {
     state.status = StateStatus.Loading;
   },

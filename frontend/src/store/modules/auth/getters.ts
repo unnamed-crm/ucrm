@@ -1,4 +1,4 @@
-import { GetterTree } from "vuex";
+import { GetterFuncs } from "../../types";
 import { State } from "./state";
 
 export type Getters = {
@@ -6,7 +6,7 @@ export type Getters = {
   authStatus: (state: State) => string;
 };
 
-export const getters: GetterTree<State, State> & Getters = {
+export const getters: GetterFuncs<State> = {
   isLoggedIn: (state: State) => !!state.token,
   authStatus: (state: State) => state.status,
 };

@@ -389,3 +389,19 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (c *Controller) GetOneDashboardsByUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := auth.GetUserIdFromContext(ctx)
+
+	dashboards, err := c.repo.GetDashboardsByUser(userId)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	httpext.JSON(w, dashboards, http.StatusOK)
+}

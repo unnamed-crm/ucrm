@@ -1,9 +1,4 @@
-export enum StateStatus {
-  Loading = "loading",
-  Success = "success",
-  Error = "error",
-  Never = "",
-}
+import { StateStatus } from "@/store/types";
 
 export type State = {
   status: StateStatus;

@@ -1,9 +1,10 @@
-
 import { createStore } from "vuex";
-import { authModule } from "./modules/auth";
+import { auth } from "./modules/auth";
+import { dashboard } from "./modules/dashboard";
+import { RootState } from "./types";
 
-export const HOST_URL = process.env.host || 'http://localhost:8081/api/v1'
+export const HOST_URL = process.env.host || "http://localhost:8081/api/v1";
 
-export default createStore({
-  modules: {auth: authModule},
+export default createStore<RootState>({
+  modules: { auth, dashboard },
 });

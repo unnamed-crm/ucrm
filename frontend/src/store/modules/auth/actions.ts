@@ -1,7 +1,7 @@
 import { HOST_URL } from "@/store";
 import axios from "axios";
-import { ActionContext, ActionTree } from "vuex";
-import { Mutations, MutationTypes } from "./mutations";
+import { ActionAugments, ActionFuncs } from "../../types";
+import {  MutationTypes } from "./mutations";
 import { State, User } from "./state";
 
 export enum ActionTypes {
@@ -10,20 +10,14 @@ export enum ActionTypes {
   Logout = "logout",
 }
 
-type ActionAugments = Omit<ActionContext<State, State>, "commit"> & {
-  commit<K extends keyof Mutations>(
-    key: K,
-    payload?: Parameters<Mutations[K]>[1]
-  ): ReturnType<Mutations[K]>;
-};
 
 export type Actions = {
-  [ActionTypes.Login](context: ActionAugments, user: User): void;
-  [ActionTypes.Register](context: ActionAugments, user: User): void;
-  [ActionTypes.Logout](context: ActionAugments): void;
+  [ActionTypes.Login](context: ActionAugments<State>, user: User): void;
+  [ActionTypes.Register](context: ActionAugments<State>, user: User): void;
+  [ActionTypes.Logout](context: ActionAugments<State>): void;
 };
 
-export const actions: ActionTree<State, State> & Actions = {
+export const actions: ActionFuncs<State> = {
   async [ActionTypes.Login]({ commit }, user) {
     commit(MutationTypes.AuthRequest);
     try {
