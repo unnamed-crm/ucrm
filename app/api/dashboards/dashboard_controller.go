@@ -391,7 +391,8 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) GetOneDashboardsByUser(w http.ResponseWriter, r *http.Request) {
-	userId := auth.GetUserIdFromContext(r.Context())
+	ctx := r.Context()
+	userId := auth.GetUserIdFromContext(ctx)
 
 	dashboards, err := c.repo.GetDashboardsByUser(userId)
 	if err != nil {
