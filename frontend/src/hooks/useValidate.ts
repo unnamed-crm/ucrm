@@ -1,11 +1,18 @@
 import { reactive } from "vue";
 import * as yup from "yup";
 
+type Errors = { [key: string]: string };
+
+type UseValidateReturnType = {
+  errors: Errors;
+  validate: () => Promise<boolean>;
+};
+
 export const useValidate = <T extends yup.AnySchema>(
   schema: T,
   data: yup.InferType<T>
-) => {
-  const errors = reactive<typeof data>({ ...data });
+): UseValidateReturnType => {
+  const errors = reactive<Errors>({});
 
   const resetErrors = () =>
     Object.keys(errors).map((key) => (errors[key] = ""));
