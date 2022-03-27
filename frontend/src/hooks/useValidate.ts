@@ -1,11 +1,6 @@
 import { reactive } from "vue";
 import * as yup from "yup";
 
-interface UseValidateProps<T> {
-  schema: yup.AnySchema;
-  data: yup.InferType<yup.AnySchema>;
-}
-
 export const useValidate = <T extends yup.AnySchema>(
   schema: T,
   data: yup.InferType<T>
