@@ -28,7 +28,6 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import * as yup from "yup";
 import { loginSchema, LoginData, LoginSchema } from "../schemas/login.schema";
 import { useValidate } from "../hooks/useValidate";
 

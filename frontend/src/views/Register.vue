@@ -7,7 +7,6 @@
     novalidate
   >
     <h1 class="title">Register</h1>
-
     <el-form-item label="Email" prop="email" :error="errors.email">
       <el-input
         v-model.trim="registerData.email"
@@ -32,32 +31,16 @@
         placeholder="password..."
       />
     </el-form-item>
-
-    <!-- <template v-if="!receivedVerificationCode.length">
-      <VerificationCode />
-      <el-button
-        class="button"
-        native-type="button"
-        @click="sendVerifyCode"
-        type="primary"
-      >
-        Send Verify Code
-      </el-button>
-    </template> -->
-    <!-- <template v-else> -->
     <el-button class="button" native-type="submit" type="primary">
       Submit
     </el-button>
-    <!-- </template> -->
   </el-form>
 </template>
 
 <script lang="ts" setup>
-import { reactive, watch } from "vue";
+import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
-import * as yup from "yup";
-import VerificationCode from "../components/VerificationCode.vue";
 import {
   registerSchema,
   RegisterSchema,
@@ -72,24 +55,12 @@ const registerData = reactive<RegisterData>({
   email: "",
   password: "",
   confirmPassword: "",
-  // verificationCode: "",
 });
 
 const { errors, validate } = useValidate<RegisterSchema>(
   registerSchema,
   registerData
 );
-
-const receivedVerificationCode = reactive([]);
-
-// const sendVerifyCode = async () => {
-//  const isValid = await validate();
-//
-//  if (!isValid) return;
-//
-//  // get verification code
-//  // receivedVerificationCode = code.split('');
-// };
 
 const register = async () => {
   const isValid = await validate();
