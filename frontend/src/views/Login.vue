@@ -1,23 +1,17 @@
 <template>
-  <el-form
-    class="form"
-    novalidate
-    :model="formData"
-    label-position="top"
-    @submit.prevent="login"
-  >
+  <el-form class="form" novalidate label-position="top" @submit.prevent="login">
     <h1 class="title">Sign in</h1>
-    <el-form-item label="Email">
+    <el-form-item label="Email" :error="errors.email">
       <el-input
-        v-model="formData.email"
+        v-model.trim="loginData.email"
         type="email"
         autocomplete="email"
         placeholder="email@domain.com"
       />
     </el-form-item>
-    <el-form-item label="Password">
+    <el-form-item label="Password" :error="errors.password">
       <el-input
-        v-model="formData.password"
+        v-model.trim="loginData.password"
         type="password"
         autocomplete="current-password"
         show-password
@@ -35,51 +29,27 @@ import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import * as yup from "yup";
+import { loginSchema, LoginData, LoginSchema } from "../schemas/login.schema";
+import { useValidate } from "../hooks/useValidate";
 
 const store = useStore();
 const router = useRouter();
 
-const formSchema = yup.object({
-  email: yup
-    .string()
-    .required("This field is required")
-    .email("Email is not valid"),
-  password: yup.string().required("This field is required"),
-});
-type FormSchema = yup.InferType<typeof formSchema>;
-
-const formData = reactive<FormSchema>({
+const loginData = reactive<LoginData>({
   email: "",
   password: "",
 });
-const errors = reactive({ ...formData });
-
-const handleValidationErrors = (e: yup.ValidationError) => {
-  if (!e.inner.length) {
-    errors[e.path] = e.message;
-    return;
-  }
-  e.inner.forEach((el) => handleValidationErrors(el));
-};
-
-const resetErrors = () => Object.keys(errors).map((key) => (errors[key] = ""));
-
-const checkIsFormValid = () => Object.values(errors).every((el) => !el);
+const { errors, validate } = useValidate<LoginSchema>(loginSchema, loginData);
 
 const login = async () => {
-  resetErrors();
+  const isValid = await validate();
 
-  await formSchema
-    .validate(formData, { abortEarly: false })
-    .catch(handleValidationErrors);
-
-  const isValid = checkIsFormValid();
   if (!isValid) return;
 
   store
-    .dispatch("login", formData)
+    .dispatch("login", loginData)
     .then(() => router.push("/"))
-    .catch((err) => console.log(err));
+    .catch(console.log);
 };
 </script>
 
