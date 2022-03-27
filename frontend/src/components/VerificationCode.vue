@@ -32,7 +32,7 @@ enum KEY_CODE {
   LEFT = "ArrowLeft",
   UP = "ArrowUp",
   RIGHT = "ArrowRight",
-  Down = "ArrowDown",
+  DOWN = "ArrowDown",
 }
 
 const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
@@ -105,7 +105,7 @@ const onCodePress = (event: KeyboardEvent, index: number) => {
       event.preventDefault();
       break;
 
-    case KEY_CODE.Down:
+    case KEY_CODE.DOWN:
       event.preventDefault();
       break;
 
