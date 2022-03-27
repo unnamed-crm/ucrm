@@ -31,9 +31,25 @@
         placeholder="password..."
       />
     </el-form-item>
-    <el-button class="button" native-type="submit" type="primary">
-      Submit
-    </el-button>
+    <template v-if="!receivedVerificationCode.length">
+      <el-button
+        class="button"
+        native-type="button"
+        @click="sendVerifyCode"
+        type="primary"
+      >
+        Send Verify Code
+      </el-button>
+    </template>
+    <template v-else>
+      <VerificationCode
+        :length="receivedVerificationCode.length"
+        :error="errors.verificationCode"
+      />
+      <el-button class="button" native-type="submit" type="primary">
+        Submit
+      </el-button>
+    </template>
   </el-form>
 </template>
 
@@ -41,6 +57,7 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import VerificationCode from "../components/VerificationCode.vue";
 import {
   registerSchema,
   RegisterSchema,
@@ -55,12 +72,21 @@ const registerData = reactive<RegisterData>({
   email: "",
   password: "",
   confirmPassword: "",
+  verificationCode: "",
 });
 
 const { errors, validate } = useValidate<RegisterSchema>(
   registerSchema,
   registerData
 );
+
+const receivedVerificationCode = reactive([]);
+
+const sendVerifyCode = async () => {
+  // avoid validate registerData.registerData
+  // get verification code
+  // receivedVerificationCode = code.split('');
+};
 
 const register = async () => {
   const isValid = await validate();
