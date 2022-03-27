@@ -1,28 +1,26 @@
 <template>
-  <el-form
-    class="form"
-    novalidate
-    :model="formData"
-    label-position="top"
-    @submit.prevent="login"
-  >
+  <el-form class="form" novalidate label-position="top" @submit.prevent="login">
     <h1 class="title">Sign in</h1>
-    <el-form-item label="Email">
+    <el-form-item label="Email" :error="errors.email">
       <el-input
-        v-model="formData.email"
+        v-model.trim="loginData.email"
         type="email"
+        autocomplete="email"
         placeholder="email@domain.com"
       />
     </el-form-item>
-    <el-form-item label="Password">
+    <el-form-item label="Password" :error="errors.password">
       <el-input
-        v-model="formData.password"
+        v-model.trim="loginData.password"
         type="password"
+        autocomplete="current-password"
         show-password
         placeholder="password..."
       />
     </el-form-item>
-    <el-button native-type="submit" type="primary">Login</el-button>
+    <el-button class="button" native-type="submit" type="primary">
+      Login
+    </el-button>
   </el-form>
 </template>
 
@@ -30,20 +28,27 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import { loginSchema, LoginData, LoginSchema } from "../schemas/login.schema";
+import { useValidate } from "../hooks/useValidate";
 
 const store = useStore();
 const router = useRouter();
 
-const formData = reactive({
+const loginData = reactive<LoginData>({
   email: "",
   password: "",
 });
+const { errors, validate } = useValidate<LoginSchema>(loginSchema, loginData);
 
-const login = () => {
+const login = async () => {
+  const isValid = await validate();
+
+  if (!isValid) return;
+
   store
-    .dispatch("login", formData)
+    .dispatch("login", loginData)
     .then(() => router.push("/"))
-    .catch((err) => console.log(err));
+    .catch(console.log);
 };
 </script>
 
@@ -61,5 +66,9 @@ const login = () => {
   padding: 2rem;
   background-color: $background;
   border-radius: $border-radius;
+}
+
+.button {
+  margin-top: 0.5rem;
 }
 </style>

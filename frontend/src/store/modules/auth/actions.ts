@@ -56,6 +56,7 @@ export const actions: ActionFuncs<State> = {
     } catch (err) {
       commit(MutationTypes.AuthError, err);
       localStorage.removeItem("token");
+      throw err;
     }
   },
   [ActionTypes.Logout]({ commit }) {

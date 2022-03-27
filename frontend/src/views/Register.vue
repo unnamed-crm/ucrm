@@ -1,39 +1,39 @@
 <template>
   <el-form
     class="form"
-    :model="formData"
-    @submit.prevent="register"
+    @submit.prevent="register(formRef)"
     label-position="top"
+    hide-required-asterisk
     novalidate
   >
     <h1 class="title">Register</h1>
-    <el-form-item label="Email">
+    <el-form-item label="Email" prop="email" :error="errors.email">
       <el-input
-        v-model="formData.email"
-        prop="email"
-        type="email"
+        v-model.trim="registerData.email"
+        error="errors.email"
+        type="text"
         placeholder="email@domain.com"
       />
     </el-form-item>
-    <el-form-item label="Password">
+    <el-form-item label="Password" :error="errors.password">
       <el-input
-        v-model="formData.password"
-        prop="password"
+        v-model.trim="registerData.password"
         type="password"
         show-password
         placeholder="password..."
       />
     </el-form-item>
-    <el-form-item label="Confirm Password">
+    <el-form-item label="Confirm Password" :error="errors.confirmPassword">
       <el-input
-        v-model="formData.confirmPassword"
-        prop="confirmPassword"
+        v-model.trim="registerData.confirmPassword"
         type="password"
         show-password
         placeholder="password..."
       />
     </el-form-item>
-    <el-button native-type="submit" type="primary">Register</el-button>
+    <el-button class="button" native-type="submit" type="primary">
+      Submit
+    </el-button>
   </el-form>
 </template>
 
@@ -41,22 +41,36 @@
 import { reactive } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
+import {
+  registerSchema,
+  RegisterSchema,
+  RegisterData,
+} from "../schemas/register.schema";
+import { useValidate } from "../hooks/useValidate";
 
 const store = useStore();
 const router = useRouter();
 
-const formData = reactive({
+const registerData = reactive<RegisterData>({
   email: "",
   password: "",
   confirmPassword: "",
-  isAdmin: false,
 });
 
-const register = () => {
+const { errors, validate } = useValidate<RegisterSchema>(
+  registerSchema,
+  registerData
+);
+
+const register = async () => {
+  const isValid = await validate();
+
+  if (!isValid) return;
+
   store
-    .dispatch("register", formData)
+    .dispatch("register", registerData)
     .then(() => router.push("/"))
-    .catch((err) => console.log(err));
+    .catch(console.log);
 };
 </script>
 
@@ -74,5 +88,9 @@ const register = () => {
   padding: 2rem;
   background-color: $background;
   border-radius: $border-radius;
+}
+
+.button {
+  margin-top: 0.5rem;
 }
 </style>
