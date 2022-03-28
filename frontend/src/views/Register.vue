@@ -45,6 +45,7 @@
       <VerificationCode
         :length="receivedVerificationCode.length"
         :error="errors.verificationCode"
+        @onValueChange="onCodeValueChange"
       />
       <el-button class="button" native-type="submit" type="primary">
         Submit
@@ -80,7 +81,11 @@ const { errors, validate } = useValidate<RegisterSchema>(
   registerData
 );
 
-const receivedVerificationCode = reactive([]);
+const onCodeValueChange = (value: string) => {
+  registerData.verificationCode = value;
+};
+
+const receivedVerificationCode = reactive(["", "", ""]);
 
 const sendVerifyCode = async () => {
   // avoid validate registerData.registerData

@@ -2,10 +2,7 @@
   <!-- eslint-disable vue/no-v-for-template-key -->
   <el-form-item label="Verification Code" :error="props.error">
     <el-row justify="space-between" :gutter="5">
-      <template
-        v-for="(input, index) in Array.from({ length: props.length })"
-        :key="index"
-      >
+      <template v-for="(input, index) in inputRefs" :key="index">
         <el-col :span="4">
           <el-input
             type="text"
@@ -23,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, watch, defineProps, withDefaults } from "vue";
+import { reactive, watch, defineProps, withDefaults, defineEmits } from "vue";
 
 interface VerificationCodeProps {
   length: number;
@@ -34,6 +31,8 @@ const props = withDefaults(defineProps<VerificationCodeProps>(), {
   length: 5,
   error: "",
 });
+
+const emit = defineEmits(["onValueChange"]);
 
 enum KEY_CODE {
   BACKSPACE = "Backspace",
@@ -49,11 +48,10 @@ const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
     value: "",
   }))
 );
-const exposeCode = ref<string>("");
 
-watch(inputRefs, (refs, prevRefs) => {
-  const code = refs.map((el) => el.value).join("");
-  exposeCode.value = code;
+watch(inputRefs, (inputs) => {
+  const code = inputs.map((el) => el.value).join("");
+  emit("onValueChange", code);
 });
 
 const onCodeChange = (value: string, index: number) => {
