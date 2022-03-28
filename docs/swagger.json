@@ -1,0 +1,346 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Unnamed URCM",
+        "title": "Unnamed URCM",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/cards": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cards"
+                ],
+                "summary": "Create card",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Card"
+                        }
+                    },
+                    "400": {
+                        "description": "[CreateOne]: {error}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "[CreateOne]: {error}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "cards"
+                ],
+                "summary": "Delete card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Card"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "cards"
+                ],
+                "summary": "Update card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "cardId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/cards/order/{pipelineId}/{cardId}/order": {
+            "get": {
+                "description": "Update order",
+                "tags": [
+                    "cards"
+                ],
+                "summary": "Update order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "cardId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "pipelineId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "order",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/cards/{cardId}": {
+            "get": {
+                "description": "Get one card by id",
+                "tags": [
+                    "cards"
+                ],
+                "summary": "Get one card",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "cardId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/connect/create": {
+            "post": {
+                "description": "Create queue",
+                "tags": [
+                    "connect"
+                ],
+                "summary": "Create queue",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/connect/ping": {
+            "post": {
+                "description": "Create queue",
+                "tags": [
+                    "connect"
+                ],
+                "summary": "Create queue",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/connect/unsubscribe": {
+            "post": {
+                "tags": [
+                    "connect"
+                ],
+                "summary": "Unsubscribe",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/contacts/{cardId}": {
+            "delete": {
+                "tags": [
+                    "contacts"
+                ],
+                "summary": "Unsubscribe",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Card": {
+            "type": "object",
+            "properties": {
+                "chat": {
+                    "$ref": "#/definitions/models.Chat"
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Contact"
+                    }
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CardField"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "pipeline_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CardField": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "field_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_nullable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Chat": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_employee_id": {
+                    "type": "string"
+                },
+                "last_message": {
+                    "type": "string"
+                },
+                "last_sender": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Contact": {
+            "type": "object",
+            "properties": {
+                "card_id": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ContactField"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ContactField": {
+            "type": "object",
+            "properties": {
+                "contact_id": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "field_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_nullable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
