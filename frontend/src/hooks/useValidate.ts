@@ -12,7 +12,9 @@ export const useValidate = <T extends yup.AnySchema>(
   schema: T,
   data: yup.InferType<T>
 ): UseValidateReturnType => {
-  const errors = reactive<Errors>({});
+  const errors = reactive<Errors>(
+    Object.fromEntries(Object.entries(data).map(([key, _]) => [key, ""]))
+  );
 
   const resetErrors = () =>
     Object.keys(errors).map((key) => (errors[key] = ""));
