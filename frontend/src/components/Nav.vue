@@ -25,9 +25,9 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { useStore } from "vuex";
+import { useTypedStore } from "../store";
 
-const store = useStore();
+const store = useTypedStore();
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn);
 </script>

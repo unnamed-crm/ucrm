@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import { reactive } from "vue";
-import { useStore } from "vuex";
+import { useTypedStore } from "../store";
 import { useRouter } from "vue-router";
 import {
   registerSchema,
@@ -48,7 +48,7 @@ import {
 } from "../schemas/register.schema";
 import { useValidate } from "../hooks/useValidate";
 
-const store = useStore();
+const store = useTypedStore();
 const router = useRouter();
 
 const registerData = reactive<RegisterData>({
