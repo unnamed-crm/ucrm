@@ -44,8 +44,6 @@ const { errors, validate } = useValidate<LoginSchema>(loginSchema, loginData);
 const authStatus = computed(() => store.getters.authStatus);
 const authError = computed(() => store.getters.authError);
 
-console.log();
-
 watch([authStatus, authError], ([status, error]) => {
   if (status === StateStatus.Error) {
     if (error.code === 404) {
