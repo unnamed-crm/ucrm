@@ -41,8 +41,8 @@ func (r *Reciever) AddQueue(
 	userId string,
 ) (*ClientQueue, error) {
 
-	r.Lock()
-	defer r.Unlock()
+	r.RLock()
+	defer r.RUnlock()
 	queue, err := NewClientQueue(conf, dashboardId, chatId, userId, r.conn)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 	go func() {
 		for {
 			time.Sleep(timer)
-			r.Lock()
+			r.RLock()
 			for _, q := range r.pool {
 				if time.Now().Add(time.Duration(-10)*time.Second).After(q.lastPing) || rage {
 					blogger.Infof("Try to stop queue:%s", q.config.QueueName)
@@ -73,7 +73,7 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 				}
 			}
 
-			r.Unlock()
+			r.RUnlock()
 			if rage {
 				r.close <- 1
 				return
@@ -83,8 +83,8 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 }
 
 func (r *Reciever) Ping(queueName string, time time.Time) error {
-	r.Lock()
-	defer r.Unlock()
+	r.RLock()
+	defer r.RUnlock()
 
 	queue, found := r.pool[queueName]
 	if !found {
@@ -96,8 +96,8 @@ func (r *Reciever) Ping(queueName string, time time.Time) error {
 }
 
 func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
-	r.Lock()
-	defer r.Unlock()
+	r.RLock()
+	defer r.RUnlock()
 	queue, found := r.pool[queueName]
 
 	if !found {
