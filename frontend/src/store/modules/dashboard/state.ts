@@ -1,4 +1,4 @@
-import { StateStatus } from "@/store/types";
+import { StateStatus, StateError } from "@/store/types";
 
 export type Dashboard = {
   updatedAt: Date;
@@ -7,7 +7,7 @@ export type Dashboard = {
   id: string;
 };
 
-export type GetDashboardResponse = Array<{
+export type GetDashboardsResponse = Array<{
   updated_at: Date;
   name: string;
   author_id: string;
@@ -15,11 +15,13 @@ export type GetDashboardResponse = Array<{
 }>;
 
 export type State = {
-  dashboard: Array<Dashboard>;
+  dashboards: Dashboard[];
   status: StateStatus;
+  error: StateError;
 };
 
 export const state: State = {
-  dashboard: [],
-  status: StateStatus.Loading
-}
+  dashboards: [],
+  status: StateStatus.Loading,
+  error: null,
+};
