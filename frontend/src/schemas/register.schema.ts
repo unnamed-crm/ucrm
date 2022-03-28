@@ -5,7 +5,11 @@ export const registerSchema = yup.object({
     .string()
     .required("This field is required")
     .email("Email is not valid"),
-  password: yup.string().required("This field is required"),
+  password: yup
+    .string()
+    .transform((value) => value || undefined)
+    .required("This field is required")
+    .min(5, "Password is too short"),
   confirmPassword: yup
     .string()
     .required("This field is required")

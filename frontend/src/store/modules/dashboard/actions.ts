@@ -1,30 +1,34 @@
 import { HOST_URL } from "@/store";
-import { ActionAugments, ActionFuncs } from "@/store/types";
+import { ActionAugments, ActionFuncs, FetchError } from "@/store/types";
 import axios from "axios";
-import { User } from "../auth/state";
 import { MutationTypes } from "./mutations";
-import {  GetDashboardResponse, State } from "./state";
+import { GetDashboardsResponse, State } from "./state";
 
 export enum ActionTypes {
-  GetDashboards = "GetDashboards",
+  GetDashboards = "getDashboards",
 }
 
 export type Actions = {
-  [ActionTypes.GetDashboards](context: ActionAugments<State>, userId: string): void;
-}
+  [ActionTypes.GetDashboards](context: ActionAugments<State>): void;
+};
 
-export const actions: ActionFuncs<State> = {
+export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.GetDashboards]({ commit }) {
     commit(MutationTypes.GetDashboardsRequest);
     try {
-      const resp = await axios({
-        url: `${HOST_URL}/dashboards`,
-        method: "GET",
-      });
-      const payload = resp.data as GetDashboardResponse;
+      const response = await axios.get<GetDashboardsResponse>(
+        `${HOST_URL}/dashboards`
+      );
+
+      const payload = response.data;
+
       commit(MutationTypes.GetDashboardsSuccess, payload);
-    } catch {
-      commit(MutationTypes.GetDashboardsError);
+    } catch (error) {
+      commit(
+        MutationTypes.GetDashboardsError,
+        (error.response.data as FetchError) || null
+      );
+      throw error;
     }
-  }
-}
+  },
+};

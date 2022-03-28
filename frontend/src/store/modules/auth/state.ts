@@ -1,8 +1,9 @@
-import { StateStatus } from "@/store/types";
+import { StateStatus, StateError } from "@/store/types";
 
 export type State = {
   status: StateStatus;
-  user: User;
+  error: StateError;
+  user: User | null;
   token: string;
 };
 
@@ -13,13 +14,14 @@ export type User = {
   password: string;
 };
 
-export type SignInPayload = {
+export type SignInResponse = {
   user: User;
   token: string;
 };
 
 export const state: State = {
   status: StateStatus.Loading,
+  error: null,
   user: null,
   token: localStorage.getItem("token") || "",
 };
