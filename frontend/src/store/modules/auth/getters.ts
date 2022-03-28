@@ -7,8 +7,8 @@ export type Getters = {
   authError: (state: State) => StateError;
 };
 
-export const getters: GetterFuncs<State> = {
-  isLoggedIn: (state: State) => !!state.token,
-  authStatus: (state: State) => state.status,
-  authError: (state: State) => state.error,
+export const getters: GetterFuncs<State> & Getters = {
+  isLoggedIn: (state) => !!state.token,
+  authStatus: (state) => state.status,
+  authError: (state) => state.error,
 };
