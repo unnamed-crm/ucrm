@@ -67,10 +67,7 @@ const register = async () => {
 
   if (!isValid) return;
 
-  store
-    .dispatch("register", registerData)
-    .then(() => router.push("/"))
-    .catch(console.log);
+  store.dispatch("register", registerData).then(() => router.push("/"));
 };
 </script>
 

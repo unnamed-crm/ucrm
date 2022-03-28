@@ -1,8 +1,10 @@
 import { HOST_URL } from "@/store";
 import axios from "axios";
-import { ActionAugments, ActionFuncs } from "../../types";
-import {  MutationTypes } from "./mutations";
-import { State, User } from "./state";
+import { ActionAugments, ActionFuncs, FetchError } from "@/store/types";
+import { MutationTypes } from "./mutations";
+import { State, SignInResponse } from "./state";
+import { LoginData } from "@/schemas/login.schema";
+import { RegisterData } from "@/schemas/register.schema";
 
 export enum ActionTypes {
   Login = "login",
@@ -10,53 +12,56 @@ export enum ActionTypes {
   Logout = "logout",
 }
 
-
 export type Actions = {
-  [ActionTypes.Login](context: ActionAugments<State>, user: User): void;
-  [ActionTypes.Register](context: ActionAugments<State>, user: User): void;
+  [ActionTypes.Login](context: ActionAugments<State>, data: LoginData): void;
+  [ActionTypes.Register](
+    context: ActionAugments<State>,
+    data: RegisterData
+  ): void;
   [ActionTypes.Logout](context: ActionAugments<State>): void;
 };
 
-export const actions: ActionFuncs<State> = {
-  async [ActionTypes.Login]({ commit }, user) {
+export const actions: ActionFuncs<State> & Actions = {
+  async [ActionTypes.Login]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const resp = await axios({
-        url: `${HOST_URL}/users/sign-in`,
-        data: user,
-        method: "POST",
-      });
+      const response = await axios.post<SignInResponse>(
+        `${HOST_URL}/users/sign-in`,
+        data
+      );
 
-      const token = resp.data.token;
-      const userFromResponse = resp.data.user as User;
+      const { token, user } = response.data;
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
-      commit(MutationTypes.AuthSuccess, { token, user: userFromResponse });
-    } catch (err) {
-      commit(MutationTypes.AuthError);
+      commit(MutationTypes.AuthSuccess, { token, user });
+    } catch (error) {
+      commit(
+        MutationTypes.AuthError,
+        (error.response.data as FetchError) || null
+      );
       localStorage.removeItem("token");
     }
   },
-  async [ActionTypes.Register]({ commit }, user) {
+  async [ActionTypes.Register]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const resp = await axios({
-        url: `${HOST_URL}/users/sign-up`,
-        data: user,
-        method: "POST",
-      });
+      const response = await axios.post<SignInResponse>(
+        `${HOST_URL}/users/sign-up`,
+        data
+      );
 
-      const token = resp.data.token;
-      const userFromResponse = resp.data.user as User;
+      const { token, user } = response.data;
 
       localStorage.setItem("token", token);
       axios.defaults.headers.common["Authorization"] = token;
-      commit(MutationTypes.AuthSuccess, { token, user: userFromResponse });
-    } catch (err) {
-      commit(MutationTypes.AuthError, err);
+      commit(MutationTypes.AuthSuccess, { token, user });
+    } catch (error) {
+      commit(
+        MutationTypes.AuthError,
+        (error.response.data as FetchError) || null
+      );
       localStorage.removeItem("token");
-      throw err;
     }
   },
   [ActionTypes.Logout]({ commit }) {

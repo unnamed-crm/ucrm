@@ -40,15 +40,22 @@ const loginData = reactive<LoginData>({
 });
 const { errors, validate } = useValidate<LoginSchema>(loginSchema, loginData);
 
+const handleNotFound = ({ code, error }) => {
+  if (code === 404) {
+    errors["email"] = " ";
+    errors["password"] = "Неверный Email или пароль";
+    return;
+  }
+  // alert error
+};
+
 const login = async () => {
   const isValid = await validate();
 
   if (!isValid) return;
 
-  store
-    .dispatch("login", loginData)
-    .then(() => router.push("/"))
-    .catch(console.log);
+  store.dispatch("login", loginData).then(() => router.push("/"));
+  // .catch(handleNotFound);
 };
 </script>
 
