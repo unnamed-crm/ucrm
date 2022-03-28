@@ -16,17 +16,17 @@ const authError = computed(() => store.getters.authError);
 const dashboardStatus = computed(() => store.getters.dashboardStatus);
 const dashboardError = computed(() => store.getters.dashboardError);
 
-watch([authStatus, authError], ([status, { error, code }]) => {
+watch([authStatus, authError], ([status, error]) => {
   if (status === StateStatus.Error) {
-    const message = error || "Something went wrong";
-    if (code === 404) return;
+    const message = error.error || "Something went wrong";
+    if (error.code === 404) return;
     ElMessage.error({ message });
   }
 });
 
-watch([dashboardStatus, dashboardError], ([status, { error, code }]) => {
+watch([dashboardStatus, dashboardError], ([status, error]) => {
   if (status === StateStatus.Error) {
-    const message = error || "Something went wrong";
+    const message = error.error || "Something went wrong";
     ElMessage.error({ message });
   }
 });
