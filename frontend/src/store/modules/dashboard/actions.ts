@@ -28,6 +28,7 @@ export const actions: ActionFuncs<State> & Actions = {
         MutationTypes.GetDashboardsError,
         (error.response.data as FetchError) || null
       );
+      throw error;
     }
   },
 };

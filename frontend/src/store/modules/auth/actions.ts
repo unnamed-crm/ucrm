@@ -41,6 +41,7 @@ export const actions: ActionFuncs<State> & Actions = {
         (error.response.data as FetchError) || null
       );
       localStorage.removeItem("token");
+      throw error;
     }
   },
   async [ActionTypes.Register]({ commit }, data) {
@@ -62,6 +63,7 @@ export const actions: ActionFuncs<State> & Actions = {
         (error.response.data as FetchError) || null
       );
       localStorage.removeItem("token");
+      throw error;
     }
   },
   [ActionTypes.Logout]({ commit }) {
