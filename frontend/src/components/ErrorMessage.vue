@@ -18,7 +18,7 @@ const dashboardError = computed(() => store.getters.dashboardError);
 
 watch([authStatus, authError], ([status, { error, code }]) => {
   if (status === StateStatus.Error) {
-    let message = error;
+    const message = error || "Something went wrong";
     if (code === 404) return;
     ElMessage.error({ message });
   }
@@ -26,7 +26,7 @@ watch([authStatus, authError], ([status, { error, code }]) => {
 
 watch([dashboardStatus, dashboardError], ([status, { error, code }]) => {
   if (status === StateStatus.Error) {
-    let message = error;
+    const message = error || "Something went wrong";
     ElMessage.error({ message });
   }
 });
