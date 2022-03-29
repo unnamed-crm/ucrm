@@ -8,13 +8,13 @@
     active-text-color="#7af581"
   >
     <!-- eslint-disable-next-line vue/no-v-for-template-key -->
-    <template v-for="route in $router.options.routes" :key="route.path">
-      <template v-if="route?.meta?.requiresAuth && isLoggedIn.value">
+    <template v-for="route in router.options.routes" :key="route.path">
+      <template v-if="route?.meta?.requiresAuth && isLoggedIn">
         <el-menu-item :index="route.path" :route="route.path">
           {{ route.name }}
         </el-menu-item>
       </template>
-      <template v-else-if="!route?.meta?.requiresAuth && !isLoggedIn.value">
+      <template v-else-if="!route?.meta?.requiresAuth && !isLoggedIn">
         <el-menu-item :index="route.path" :route="route.path">
           {{ route.name }}
         </el-menu-item>
@@ -25,8 +25,10 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useTypedStore } from "../store";
 
+const router = useRouter();
 const store = useTypedStore();
 
 const isLoggedIn = computed(() => store.getters.isLoggedIn);
