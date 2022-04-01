@@ -264,7 +264,7 @@ func (r *DbService) DeleteOneCard(ctx context.Context, cardId string) error {
 	return nil
 }
 
-func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, pipelineId string, oldOrder int, newOrder int) error {
+func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, oldOrder int, newOrder int) error {
 	if newOrder <= 0 {
 		return errors.New("incorrect order for pipeline")
 	}
@@ -278,6 +278,21 @@ func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, pipel
 	} else {
 		changeOperator = "+"
 		comparisionMark = ">="
+	}
+
+	rows := sq.Select("c.pipeline_id").
+		From("cards c").
+		Where(sq.Eq{"c.id": cardId}).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	var pipelineId string
+
+	if err := rows.Scan(&pipelineId);err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
 	}
 
 	_, err :=

@@ -222,20 +222,11 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")
-	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 
 	if len(cardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing cardId: cards/updateOrder",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
-	if len(pipelineId) == 0 {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "missing pipelineId: cards/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -268,7 +259,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.UpdateOrderForCard(ctx, cardId, pipelineId, payload.OldOrder, newOrder)
+	err = c.repo.UpdateOrderForCard(ctx, cardId, payload.OldOrder, newOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

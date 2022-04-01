@@ -11,5 +11,6 @@ type PipelineRepository interface {
 	GetOnePipeline(pipelineId string) (*models.Pipeline, error)
 	GetAccessPipelineById(pipelineId string, userId string, accessType string) (bool, error)
 	GetAllPipelines(dashboardId string) ([]models.Pipeline, error)
-	UpdateOrderForPipeline(pipelineId string, dashboardId string, oldOrder int, newOrder int) error
+	UpdateOrderForPipeline(pipelineId string, newOrder int) error
+	GetAllPipelinesByPipeline(pipelineId string) ([]models.Pipeline, error)
 }

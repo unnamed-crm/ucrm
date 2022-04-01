@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -106,7 +107,6 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
-	dashboardId := chi.URLParam(r, "dashboardId")
 
 	if len(pipelineId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
@@ -119,14 +119,6 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(orderQuery) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: pipelines/updateOrder",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
-	if len(dashboardId) == 0 {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "missing dashboardId: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -151,7 +143,14 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.UpdateOrderForPipeline(pipelineId, dashboardId, payload.OldOrder, newOrder)
+	pipelines, err := c.repo.GetAllPipelinesByPipeline(pipelineId)
+	fmt.Println(len(pipelines))
+	var pipeline models.Pipeline
+	for _, p := range pipelines {
+		if p.Id == pipelineId {
+			pipeline = p
+		}
+	}
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -159,6 +158,36 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+	if len(pipelines) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "pipelines is empty",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
 
+	for _, p := range pipelines {
+		if newOrder > pipeline.Order  {
+			if p.Id == pipelineId {
+				if p.Order == newOrder {
+					continue
+				} else {
+					c.repo.UpdateOrderForPipeline(p.Id, newOrder)
+				}
+			} else if p.Order <= newOrder && p.Order > pipeline.Order {
+				c.repo.UpdateOrderForPipeline(p.Id, p.Order-1)
+			}
+		} else {
+			if p.Id == pipelineId {
+				if p.Order == newOrder {
+					continue
+				} else {
+					c.repo.UpdateOrderForPipeline(p.Id, newOrder)
+				}
+			}else if p.Order >= newOrder && p.Order < pipeline.Order {
+				c.repo.UpdateOrderForPipeline(p.Id, p.Order+1)
+			}
+		}
+	}
 	w.WriteHeader(http.StatusOK)
 }

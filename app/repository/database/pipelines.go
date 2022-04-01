@@ -3,8 +3,6 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
@@ -100,6 +98,50 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 	return pipelines, nil
 }
 
+func (r *DbService) GetAllPipelinesByPipeline(pipelineId string) ([]models.Pipeline, error) {
+	pipelines := []models.Pipeline{}
+
+	var dashboardId string
+	row := sq.Select("dashboard_id").
+		From("pipelines").
+		Where(sq.Eq{"id": pipelineId}).
+		OrderBy(`"order"`).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	if err := row.Scan(&dashboardId);err != nil {
+		if errors.Is(err,sql.ErrNoRows){
+			return make([]models.Pipeline, 0),nil
+		}
+		return make([]models.Pipeline, 0),err
+	}
+
+	rows, err := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
+		From("pipelines").
+		Where(sq.Eq{"dashboard_id": dashboardId}).
+		OrderBy(`"order"`).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var p models.Pipeline
+		if err := rows.Scan(&p.Id, &p.Name, &p.Order, &p.DashboardId, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		pipelines = append(pipelines, p)
+	}
+
+	return pipelines, nil
+}
+
 func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 	_, err := sq.Update("pipelines").
 		Set("name", name).
@@ -133,32 +175,12 @@ func (r *DbService) DeletePipelineById(pipelineId string) error {
 	return err
 }
 
-func (r *DbService) UpdateOrderForPipeline(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
-	if newOrder <= 0 {
-		return errors.New("incorrect order for pipeline")
-	}
-
-	var changeOperator string
-	var comparisionMark string
-
-	if newOrder > oldOrder {
-		changeOperator = "-"
-		comparisionMark = "<="
-	} else {
-		changeOperator = "+"
-		comparisionMark = ">="
-	}
+func (r *DbService) UpdateOrderForPipeline(pipelineId string, order int) error {
 
 	_, err :=
 		sq.Update("pipelines p").
-			Set(`"order"`,
-				sq.Case().
-					When(sq.Expr("p.id = ?", pipelineId), strconv.Itoa(newOrder)).
-					When(sq.Expr(fmt.Sprintf("p.order %s ?", comparisionMark), strconv.Itoa(newOrder)),
-						fmt.Sprintf("p.order %s 1", changeOperator)).
-					Else(sq.Expr(`"order"`)),
-			).
-			Where(sq.Eq{"dashboard_id": dashboardId}).
+			Set(`"order"`,order).
+			Where(sq.Eq{"id": pipelineId}).
 			RunWith(r.pool.Write()).
 			PlaceholderFormat(sq.Dollar).
 			Exec()
