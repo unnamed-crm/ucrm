@@ -65,6 +65,21 @@ services:
         ipv4_address: ${NETWORK_PREFIX:-172.4}.4.3
         aliases:
           - ucrm.db.loc
+
+  redis:
+    image: "redis:alpine"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-password}
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_URL=redis://redis.loc:6379
+      - "REDIS_PASSWORD:${REDIS_PASSWORD:-password}"
+    networks:
+      ucrm:
+        ipv4_address: ${NETWORK_PREFIX:-172.4}.0.21
+        aliases:
+          - ucrm.redis.loc
   rabbitmq:
     container_name: ucrm-go-rabbitmq
     build:

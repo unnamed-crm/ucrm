@@ -18,3 +18,10 @@ cors:
   max_age: 600
   options_passthrough: false
   use_allow_all_handler: true
+
+mail:
+  sender: 'ucrm@info.com'
+  letters:
+    verification:
+      subject: 'Verification Code'
+      template: 'your verification code {{ .Data.Code }}, enter it within 5 minutes'
