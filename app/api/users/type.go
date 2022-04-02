@@ -14,9 +14,4 @@ type SignResponse struct {
 }
 type VerifyCodePayload struct {
 	Email string `json:"email"`
-	Code  string `json:"code"`
-}
-
-type SendVerifyCodePayload struct {
-	Email string `json:"email"`
 }
