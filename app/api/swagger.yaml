@@ -1,4 +1,13 @@
 definitions:
+  cards.CreateOnePayload:
+    properties:
+      name:
+        type: string
+      order:
+        type: integer
+      pipeline_id:
+        type: string
+    type: object
   models.Card:
     properties:
       chat:
@@ -130,6 +139,13 @@ paths:
     post:
       consumes:
       - application/json
+      parameters:
+      - description: ' '
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cards.CreateOnePayload'
       produces:
       - application/json
       responses:

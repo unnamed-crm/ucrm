@@ -151,10 +151,10 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete godoc
-// @Summary      Unsubscribe
-// @Tags         contacts
-// @Success      200  
-// @Router       /contacts/{cardId} [delete]
+// @Summary  Unsubscribe
+// @Tags     contacts
+// @Success  200  
+// @Router   /contacts/{cardId} [delete]
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	contactId := chi.URLParam(r, "contactId")

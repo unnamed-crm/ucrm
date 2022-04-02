@@ -27,13 +27,13 @@
                         }
                     },
                     "400": {
-                        "description": "[CreateOne]: {error}",
+                        "description": "[CreateOne]:  {error}",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "[CreateOne]: {error}",
+                        "description": "[CreateOne]:  {error}",
                         "schema": {
                             "type": "string"
                         }

@@ -23,14 +23,15 @@ import (
 	"github.com/ignavan39/ucrm-go/app/auth"
 	conf "github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
+	_ "github.com/ignavan39/ucrm-go/docs"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 	"github.com/ignavan39/ucrm-go/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
 
-// @title Unnamed URCM
-// @version 1.0
-// @description Unnamed URCM
+// @title        Unnamed URCM
+// @version      1.0
+// @description  Unnamed URCM
 
 func main() {
 	blogger.SetOutput(os.Stdout)

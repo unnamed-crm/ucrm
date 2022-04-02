@@ -6,7 +6,5 @@ import (
 )
 
 func RegisterRouter(r chi.Router) {
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("cmd/app/docs/swagger.json"),
-	))
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 }

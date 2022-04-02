@@ -27,14 +27,15 @@ func NewController(repo repository.CardRepository, cardWebhookRepo repository.Ca
 }
 
 // CreateOne godoc
-// @Summary      Create card
-// @Tags         cards
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  models.Card
-// @Failure      400  {string}  string "[CreateOne]: {error}"
-// @Failure      500  {string}	string "[CreateOne]: {error}"
-// @Router       /cards [post]
+// @Summary  Create card
+// @Tags     cards
+// @Accept   json
+// @Produce  json
+// @Param	 payload body   CreateOnePayload true " "
+// @Success  200  {object}  models.Card
+// @Failure  400  {string}  string  "[CreateOne]:  {error}"
+// @Failure  500  {string}  string  "[CreateOne]:  {error}"
+// @Router   /cards [post]
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateOnePayload
@@ -73,12 +74,12 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete godoc
-// @Summary      Delete card
-// @Description  
-// @Tags         cards
-// @Param        id query string true " "
-// @Success      200  {object} models.Card
-// @Router       /cards [delete]
+// @Summary  Delete card
+// @Description
+// @Tags     cards
+// @Param    id   query     string  true  " "
+// @Success  200  {object}  models.Card
+// @Router   /cards [delete]
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
@@ -123,12 +124,12 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update godoc
-// @Summary      Update card
-// @Description  
-// @Tags         cards
-// @Param 			 cardId query string true " "
-// @Success      200  
-// @Router       /cards [patch]
+// @Summary  Update card
+// @Description
+// @Tags     cards
+// @Param               cardId  query  string  true  " "
+// @Success  200
+// @Router   /cards [patch]
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload UpdateOnePayload
@@ -214,8 +215,8 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 // @Summary      Get one card
 // @Description  Get one card by id
 // @Tags         cards
-// @Param 			 cardId query string true " "
-// @Success      200  
+// @Param                   cardId  query  string  true  " "
+// @Success      200
 // @Router       /cards/{cardId} [get]
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -253,10 +254,10 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 // @Summary      Update order
 // @Description  Update order
 // @Tags         cards
-// @Param 			 cardId query string true " "
-// @Param        pipelineId query string true " "
-// @Param        order query string true " "
-// @Success      200  
+// @Param                                         cardId  query  string  true  " "
+// @Param        pipelineId  query  string  true  " "
+// @Param        order       query  string  true  " "
+// @Success      200
 // @Router       /cards/order/{pipelineId}/{cardId}/order [get]
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
