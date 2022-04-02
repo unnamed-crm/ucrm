@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
@@ -264,47 +263,12 @@ func (r *DbService) DeleteOneCard(ctx context.Context, cardId string) error {
 	return nil
 }
 
-func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, oldOrder int, newOrder int) error {
-	if newOrder <= 0 {
-		return errors.New("incorrect order for pipeline")
-	}
-
-	var changeOperator string
-	var comparisionMark string
-
-	if newOrder > oldOrder {
-		changeOperator = "-"
-		comparisionMark = "<="
-	} else {
-		changeOperator = "+"
-		comparisionMark = ">="
-	}
-
-	rows := sq.Select("c.pipeline_id").
-		From("cards c").
-		Where(sq.Eq{"c.id": cardId}).
-		RunWith(r.pool.Read()).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	var pipelineId string
-
-	if err := rows.Scan(&pipelineId);err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
-		return err
-	}
+func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, order int) error {
 
 	_, err :=
 		sq.Update("cards c").
-			Set(`"order"`,
-				sq.Case().
-					When(sq.Expr("c.id = ?", cardId), strconv.Itoa(newOrder)).
-					When(sq.Expr(fmt.Sprintf("c.order %s ?", comparisionMark), strconv.Itoa(newOrder)),
-						fmt.Sprintf("c.order %s 1", changeOperator)).
-					Else(sq.Expr(`"order"`)),
-			).
-			Where(sq.Eq{"pipeline_id": pipelineId}).
+			Set(`"order"`, order).
+			Where(sq.Eq{"id": cardId}).
 			RunWith(r.pool.Write()).
 			PlaceholderFormat(sq.Dollar).
 			Exec()
@@ -313,10 +277,51 @@ func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, oldOr
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
-
-		blogger.Errorf("[card/UpdateOrderForCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return nil
+}
+
+func (r *DbService) GetCardsByCardPipelineId(cardId string) ([]models.Card, error) {
+	cards := []models.Card{}
+
+	var pipelineId string
+	row := sq.Select("pipeline_id").
+		From("cards").
+		Where(sq.Eq{"id": cardId}).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	if err := row.Scan(&pipelineId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return make([]models.Card, 0), nil
+		}
+		return make([]models.Card, 0), err
+	}
+
+	rows, err := sq.Select("id", "name", `"order"`, "pipeline_id", "updated_at").
+		From("cards").
+		Where(sq.Eq{"pipeline_id": pipelineId}).
+		OrderBy(`"order"`).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var c models.Card
+		if err := rows.Scan(&c.Id, &c.Name, &c.Order, &c.PipelineId, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		cards = append(cards, c)
+	}
+
+	return cards, nil
 }

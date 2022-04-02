@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/core/triggers"
+	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 
@@ -219,7 +220,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
-func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")
 	orderQuery := chi.URLParam(r, "order")
@@ -249,23 +250,61 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload UpdateOrder
-	err = json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload: cards/updateOrder",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
-	err = c.repo.UpdateOrderForCard(ctx, cardId, payload.OldOrder, newOrder)
+	cards, err := cr.repo.GetCardsByCardPipelineId(cardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
+	}
+	var card models.Card
+	maxOrder := 0
+
+	if len(cards) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "cards is empty",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	for _, c := range cards {
+		if c.Id == cardId {
+			card = c
+		}
+		if c.Order >= maxOrder {
+			maxOrder = c.Order
+		}
+	}
+	if newOrder > maxOrder || newOrder < 1 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong order",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	for _, c := range cards {
+		if newOrder > card.Order {
+			if c.Id == cardId {
+				if c.Order == newOrder {
+					continue
+				} else {
+					cr.repo.UpdateOrderForCard(ctx, c.Id, newOrder)
+				}
+			} else if c.Order <= newOrder && c.Order > card.Order {
+				cr.repo.UpdateOrderForCard(ctx, c.Id, c.Order-1)
+			}
+		} else {
+			if c.Id == cardId {
+				if c.Order == newOrder {
+					continue
+				} else {
+					cr.repo.UpdateOrderForCard(ctx, c.Id, newOrder)
+				}
+			} else if c.Order >= newOrder && c.Order < card.Order {
+				cr.repo.UpdateOrderForCard(ctx, c.Id, c.Order+1)
+			}
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

@@ -105,15 +105,14 @@ func (r *DbService) GetAllPipelinesByPipeline(pipelineId string) ([]models.Pipel
 	row := sq.Select("dashboard_id").
 		From("pipelines").
 		Where(sq.Eq{"id": pipelineId}).
-		OrderBy(`"order"`).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
-	if err := row.Scan(&dashboardId);err != nil {
-		if errors.Is(err,sql.ErrNoRows){
-			return make([]models.Pipeline, 0),nil
+	if err := row.Scan(&dashboardId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return make([]models.Pipeline, 0), nil
 		}
-		return make([]models.Pipeline, 0),err
+		return make([]models.Pipeline, 0), err
 	}
 
 	rows, err := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
@@ -179,7 +178,7 @@ func (r *DbService) UpdateOrderForPipeline(pipelineId string, order int) error {
 
 	_, err :=
 		sq.Update("pipelines p").
-			Set(`"order"`,order).
+			Set(`"order"`, order).
 			Where(sq.Eq{"id": pipelineId}).
 			RunWith(r.pool.Write()).
 			PlaceholderFormat(sq.Dollar).

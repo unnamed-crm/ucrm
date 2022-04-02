@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -133,24 +132,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload UpdateOrder
-	err = json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload: pipelines/createOne",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
 	pipelines, err := c.repo.GetAllPipelinesByPipeline(pipelineId)
-	fmt.Println(len(pipelines))
-	var pipeline models.Pipeline
-	for _, p := range pipelines {
-		if p.Id == pipelineId {
-			pipeline = p
-		}
-	}
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -165,9 +147,26 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+	maxOrder := 0
+	var pipeline models.Pipeline
+	for _, p := range pipelines {
+		if p.Id == pipelineId {
+			pipeline = p
+		}
+		if p.Order >= maxOrder {
+			maxOrder = p.Order
+		}
+	}
+	if newOrder > maxOrder || newOrder < 1 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong order",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
 
 	for _, p := range pipelines {
-		if newOrder > pipeline.Order  {
+		if newOrder > pipeline.Order {
 			if p.Id == pipelineId {
 				if p.Order == newOrder {
 					continue
@@ -184,7 +183,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 				} else {
 					c.repo.UpdateOrderForPipeline(p.Id, newOrder)
 				}
-			}else if p.Order >= newOrder && p.Order < pipeline.Order {
+			} else if p.Order >= newOrder && p.Order < pipeline.Order {
 				c.repo.UpdateOrderForPipeline(p.Id, p.Order+1)
 			}
 		}

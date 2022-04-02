@@ -15,5 +15,6 @@ type CardRepository interface {
 	GetOneCard(ctx context.Context, cardId string) (*models.Card, error)
 	GetOneCardWithoutRelations(ctx context.Context, cardId string) (*models.Card, error)
 	DeleteOneCard(ctx context.Context, cardId string) error
-	UpdateOrderForCard(ctx context.Context, cardId string, oldOrder int, newOrder int) error
+	UpdateOrderForCard(ctx context.Context, cardId string, order int) error
+	GetCardsByCardPipelineId(cardId string) ([]models.Card, error)
 }
