@@ -17,9 +17,11 @@ func RenderTemplate(stringTemplate string, payload map[string]interface{}) (stri
 	if err != nil {
 		return "", err
 	}
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, payload); err != nil {
 		return "", err
 	}
+
 	return buf.String(), nil
 }

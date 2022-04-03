@@ -24,10 +24,12 @@ type MailLetter struct {
 	Subject  string `yaml:"subject"`
 	Template string `yaml:"template"`
 }
+
 type MailConfig struct {
 	Sender  string                `yaml:"sender"`
 	Letters map[string]MailLetter `yaml:"letters"`
 }
+
 type CoreConfig struct {
 	Cors CorsConfig `yaml:"cors"`
 	Mail MailConfig `yaml:"mail"`
@@ -103,6 +105,7 @@ func GetConfig() (*Config, error) {
 	if len(environment) == 0 {
 		environment = DevelopEnironment
 	}
+
 	finded := validateEnvironment(environment)
 	if !finded {
 		return nil, fmt.Errorf("[Environment] Undeclared name :%s", environment)
@@ -133,16 +136,19 @@ func GetConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	redisDb, err := strconv.ParseInt(os.Getenv("REDIS_DB"), 10, 16)
 	if err != nil {
 		return nil, err
 	}
+
 	redis := RedisConfig{
 		Host:     os.Getenv("REDIS_HOST"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		Port:     int(redisPort),
 		DB:       int(redisDb),
 	}
+
 	coreConf, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
 		return nil, err

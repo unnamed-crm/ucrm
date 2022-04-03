@@ -12,6 +12,7 @@ type SignResponse struct {
 	User  models.User `json:"user"`
 	Token string      `json:"token"`
 }
+
 type VerifyCodePayload struct {
 	Email string `json:"email"`
 }
