@@ -173,6 +173,41 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var lastTimeRaw string
+
+	err = c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email), &lastTimeRaw)
+	if err == nil {
+		lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
+		if err != nil {
+			blogger.Errorf("Failed to parse lastTime: CTX: %v, Error: %s", ctx, err.Error())
+			httpext.JSON(w, httpext.CommonError{
+				Error: "failed parse time",
+				Code:  http.StatusInternalServerError,
+			}, http.StatusInternalServerError)
+			return
+		}
+		if !time.Now().Add(time.Duration(-5) * time.Minute).After(lastTime) {
+			httpext.JSON(w, httpext.CommonError{
+				Error: "try later",
+				Code:  http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
+	}
+
+	err = c.cache.Set(ctx,
+		fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email),
+		time.Now().Format(time.RFC3339))
+
+	if err != nil {
+		blogger.Errorf("Failed to save lastTime to redis: CTX: %v, Error: %s", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed to save lastTime to redis",
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
 	code := utils.GenerateRandomNumber(10000, 99999)
 	Data := make(map[string]string)
 	Data["Code"] = fmt.Sprint(code)
@@ -211,4 +246,7 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 
 func cachePrefix() string {
 	return "user_code"
+}
+func retryPeriodPrefix() string {
+	return "user_retry_period"
 }

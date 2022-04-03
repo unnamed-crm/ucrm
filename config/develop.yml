@@ -25,3 +25,6 @@ mail:
     verification:
       subject: 'Verification Code'
       template: 'your verification code {{ .Data.Code }}, enter it within 5 minutes'
+    recovery-password:
+      subject: 'Password recovery code'
+      template: 'your password recovery code {{ .Data.Code }}, enter it within 5 minutes'

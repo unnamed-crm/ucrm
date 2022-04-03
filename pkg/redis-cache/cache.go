@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cacheSize int = 1000
+	cacheSize int = 10000
 )
 
 type RedisCache struct {
