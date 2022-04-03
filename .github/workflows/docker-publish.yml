@@ -1,6 +1,8 @@
 name: Docker Push
 
 on:
+  workflow_dispatch:
+    branches: [master]
   push:
     tags:
       - "release.*.*"
