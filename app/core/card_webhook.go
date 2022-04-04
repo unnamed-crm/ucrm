@@ -1,4 +1,4 @@
-package triggers
+package core
 
 import (
 	"bytes"
@@ -14,7 +14,6 @@ func SendCardUpdatesToSubscriber(hostUrl string, newState interface{}, oldState 
 	argMap := map[string]interface{}{}
 	argMap["newState"] = newState
 	argMap["oldState"] = oldState
-
 	stringifyArgs, err := json.Marshal(argMap)
 	if err != nil {
 		blogger.Errorf("[Trigger] url webhook: %s, [Error] :%s", hostUrl, err.Error())

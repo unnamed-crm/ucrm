@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/core/triggers"
+	"github.com/ignavan39/ucrm-go/app/core"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -106,7 +106,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go triggers.SendCardUpdatesToSubscriber(webhook.Url, nil, card)
+	go core.SendCardUpdatesToSubscriber(webhook.Url, nil, card)
 	httpext.JSON(w, card, http.StatusOK)
 }
 
@@ -185,7 +185,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if webhook != nil {
-		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
+		go core.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
 	}
 
 	httpext.JSON(w, updatedCard, http.StatusOK)
