@@ -25,13 +25,14 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from "vue";
-import { useStore } from "vuex";
+import { reactive, computed, watch } from "vue";
+import { useTypedStore } from "../store";
+import { StateStatus } from "../store/types";
 import { useRouter } from "vue-router";
 import { loginSchema, LoginData, LoginSchema } from "../schemas/login.schema";
 import { useValidate } from "../hooks/useValidate";
 
-const store = useStore();
+const store = useTypedStore();
 const router = useRouter();
 
 const loginData = reactive<LoginData>({
@@ -40,15 +41,24 @@ const loginData = reactive<LoginData>({
 });
 const { errors, validate } = useValidate<LoginSchema>(loginSchema, loginData);
 
+const authStatus = computed(() => store.getters.authStatus);
+const authError = computed(() => store.getters.authError);
+
+watch([authStatus, authError], ([status, error]) => {
+  if (status === StateStatus.Error) {
+    if (error.code === 404) {
+      errors["email"] = " ";
+      errors["password"] = "Wrong email or password";
+    }
+  }
+});
+
 const login = async () => {
   const isValid = await validate();
 
   if (!isValid) return;
 
-  store
-    .dispatch("login", loginData)
-    .then(() => router.push("/"))
-    .catch(console.log);
+  store.dispatch("login", loginData).then(() => router.push("/"));
 };
 </script>
 

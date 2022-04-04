@@ -4,6 +4,13 @@ export type RootState = {
   version: string;
 };
 
+export type FetchError = {
+  code: number;
+  error: string;
+};
+
+export type StateError = FetchError | null;
+
 export type ActionAugments<S> = Omit<ActionContext<S, RootState>, "commit"> & {
   commit<K extends keyof MutationFunc<S>>(
     key: K,
