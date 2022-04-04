@@ -5,24 +5,44 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
 	blogger "github.com/sirupsen/logrus"
 )
 
-func (r *DbService) AddCard(ctx context.Context, name string, order int, pipelineId string) (*models.Card, error) {
+func (r *DbService) AddCard(ctx context.Context, name string, pipelineId string) (*models.Card, error) {
 	card := &models.Card{}
+	var orderRow sql.NullInt32
+	order := 1
 
-	row := sq.Insert("cards").
+	row := sq.Select(`max("order")`).
+		From("cards").
+		Where(sq.Eq{"pipeline_id": pipelineId}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Read()).
+		QueryRow()
+
+	if err := row.Scan(&orderRow); err != nil {
+		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	if orderRow.Valid {
+		order = int(orderRow.Int32) + 1
+	}
+
+	row = sq.Insert("cards").
 		Columns("name", "pipeline_id", `"order"`).
 		Values(name, pipelineId, order).
-		Suffix(`returning id,name,pipeline_id,updated_at,"order"`).
+		Suffix(`returning id, name, pipeline_id, updated_at, "order"`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
+
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -30,13 +50,15 @@ func (r *DbService) AddCard(ctx context.Context, name string, order int, pipelin
 	chatRow := sq.Insert("chats").
 		Columns("card_id").
 		Values(card.Id).
-		Suffix(`returning id,card_id,last_sender,last_employee_id,last_message`).
+		Suffix(`returning id, card_id, last_sender, last_employee_id, last_message`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := chatRow.Scan(&chat.Id, &chat.CardId, &chat.LastSender, &chat.LastEmployeeId, &chat.LastMessageId); err != nil {
+		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
+
 	card.Chat = &chat
 	return card, nil
 }
@@ -263,63 +285,75 @@ func (r *DbService) DeleteOneCard(ctx context.Context, cardId string) error {
 	return nil
 }
 
-func (r *DbService) UpdateOrderForCard(ctx context.Context, cardId string, order int) error {
+func (r *DbService) UpdateOrderForCards(ctx context.Context, cardIdsToNewOrder map[string]int) error {
+	queryArgs := make([]interface{}, 0)
+	valuesForUpdate := make([]string, 0)
+	argIndex := 1
 
-	_, err :=
-		sq.Update("cards c").
-			Set(`"order"`, order).
-			Where(sq.Eq{"id": cardId}).
-			RunWith(r.pool.Write()).
-			PlaceholderFormat(sq.Dollar).
-			Exec()
+	for id, order := range cardIdsToNewOrder {
+		valuesForUpdate = append(
+			valuesForUpdate, fmt.Sprintf(`($%d::uuid, %d)`, argIndex, order),
+		)
+		queryArgs = append(queryArgs, id)
+		argIndex++
+	}
 
+	sql := fmt.Sprintf(`
+		update cards
+		set "order" = tmp.new_order
+		from ( values
+			%s
+		) as tmp(id, new_order)
+		where cards.id = tmp.id
+	`, strings.Join(valuesForUpdate, ","),
+	)
+
+	_, err := r.pool.Write().Exec(sql, queryArgs...)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
+		blogger.Errorf("[card/UpdateOrderForCards] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (r *DbService) GetCardsByCardPipelineId(cardId string) ([]models.Card, error) {
+func (r *DbService) GetCardsByCardPipelineId(ctx context.Context, cardId string) ([]models.Card, error) {
 	cards := []models.Card{}
 
-	var pipelineId string
-	row := sq.Select("pipeline_id").
+	selectPipelineSql, _, err := sq.Select("pipeline_id").
 		From("cards").
-		Where(sq.Eq{"id": cardId}).
-		RunWith(r.pool.Read()).
+		Where("id = ?").
 		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&pipelineId); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return make([]models.Card, 0), nil
-		}
-		return make([]models.Card, 0), err
+		ToSql()
+	if err != nil {
+		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
 	}
 
-	rows, err := sq.Select("id", "name", `"order"`, "pipeline_id", "updated_at").
-		From("cards").
-		Where(sq.Eq{"pipeline_id": pipelineId}).
-		OrderBy(`"order"`).
-		RunWith(r.pool.Read()).
-		PlaceholderFormat(sq.Dollar).
-		Query()
+	completeSql := fmt.Sprintf(`
+		with p as (%s)
+		select id, "order" from cards 
+		where pipeline_id = (select p.pipeline_id from p)
+	`, selectPipelineSql)
+
+	rows, err := r.pool.Read().Query(completeSql, cardId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+
+		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		var c models.Card
-		if err := rows.Scan(&c.Id, &c.Name, &c.Order, &c.PipelineId, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.Id, &c.Order); err != nil {
+			blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
+
 		cards = append(cards, c)
 	}
 

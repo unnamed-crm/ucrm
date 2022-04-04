@@ -54,7 +54,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 			}
 
 			userId := auth.GetUserIdFromContext(ctx)
-			ok, err := repo.GetAccessPipelineById(id, userId, accessType)
+			ok, err := repo.GetAccessPipelineById(ctx, id, userId, accessType)
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),

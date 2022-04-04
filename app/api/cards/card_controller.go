@@ -40,7 +40,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.AddCard(ctx, payload.Name, payload.Order, payload.PipelineId)
+	card, err := c.repo.AddCard(ctx, payload.Name, payload.PipelineId)
 	if err != nil {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -60,7 +60,10 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+	if webhook != nil {
+		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+	}
+
 	httpext.JSON(w, card, http.StatusOK)
 }
 
@@ -242,7 +245,7 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newOrder, err := strconv.Atoi(orderQuery)
-	if err != nil {
+	if err != nil || newOrder < 1 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: cards/updateOrder",
 			Code:  http.StatusBadRequest,
@@ -250,7 +253,7 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cards, err := cr.repo.GetCardsByCardPipelineId(cardId)
+	cards, err := cr.repo.GetCardsByCardPipelineId(ctx, cardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -258,6 +261,7 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	var card models.Card
 	maxOrder := 0
 
@@ -268,43 +272,64 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	for _, c := range cards {
 		if c.Id == cardId {
+			if c.Order == newOrder {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "Incorrect new order for update",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
+				return
+			}
 			card = c
 		}
 		if c.Order >= maxOrder {
 			maxOrder = c.Order
 		}
 	}
-	if newOrder > maxOrder || newOrder < 1 {
+
+	if newOrder > maxOrder {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong order",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
+
+	cardIdToNewOrder := make(map[string]int)
+
 	for _, c := range cards {
 		if newOrder > card.Order {
 			if c.Id == cardId {
 				if c.Order == newOrder {
 					continue
 				} else {
-					cr.repo.UpdateOrderForCard(ctx, c.Id, newOrder)
+					cardIdToNewOrder[c.Id] = newOrder
 				}
 			} else if c.Order <= newOrder && c.Order > card.Order {
-				cr.repo.UpdateOrderForCard(ctx, c.Id, c.Order-1)
+				cardIdToNewOrder[c.Id] = c.Order - 1
 			}
 		} else {
 			if c.Id == cardId {
 				if c.Order == newOrder {
 					continue
 				} else {
-					cr.repo.UpdateOrderForCard(ctx, c.Id, newOrder)
+					cardIdToNewOrder[c.Id] = newOrder
 				}
 			} else if c.Order >= newOrder && c.Order < card.Order {
-				cr.repo.UpdateOrderForCard(ctx, c.Id, c.Order+1)
+				cardIdToNewOrder[c.Id] = c.Order + 1
 			}
 		}
+	}
+
+	err = cr.repo.UpdateOrderForCards(ctx, cardIdToNewOrder)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,6 +21,7 @@ func NewController(repo repository.PipelineRepository) *Controller {
 }
 
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var payload CreateOnePayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -31,7 +33,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pipeline, err := c.repo.AddPipeline(payload.Name, payload.DashboardId, payload.Order)
+	pipeline, err := c.repo.AddPipeline(ctx, payload.Name, payload.DashboardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -49,6 +51,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var payload struct {
 		Name string `json:"name"`
 	}
@@ -71,7 +74,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.UpdatePipelineName(id, payload.Name)
+	err = c.repo.UpdatePipelineName(ctx, id, payload.Name)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -83,6 +86,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := chi.URLParam(r, "pipelineId")
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
@@ -92,7 +96,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.repo.DeletePipelineById(id)
+	err := c.repo.DeletePipelineById(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -104,6 +108,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 
@@ -124,7 +129,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newOrder, err := strconv.Atoi(orderQuery)
-	if err != nil {
+	if err != nil || newOrder < 1 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "incorrect value for order: pipelines/updateOrder",
 			Code:  http.StatusBadRequest,
@@ -132,7 +137,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pipelines, err := c.repo.GetAllPipelinesByPipeline(pipelineId)
+	pipelines, err := c.repo.GetAllPipelinesByPipeline(ctx, pipelineId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -140,6 +145,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	if len(pipelines) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "pipelines is empty",
@@ -147,17 +153,26 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	maxOrder := 0
 	var pipeline models.Pipeline
 	for _, p := range pipelines {
 		if p.Id == pipelineId {
+			if p.Order == newOrder {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "Incorrect new order for update",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
+				return
+			}
 			pipeline = p
 		}
 		if p.Order >= maxOrder {
 			maxOrder = p.Order
 		}
 	}
-	if newOrder > maxOrder || newOrder < 1 {
+
+	if newOrder > maxOrder {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong order",
 			Code:  http.StatusBadRequest,
@@ -165,28 +180,40 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pipelineIdToNewOrder := make(map[string]int)
+
 	for _, p := range pipelines {
 		if newOrder > pipeline.Order {
 			if p.Id == pipelineId {
 				if p.Order == newOrder {
 					continue
 				} else {
-					c.repo.UpdateOrderForPipeline(p.Id, newOrder)
+					pipelineIdToNewOrder[p.Id] = newOrder
 				}
 			} else if p.Order <= newOrder && p.Order > pipeline.Order {
-				c.repo.UpdateOrderForPipeline(p.Id, p.Order-1)
+				pipelineIdToNewOrder[p.Id] = p.Order - 1
 			}
 		} else {
 			if p.Id == pipelineId {
 				if p.Order == newOrder {
 					continue
 				} else {
-					c.repo.UpdateOrderForPipeline(p.Id, newOrder)
+					pipelineIdToNewOrder[p.Id] = newOrder
 				}
 			} else if p.Order >= newOrder && p.Order < pipeline.Order {
-				c.repo.UpdateOrderForPipeline(p.Id, p.Order+1)
+				pipelineIdToNewOrder[p.Id] = p.Order + 1
 			}
 		}
 	}
+
+	err = c.repo.UpdateOrderForPipelines(ctx, pipelineIdToNewOrder)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
