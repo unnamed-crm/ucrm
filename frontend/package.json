@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "prettier --write \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
+    "lint": "prettier --write \"./src/**/*.{ts,vue}\" && eslint --fix --quiet \"./src/**/*.{ts,vue}\""
   },
   "dependencies": {
     "axios": "^0.26.1",
