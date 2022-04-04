@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/card"
-	"github.com/ignavan39/ucrm-go/app/core"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 
 	blogger "github.com/sirupsen/logrus"
@@ -104,24 +103,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.GetOneCard(ctx, id)
-	if err != nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: fmt.Sprintf("[Update]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
-		return
-	}
-
-	if card == nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "card not found",
-			Code:  http.StatusNotFound,
-		}, http.StatusNotFound)
-		return
-	}
-
-	updatedCard, err := c.repo.UpdateCard(ctx, id, payload.Name, payload.Fields)
+	updatedCard, err := c.uc.Update(ctx, id, payload.Name, payload.Fields)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Update]:%s", err.Error()),
@@ -136,19 +118,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
-	}
-
-	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(card.PipelineId)
-	if err != nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "[Update] failed to get pipeline",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
-	if webhook != nil {
-		go core.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
 	}
 
 	httpext.JSON(w, updatedCard, http.StatusOK)
@@ -166,7 +135,7 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.GetOneCard(ctx, id)
+	card, err := c.uc.GetOne(ctx, id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[GetOne]:%s", err.Error()),
@@ -235,7 +204,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.UpdateOrderForCard(ctx, cardId, pipelineId, payload.OldOrder, newOrder)
+	err = c.uc.UpdateOrder(ctx, cardId, pipelineId, payload.OldOrder, newOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),

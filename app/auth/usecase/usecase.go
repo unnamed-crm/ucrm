@@ -1,10 +1,11 @@
-package auth
+package usecase
 
 import (
 	"context"
 	"time"
 
 	"github.com/dgrijalva/jwt-go/v4"
+	"github.com/ignavan39/ucrm-go/app/auth"
 )
 
 type Authorizer interface {
@@ -27,7 +28,7 @@ func NewAuthorizer(hashSalt string, signingKey []byte, expireDuration time.Durat
 }
 
 func (a *AuthorizerJWT) CreateToken(ctx context.Context, id string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &auth.Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: jwt.At(time.Now().Add(a.expireDuration)),
 			IssuedAt:  jwt.At(time.Now()),

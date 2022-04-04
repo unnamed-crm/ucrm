@@ -23,3 +23,8 @@ func GetUserIdFromContext(ctx context.Context) string {
 
 	return userId
 }
+
+type UseCase interface {
+	CreateToken(ctx context.Context, id string) (string, error)
+	GetHashSalt() string
+}
