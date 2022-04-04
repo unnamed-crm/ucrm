@@ -9,14 +9,8 @@ export enum MutationTypes {
 
 export type Mutations = {
   [MutationTypes.GetDashboardsRequest](state: State): void;
-  [MutationTypes.GetDashboardsSuccess](
-    state: State,
-    payload: GetDashboardsResponse
-  ): void;
-  [MutationTypes.GetDashboardsError](
-    state: State,
-    errorPayload: FetchError
-  ): void;
+  [MutationTypes.GetDashboardsSuccess](state: State, payload: GetDashboardsResponse): void;
+  [MutationTypes.GetDashboardsError](state: State, errorPayload: FetchError): void;
 };
 
 export const mutations: MutationFunc<State> & Mutations = {
