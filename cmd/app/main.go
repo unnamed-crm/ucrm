@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
+	"github.com/go-redis/redis/v8"
 	"github.com/ignavan39/ucrm-go/app/api"
 	"github.com/ignavan39/ucrm-go/app/api/cards"
 	"github.com/ignavan39/ucrm-go/app/api/connect"
@@ -23,6 +25,7 @@ import (
 	conf "github.com/ignavan39/ucrm-go/app/config"
 	"github.com/ignavan39/ucrm-go/app/repository/database"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
+	redisCache "github.com/ignavan39/ucrm-go/pkg/redis-cache"
 	"github.com/ignavan39/ucrm-go/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
@@ -61,13 +64,22 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
+	redis := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       config.Redis.DB,
+	})
+
+	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
+
 	web := api.NewAPIServer(":8081").
 		WithCors(config.Cors)
 	dbService := database.NewDbService(rwConn)
 
+	mailgin := core.NewMailgunApi(*config)
 	dispatcher := core.NewDispatcher(rabbitMqConn, dbService)
 	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := users.NewController(authorizer, dbService)
+	userController := users.NewController(authorizer, dbService, mailgin, config.Mail, *cache)
 	dashboardController := dashboards.NewController(dbService, dbService)
 	pipelineController := pipelines.NewController(dbService)
 	cardController := cards.NewController(dbService, dbService)
