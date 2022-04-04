@@ -8,11 +8,21 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/app/dashboard"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-func DashboardAccessGuard(repo repository.DashboardRepository, accessType string) func(next http.Handler) http.Handler {
+type DashboardAccessGuard struct {
+	repo dashboard.Repository
+}
+
+func NewDashboardAccessGuard(repo dashboard.Repository) *DashboardAccessGuard {
+	return &DashboardAccessGuard{
+		repo: repo,
+	}
+}
+
+func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -54,7 +64,7 @@ func DashboardAccessGuard(repo repository.DashboardRepository, accessType string
 			}
 
 			userId := auth.GetUserIdFromContext(ctx)
-			dashboard, err := repo.GetOneDashboardWithUserAccess(id, userId, accessType)
+			dashboard, err := dag.repo.GetOneWithUserAccess(id, userId, accessType)
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),
