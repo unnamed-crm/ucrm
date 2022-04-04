@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	DevelopEnironment    = "develop"
-	ProductionEnironment = "production"
+	DevelopEnvironment    = "develop"
+	ProductionEnvironment = "production"
 )
 
-var environments = [...]string{DevelopEnironment, ProductionEnironment}
+var environments = [...]string{DevelopEnvironment, ProductionEnvironment}
 
 type JWTConfig struct {
 	HashSalt       string        `env:"JWT_HASH_SALT"`
@@ -31,7 +31,7 @@ type Config struct {
 	JWT         JWTConfig
 	RabbitMq    RabbitMqConfig
 	Cors        CorsConfig
-	Evnironment string
+	Environment string
 }
 
 func validateEnvironment(env string) bool {
@@ -72,8 +72,9 @@ func GetConfig() (*Config, error) {
 
 	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	if len(environment) == 0 {
-		environment = DevelopEnironment
+		environment = DevelopEnvironment
 	}
+
 	finded := validateEnvironment(environment)
 	if !finded {
 		return nil, fmt.Errorf("[Environment] Undeclared name :%s", environment)
@@ -108,6 +109,6 @@ func GetConfig() (*Config, error) {
 		},
 		RabbitMq:    rmq,
 		Cors:        *cors,
-		Evnironment: environment,
+		Environment: environment,
 	}, nil
 }
