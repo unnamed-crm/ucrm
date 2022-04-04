@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/core"
+	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/app/repository"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 
@@ -39,7 +40,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.AddCard(ctx, payload.Name, payload.Order, payload.PipelineId)
+	card, err := c.repo.AddCard(ctx, payload.Name, payload.PipelineId)
 	if err != nil {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -59,7 +60,10 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go core.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+	if webhook != nil {
+		go core.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+	}
+
 	httpext.JSON(w, card, http.StatusOK)
 }
 
@@ -219,23 +223,14 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
-func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")
-	pipelineId := chi.URLParam(r, "pipelineId")
 	orderQuery := chi.URLParam(r, "order")
 
 	if len(cardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing cardId: cards/updateOrder",
-			Code:  http.StatusBadRequest,
-		}, http.StatusBadRequest)
-		return
-	}
-
-	if len(pipelineId) == 0 {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "missing pipelineId: cards/updateOrder",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
@@ -250,7 +245,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newOrder, err := strconv.Atoi(orderQuery)
-	if err != nil {
+	if err != nil || newOrder < 1 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: cards/updateOrder",
 			Code:  http.StatusBadRequest,
@@ -258,20 +253,80 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload UpdateOrder
-	err = json.NewDecoder(r.Body).Decode(&payload)
+	cards, err := cr.repo.GetCardsByCardPipelineId(ctx, cardId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: "failed decode payload: cards/updateOrder",
+			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	var card models.Card
+	maxOrder := 0
+
+	if len(cards) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "cards is empty",
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
 
-	err = c.repo.UpdateOrderForCard(ctx, cardId, pipelineId, payload.OldOrder, newOrder)
+	for _, c := range cards {
+		if c.Id == cardId {
+			if c.Order == newOrder {
+				httpext.JSON(w, httpext.CommonError{
+					Error: "Incorrect new order for update",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
+				return
+			}
+			card = c
+		}
+		if c.Order >= maxOrder {
+			maxOrder = c.Order
+		}
+	}
+
+	if newOrder > maxOrder {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong order",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	cardIdToNewOrder := make(map[string]int)
+
+	for _, c := range cards {
+		if newOrder > card.Order {
+			if c.Id == cardId {
+				if c.Order == newOrder {
+					continue
+				} else {
+					cardIdToNewOrder[c.Id] = newOrder
+				}
+			} else if c.Order <= newOrder && c.Order > card.Order {
+				cardIdToNewOrder[c.Id] = c.Order - 1
+			}
+		} else {
+			if c.Id == cardId {
+				if c.Order == newOrder {
+					continue
+				} else {
+					cardIdToNewOrder[c.Id] = newOrder
+				}
+			} else if c.Order >= newOrder && c.Order < card.Order {
+				cardIdToNewOrder[c.Id] = c.Order + 1
+			}
+		}
+	}
+
+	err = cr.repo.UpdateOrderForCards(ctx, cardIdToNewOrder)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
-			Error: err.Error(),
+			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return

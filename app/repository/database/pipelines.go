@@ -1,30 +1,53 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+	blogger "github.com/sirupsen/logrus"
 )
 
-func (r *DbService) AddPipeline(name string, dashboardId string, order int) (*models.Pipeline, error) {
+func (r *DbService) AddPipeline(ctx context.Context, name string, dashboardId string) (*models.Pipeline, error) {
 	pipeline := &models.Pipeline{}
+	var orderRow sql.NullInt32
+	order := 1
 
-	row := sq.Insert("pipelines").Columns("name", "dashboard_id", `"order"`).
+	row := sq.Select(`max("order")`).
+		From("pipeline").
+		Where(sq.Eq{"dashboard_id": dashboardId}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Read()).
+		QueryRow()
+
+	if err := row.Scan(&orderRow); err != nil {
+		blogger.Errorf("[pipeline/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	if orderRow.Valid {
+		order = int(orderRow.Int32) + 1
+	}
+
+	row = sq.Insert("pipelines").Columns("name", "dashboard_id", `"order"`).
 		Values(name, dashboardId, order).
-		Suffix(`returning id,name,"order",dashboard_id,updated_at`).
-		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
+		Suffix(`returning id, name, "order", dashboard_id, updated_at`).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
 	if err := row.Scan(&pipeline.Id, &pipeline.Name, &pipeline.Order, &pipeline.DashboardId, &pipeline.UpdatedAt); err != nil {
+		blogger.Errorf("[pipeline/AddPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	return pipeline, nil
 }
 
-func (r *DbService) GetOnePipeline(pipelineId string) (*models.Pipeline, error) {
+func (r *DbService) GetOnePipeline(ctx context.Context, pipelineId string) (*models.Pipeline, error) {
 	pipeline := &models.Pipeline{}
 
 	row := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
@@ -37,13 +60,15 @@ func (r *DbService) GetOnePipeline(pipelineId string) (*models.Pipeline, error) 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+
+		blogger.Errorf("[pipeline/GetOnePipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	return pipeline, nil
 }
 
-func (r *DbService) GetAccessPipelineById(pipelineId string, userId string, accessType string) (bool, error) {
+func (r *DbService) GetAccessPipelineById(ctx context.Context, pipelineId string, userId string, accessType string) (bool, error) {
 	var id string
 
 	builder := sq.Select("p.id").
@@ -65,13 +90,15 @@ func (r *DbService) GetAccessPipelineById(pipelineId string, userId string, acce
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
+
+		blogger.Errorf("[pipeline/GetAccessPipelineById] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return false, err
 	}
 
 	return true, nil
 }
 
-func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, error) {
+func (r *DbService) GetAllPipelines(ctx context.Context, dashboardId string) ([]models.Pipeline, error) {
 	pipelines := []models.Pipeline{}
 
 	rows, err := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
@@ -85,6 +112,8 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+
+		blogger.Errorf("[pipeline/GetAllPipelines] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -92,15 +121,60 @@ func (r *DbService) GetAllPipelines(dashboardId string) ([]models.Pipeline, erro
 	for rows.Next() {
 		var p models.Pipeline
 		if err := rows.Scan(&p.Id, &p.Name, &p.Order, &p.DashboardId, &p.UpdatedAt); err != nil {
+			blogger.Errorf("[pipeline/GetAllPipelines] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
+
 		pipelines = append(pipelines, p)
 	}
 
 	return pipelines, nil
 }
 
-func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
+func (r *DbService) GetAllPipelinesByPipeline(ctx context.Context, pipelineId string) ([]models.Pipeline, error) {
+	pipelines := []models.Pipeline{}
+
+	selectPipelineSql, _, err := sq.Select("dashboard_id").
+		From("pipelines").
+		Where("id = ?").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	completeSql := fmt.Sprintf(`
+		with d as (%s)
+		select id, "order" from pipelines 
+		where dashboard_id = (select d.dashboard_id from d)
+	`, selectPipelineSql)
+
+	rows, err := r.pool.Read().Query(completeSql, pipelineId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var p models.Pipeline
+		if err := rows.Scan(&p.Id, &p.Order); err != nil {
+			blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+			return nil, err
+		}
+
+		pipelines = append(pipelines, p)
+	}
+
+	return pipelines, nil
+}
+
+func (r *DbService) UpdatePipelineName(ctx context.Context, pipelineId string, name string) error {
 	_, err := sq.Update("pipelines").
 		Set("name", name).
 		Where(sq.Eq{"id": pipelineId}).
@@ -111,13 +185,15 @@ func (r *DbService) UpdatePipelineName(pipelineId string, name string) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
+
+		blogger.Errorf("[pipeline/UpdatePipelineName] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return err
 }
 
-func (r *DbService) DeletePipelineById(pipelineId string) error {
+func (r *DbService) DeletePipelineById(ctx context.Context, pipelineId string) error {
 	_, err := sq.Delete("pipelines cascade").
 		Where(sq.Eq{"id": pipelineId}).
 		RunWith(r.pool.Write()).
@@ -127,46 +203,40 @@ func (r *DbService) DeletePipelineById(pipelineId string) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
+
+		blogger.Errorf("[pipeline/DeletePipelineById] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return err
 }
 
-func (r *DbService) UpdateOrderForPipeline(pipelineId string, dashboardId string, oldOrder int, newOrder int) error {
-	if newOrder <= 0 {
-		return errors.New("incorrect order for pipeline")
+func (r *DbService) UpdateOrderForPipelines(ctx context.Context, pipelineIdsToNewOrder map[string]int) error {
+	queryArgs := make([]interface{}, 0)
+	valuesForUpdate := make([]string, 0)
+	argIndex := 1
+
+	for id, order := range pipelineIdsToNewOrder {
+		valuesForUpdate = append(
+			valuesForUpdate, fmt.Sprintf(`($%d::uuid, %d)`, argIndex, order),
+		)
+		queryArgs = append(queryArgs, id)
+		argIndex++
 	}
 
-	var changeOperator string
-	var comparisionMark string
+	sql := fmt.Sprintf(`
+		update pipelines
+		set "order" = tmp.new_order
+		from ( values
+			%s
+		) as tmp(id, new_order)
+		where cards.id = tmp.id
+	`, strings.Join(valuesForUpdate, ","),
+	)
 
-	if newOrder > oldOrder {
-		changeOperator = "-"
-		comparisionMark = "<="
-	} else {
-		changeOperator = "+"
-		comparisionMark = ">="
-	}
-
-	_, err :=
-		sq.Update("pipelines p").
-			Set(`"order"`,
-				sq.Case().
-					When(sq.Expr("p.id = ?", pipelineId), strconv.Itoa(newOrder)).
-					When(sq.Expr(fmt.Sprintf("p.order %s ?", comparisionMark), strconv.Itoa(newOrder)),
-						fmt.Sprintf("p.order %s 1", changeOperator)).
-					Else(sq.Expr(`"order"`)),
-			).
-			Where(sq.Eq{"dashboard_id": dashboardId}).
-			RunWith(r.pool.Write()).
-			PlaceholderFormat(sq.Dollar).
-			Exec()
-
+	_, err := r.pool.Write().Exec(sql, queryArgs...)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
-		}
+		blogger.Errorf("[pipeline/UpdateOrderForPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
