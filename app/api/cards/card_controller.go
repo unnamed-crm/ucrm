@@ -61,7 +61,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if webhook != nil {
-		go triggers.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+		go core.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
 	}
 
 	httpext.JSON(w, card, http.StatusOK)
