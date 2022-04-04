@@ -1,18 +1,18 @@
 package core
 
 import (
-	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/app/chat"
 	blogger "github.com/sirupsen/logrus"
 )
 
 type HistroyWriterMiddleware struct {
-	messageRepo repository.MessageRepository
+	chatRepo chat.Repository
 	queue       chan *ClientQueuePayload
 }
 
-func NewHistroyWriterMiddleware(messageRepo repository.MessageRepository, queue chan *ClientQueuePayload) *HistroyWriterMiddleware {
+func NewHistroyWriterMiddleware(chatRepo chat.Repository, queue chan *ClientQueuePayload) *HistroyWriterMiddleware {
 	return &HistroyWriterMiddleware{
-		messageRepo: messageRepo,
+		chatRepo: chatRepo,
 		queue:       queue,
 	}
 }
@@ -24,7 +24,7 @@ func (hwm *HistroyWriterMiddleware) Start() {
 			if !more {
 				break
 			}
-			_, err := hwm.messageRepo.CreateOneMessage(
+			_, err := hwm.chatRepo.CreateOneMessage(
 				payload.Message.Payload,
 				payload.Message.SenderId,
 				payload.Message.Deleted,

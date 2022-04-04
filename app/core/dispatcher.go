@@ -1,23 +1,23 @@
 package core
 
 import (
-	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/app/chat"
 	"github.com/streadway/amqp"
 )
 
 type Dispatcher struct {
-	recievers   map[string]*Reciever
-	queues      map[string]chan *ClientQueuePayload
-	conn        *amqp.Connection
-	messageRepo repository.MessageRepository
+	recievers map[string]*Reciever
+	queues    map[string]chan *ClientQueuePayload
+	conn      *amqp.Connection
+	chatRepo  chat.Repository
 }
 
-func NewDispatcher(conn *amqp.Connection, messageRepo repository.MessageRepository) *Dispatcher {
+func NewDispatcher(conn *amqp.Connection, chatRepo chat.Repository) *Dispatcher {
 	return &Dispatcher{
-		recievers:   make(map[string]*Reciever),
-		queues:      make(map[string]chan *ClientQueuePayload),
-		conn:        conn,
-		messageRepo: messageRepo,
+		recievers: make(map[string]*Reciever),
+		queues:    make(map[string]chan *ClientQueuePayload),
+		conn:      conn,
+		chatRepo:  chatRepo,
 	}
 }
 
@@ -39,7 +39,7 @@ func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
 	}
 
 	channel := make(chan *ClientQueuePayload)
-	historyWriter := NewHistroyWriterMiddleware(d.messageRepo, channel)
+	historyWriter := NewHistroyWriterMiddleware(d.chatRepo, channel)
 	newReciever := NewReciever(channel, d.conn).
 		WithMiddleware(historyWriter).
 		Start()
