@@ -34,7 +34,6 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 		QueryRow()
 
 	if err := row.Scan(&orderRow); err != nil {
-
 		return nil, err
 	}
 
