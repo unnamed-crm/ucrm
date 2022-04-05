@@ -102,7 +102,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.repo.AddAccessToDashboard(payload.DashboardId, payload.UserId, payload.Access)
+	err = c.repo.AddAccess(payload.DashboardId, payload.UserId, payload.Access)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -250,7 +250,7 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	pwd.Write([]byte(payload.Secret))
 
 	xClientToken := fmt.Sprintf("%x", pwd.Sum(nil))
-	settings, err := c.repo.AddDashboardSettings(id, payload.Secret, xClientToken)
+	settings, err := c.repo.AddSettings(id, payload.Secret, xClientToken)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -392,7 +392,7 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *Controller) GetOneDashboardsByUser(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetOneByUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userId := auth.GetUserIdFromContext(ctx)
 

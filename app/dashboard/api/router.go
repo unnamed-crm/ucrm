@@ -14,7 +14,7 @@ func RegisterRouter(
 	r.Group(func(r chi.Router) {
 		r.Use(authGuard.Next())
 		r.Route("/dashboards", func(r chi.Router) {
-			r.Get("/", controller.GetOneDashboardsByUser)
+			r.Get("/", controller.GetOneByUser)
 			r.Post("/create", controller.CreateOne)
 			r.Group(func(r chi.Router) {
 				r.Use(dashboardAccesGuard.Next("rw"))

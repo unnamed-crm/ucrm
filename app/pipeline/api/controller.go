@@ -213,7 +213,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
 	err = c.repo.UpdateOrders(pipelineIdToNewOrder)
 	if err != nil {
-				blogger.Errorf("[pipeline/updateOrder] ctx: %v, error: %s", ctx, err.Error())
+		blogger.Errorf("[pipeline/updateOrder] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
 			Code:  http.StatusInternalServerError,

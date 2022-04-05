@@ -184,7 +184,7 @@ func (r *Repository) GetOneWithUserAccess(dashboardId string, userId string, acc
 	return &dashboard, nil
 }
 
-func (r *Repository) AddAccessToDashboard(dashboardId string, userId string, access string) error {
+func (r *Repository) AddAccess(dashboardId string, userId string, access string) error {
 	_, err := sq.Insert("dashboards_user").Columns("user_id", "dashboard_id", "access").
 		Values(userId, dashboardId, access).
 		RunWith(r.pool.Write()).
@@ -227,7 +227,7 @@ func (r *Repository) DeleteById(dashboardId string) error {
 	return nil
 }
 
-func (r *Repository) AddDashboardSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error) {
+func (r *Repository) AddSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error) {
 	var res models.DashboardSettings
 
 	row := sq.Insert("dashboard_settings").Columns("dashboard_id", "client_token", "secret").
@@ -243,7 +243,7 @@ func (r *Repository) AddDashboardSettings(dashboardId string, secret string, xCl
 	return &res, nil
 }
 
-func (r *Repository) GetDashboardSettings(xClientToken string) (*models.DashboardSettings, error) {
+func (r *Repository) GetSettings(xClientToken string) (*models.DashboardSettings, error) {
 	var res models.DashboardSettings
 
 	row := sq.Select("dashboard_id", "client_token", "secret", "id").

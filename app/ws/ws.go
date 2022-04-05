@@ -38,7 +38,7 @@ func (c *Controller) WsEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	xClientToken := r.Header.Get("x-client-token")
-	settings, err := c.repo.GetDashboardSettings(xClientToken)
+	settings, err := c.repo.GetSettings(xClientToken)
 	if err != nil {
 		blogger.Error(err.Error())
 	}

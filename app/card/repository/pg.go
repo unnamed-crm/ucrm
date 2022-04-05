@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,7 +9,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -23,7 +21,7 @@ func NewRepository(pool pg.Pool) *Repository {
 	}
 }
 
-func (r *Repository) CreateOne(ctx context.Context, name string, pipelineId string) (*models.Card, error) {
+func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, error) {
 	card := &models.Card{}
 	var orderRow sql.NullInt32
 	order := 1
@@ -36,7 +34,7 @@ func (r *Repository) CreateOne(ctx context.Context, name string, pipelineId stri
 		QueryRow()
 
 	if err := row.Scan(&orderRow); err != nil {
-		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+
 		return nil, err
 	}
 
@@ -53,7 +51,6 @@ func (r *Repository) CreateOne(ctx context.Context, name string, pipelineId stri
 		QueryRow()
 
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -66,7 +63,6 @@ func (r *Repository) CreateOne(ctx context.Context, name string, pipelineId stri
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := chatRow.Scan(&chat.Id, &chat.CardId, &chat.LastSender, &chat.LastEmployeeId, &chat.LastMessageId); err != nil {
-		blogger.Errorf("[card/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -74,7 +70,7 @@ func (r *Repository) CreateOne(ctx context.Context, name string, pipelineId stri
 	return card, nil
 }
 
-func (r *Repository) CheckExists(ctx context.Context, cardId string) (bool, error) {
+func (r *Repository) CheckExists(cardId string) (bool, error) {
 	query, _, err := sq.Select("1").
 		From("cards").
 		Where("id = ?").
@@ -82,7 +78,6 @@ func (r *Repository) CheckExists(ctx context.Context, cardId string) (bool, erro
 		ToSql()
 
 	if err != nil {
-		blogger.Errorf("[card/CheckCardExists] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return false, err
 	}
 
@@ -91,24 +86,21 @@ func (r *Repository) CheckExists(ctx context.Context, cardId string) (bool, erro
 		Query(completeSql, cardId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			blogger.Errorf("[card/CheckCardExists] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return false, err
 		}
 
-		blogger.Errorf("[card/CheckCardExists] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return false, err
 	}
 
 	var isExists bool
 	if err := rows.Scan(&isExists); err != nil {
-		blogger.Errorf("[card/CheckCardExists] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return false, err
 	}
 
 	return isExists, nil
 }
 
-func (r *Repository) Update(ctx context.Context, cardId string, name *string, cardFields *map[string]string) (*models.Card, error) {
+func (r *Repository) Update(cardId string, name *string, cardFields *map[string]string) (*models.Card, error) {
 	card := &models.Card{}
 
 	if cardFields != nil {
@@ -119,7 +111,6 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 			var err error
 			tx, err = r.pool.Write().Begin()
 			if err != nil {
-				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 				return nil, err
 			}
 		}
@@ -142,7 +133,6 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 			if err != nil {
 				if isUpdateWithTransaction {
 					if err := tx.Rollback(); err != nil {
-						blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 						return nil, err
 					}
 				}
@@ -163,7 +153,7 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 				ToSql()
 			if err != nil {
 				if err = tx.Rollback(); err != nil {
-					blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+					return nil, err
 				}
 				return nil, err
 			}
@@ -178,7 +168,6 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 			rows, err := tx.Query(completeSql, &name, cardId)
 			if err != nil {
 				if err = tx.Rollback(); err != nil {
-					blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 					return nil, err
 				}
 
@@ -202,13 +191,12 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 			}
 
 			if err = tx.Commit(); err != nil {
-				blogger.Errorf("[card/update] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 				return nil, err
 			}
 
 			card.Fields = fields
 		} else {
-			return r.GetOne(ctx, cardId)
+			return r.GetOne(cardId)
 		}
 	} else {
 		rows := sq.Update("cards c").
@@ -226,7 +214,7 @@ func (r *Repository) Update(ctx context.Context, cardId string, name *string, ca
 	return card, nil
 }
 
-func (r *Repository) GetOne(ctx context.Context, cardId string) (*models.Card, error) {
+func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	card := &models.Card{}
 
 	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at", `c."order"`, "f.name", "cf.*").
@@ -241,7 +229,7 @@ func (r *Repository) GetOne(ctx context.Context, cardId string) (*models.Card, e
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		blogger.Errorf("[card/GetOneCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+
 		return nil, err
 	}
 
@@ -254,7 +242,6 @@ func (r *Repository) GetOne(ctx context.Context, cardId string) (*models.Card, e
 			&field.Name,
 			&field.Id, &field.CardId, &field.FieldId, &field.Value,
 		); err != nil {
-			blogger.Errorf("[card/GetOneCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
 
@@ -265,7 +252,7 @@ func (r *Repository) GetOne(ctx context.Context, cardId string) (*models.Card, e
 	return card, nil
 }
 
-func (r *Repository) GetOneWithoutRelations(ctx context.Context, cardId string) (*models.Card, error) {
+func (r *Repository) GetOneWithoutRelations(cardId string) (*models.Card, error) {
 	card := &models.Card{}
 
 	row := sq.Select("id", "name", "pipeline_id", "updated_at", `"order"`).
@@ -275,28 +262,26 @@ func (r *Repository) GetOneWithoutRelations(ctx context.Context, cardId string) 
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		blogger.Errorf("[card/GetOneCardWithoutRelations] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	return card, nil
 }
 
-func (r *Repository) Delete(ctx context.Context, cardId string) error {
+func (r *Repository) Delete(cardId string) error {
 	_, err := sq.Delete("cards").
 		Where(sq.Eq{"id": cardId}).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
-		blogger.Errorf("[card/DeleteOneCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (r *Repository) UpdateOrders(ctx context.Context, cardIdsToNewOrder map[string]int) error {
+func (r *Repository) UpdateOrders(cardIdsToNewOrder map[string]int) error {
 	queryArgs := make([]interface{}, 0)
 	valuesForUpdate := make([]string, 0)
 	argIndex := 1
@@ -321,14 +306,13 @@ func (r *Repository) UpdateOrders(ctx context.Context, cardIdsToNewOrder map[str
 
 	_, err := r.pool.Write().Exec(sql, queryArgs...)
 	if err != nil {
-		blogger.Errorf("[card/UpdateOrderForCards] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (r *Repository) GetAllByPipelineId(ctx context.Context, cardId string) ([]models.Card, error) {
+func (r *Repository) GetAllByPipelineId(cardId string) ([]models.Card, error) {
 	cards := []models.Card{}
 
 	selectPipelineSql, _, err := sq.Select("pipeline_id").
@@ -337,7 +321,6 @@ func (r *Repository) GetAllByPipelineId(ctx context.Context, cardId string) ([]m
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -353,7 +336,6 @@ func (r *Repository) GetAllByPipelineId(ctx context.Context, cardId string) ([]m
 			return nil, nil
 		}
 
-		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -361,7 +343,6 @@ func (r *Repository) GetAllByPipelineId(ctx context.Context, cardId string) ([]m
 	for rows.Next() {
 		var c models.Card
 		if err := rows.Scan(&c.Id, &c.Order); err != nil {
-			blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
 

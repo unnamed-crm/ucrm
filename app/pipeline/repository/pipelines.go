@@ -1,7 +1,6 @@
 package pg
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,7 +9,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -23,7 +21,7 @@ func NewRepository(pool pg.Pool) *Repository {
 	}
 }
 
-func (r *Repository) Create(ctx context.Context, name string, dashboardId string) (*models.Pipeline, error) {
+func (r *Repository) Create(name string, dashboardId string) (*models.Pipeline, error) {
 	pipeline := &models.Pipeline{}
 	var orderRow sql.NullInt32
 	order := 1
@@ -36,7 +34,6 @@ func (r *Repository) Create(ctx context.Context, name string, dashboardId string
 		QueryRow()
 
 	if err := row.Scan(&orderRow); err != nil {
-		blogger.Errorf("[pipeline/AddCard] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -51,14 +48,13 @@ func (r *Repository) Create(ctx context.Context, name string, dashboardId string
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := row.Scan(&pipeline.Id, &pipeline.Name, &pipeline.Order, &pipeline.DashboardId, &pipeline.UpdatedAt); err != nil {
-		blogger.Errorf("[pipeline/AddPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	return pipeline, nil
 }
 
-func (r *Repository) GetOne(ctx context.Context,pipelineId string) (*models.Pipeline, error) {
+func (r *Repository) GetOne(pipelineId string) (*models.Pipeline, error) {
 	pipeline := &models.Pipeline{}
 
 	row := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
@@ -72,14 +68,13 @@ func (r *Repository) GetOne(ctx context.Context,pipelineId string) (*models.Pipe
 			return nil, nil
 		}
 
-		blogger.Errorf("[pipeline/GetOnePipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
 	return pipeline, nil
 }
 
-func (r *Repository) GetAccessById(ctx context.Context, pipelineId string, userId string, accessType string) (bool, error) {
+func (r *Repository) GetAccessById(pipelineId string, userId string, accessType string) (bool, error) {
 	var id string
 
 	builder := sq.Select("p.id").
@@ -102,14 +97,13 @@ func (r *Repository) GetAccessById(ctx context.Context, pipelineId string, userI
 			return false, nil
 		}
 
-		blogger.Errorf("[pipeline/GetAccessPipelineById] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return false, err
 	}
 
 	return true, nil
 }
 
-func (r *Repository) GetAll(ctx context.Context,dashboardId string) ([]models.Pipeline, error) {
+func (r *Repository) GetAll(dashboardId string) ([]models.Pipeline, error) {
 	pipelines := []models.Pipeline{}
 
 	rows, err := sq.Select("id", "name", `"order"`, "dashboard_id", "updated_at").
@@ -124,7 +118,6 @@ func (r *Repository) GetAll(ctx context.Context,dashboardId string) ([]models.Pi
 			return nil, nil
 		}
 
-		blogger.Errorf("[pipeline/GetAllPipelines] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -132,7 +125,6 @@ func (r *Repository) GetAll(ctx context.Context,dashboardId string) ([]models.Pi
 	for rows.Next() {
 		var p models.Pipeline
 		if err := rows.Scan(&p.Id, &p.Name, &p.Order, &p.DashboardId, &p.UpdatedAt); err != nil {
-			blogger.Errorf("[pipeline/GetAllPipelines] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
 
@@ -142,7 +134,7 @@ func (r *Repository) GetAll(ctx context.Context,dashboardId string) ([]models.Pi
 	return pipelines, nil
 }
 
-func (r *Repository) GetAllByPipeline(ctx context.Context, pipelineId string) ([]models.Pipeline, error) {
+func (r *Repository) GetAllByPipeline(pipelineId string) ([]models.Pipeline, error) {
 	pipelines := []models.Pipeline{}
 
 	selectPipelineSql, _, err := sq.Select("dashboard_id").
@@ -151,7 +143,6 @@ func (r *Repository) GetAllByPipeline(ctx context.Context, pipelineId string) ([
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -167,7 +158,6 @@ func (r *Repository) GetAllByPipeline(ctx context.Context, pipelineId string) ([
 			return nil, nil
 		}
 
-		blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
 	}
 
@@ -175,7 +165,6 @@ func (r *Repository) GetAllByPipeline(ctx context.Context, pipelineId string) ([
 	for rows.Next() {
 		var p models.Pipeline
 		if err := rows.Scan(&p.Id, &p.Order); err != nil {
-			blogger.Errorf("[pipeline/GetAllPipelinesByPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 			return nil, err
 		}
 
@@ -185,7 +174,7 @@ func (r *Repository) GetAllByPipeline(ctx context.Context, pipelineId string) ([
 	return pipelines, nil
 }
 
-func (r *Repository) UpdateName(ctx context.Context, pipelineId string, name string) error {
+func (r *Repository) UpdateName(pipelineId string, name string) error {
 	_, err := sq.Update("pipelines").
 		Set("name", name).
 		Where(sq.Eq{"id": pipelineId}).
@@ -197,14 +186,13 @@ func (r *Repository) UpdateName(ctx context.Context, pipelineId string, name str
 			return nil
 		}
 
-		blogger.Errorf("[pipeline/UpdatePipelineName] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return err
 }
 
-func (r *Repository) DeleteById(ctx context.Context,pipelineId string) error {
+func (r *Repository) DeleteById(pipelineId string) error {
 	_, err := sq.Delete("pipelines cascade").
 		Where(sq.Eq{"id": pipelineId}).
 		RunWith(r.pool.Write()).
@@ -215,14 +203,13 @@ func (r *Repository) DeleteById(ctx context.Context,pipelineId string) error {
 			return nil
 		}
 
-		blogger.Errorf("[pipeline/DeletePipelineById] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
 	return err
 }
 
-func (r *Repository) UpdateOrder(ctx context.Context, pipelineIdsToNewOrder map[string]int) error {
+func (r *Repository) UpdateOrders(pipelineIdsToNewOrder map[string]int) error {
 	queryArgs := make([]interface{}, 0)
 	valuesForUpdate := make([]string, 0)
 	argIndex := 1
@@ -247,7 +234,6 @@ func (r *Repository) UpdateOrder(ctx context.Context, pipelineIdsToNewOrder map[
 
 	_, err := r.pool.Write().Exec(sql, queryArgs...)
 	if err != nil {
-		blogger.Errorf("[pipeline/UpdateOrderForPipeline] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return err
 	}
 
