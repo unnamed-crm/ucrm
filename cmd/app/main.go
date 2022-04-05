@@ -40,12 +40,12 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
-	if config.Evnironment == conf.DevelopEnironment {
+	if config.Environment == conf.DevelopEnvironment {
 		time.Sleep(15 * time.Second)
 	}
 
 	withLogger := false
-	if config.Evnironment == conf.DevelopEnironment {
+	if config.Environment == conf.DevelopEnvironment {
 		withLogger = true
 	}
 
@@ -88,7 +88,7 @@ func main() {
 	contactController := contact.NewController(dbService, dbService)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
-		if config.Evnironment == conf.DevelopEnironment {
+		if config.Environment == conf.DevelopEnvironment {
 			v1.Use(
 				chim.Logger,
 				chim.RequestID,
