@@ -16,18 +16,13 @@ export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.GetDashboards]({ commit }) {
     commit(MutationTypes.GetDashboardsRequest);
     try {
-      const response = await axios.get<GetDashboardsResponse>(
-        `${HOST_URL}/dashboards`
-      );
+      const response = await axios.get<GetDashboardsResponse>(`${HOST_URL}/dashboards`);
 
       const payload = response.data;
 
       commit(MutationTypes.GetDashboardsSuccess, payload);
     } catch (error) {
-      commit(
-        MutationTypes.GetDashboardsError,
-        (error.response.data as FetchError) || null
-      );
+      commit(MutationTypes.GetDashboardsError, (error.response.data as FetchError) || null);
       throw error;
     }
   },

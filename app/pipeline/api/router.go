@@ -17,7 +17,7 @@ func RegisterRouter(
 		r.Route("/pipelines", func(r chi.Router) {
 			r.Group(func(r chi.Router) {
 				r.Use(dashboardAccessGuard.Next("rw"))
-				r.Patch("/order/{dashboardId}/{pipelineId}/{order}", controller.UpdateOrder)
+				r.Patch("/order/{pipelineId}/{order}", controller.UpdateOrder)
 				r.Post("/create", controller.CreateOne)
 			})
 			r.Group(func(r chi.Router) {

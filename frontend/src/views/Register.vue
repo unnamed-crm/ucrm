@@ -31,9 +31,7 @@
         placeholder="password..."
       />
     </el-form-item>
-    <el-button class="button" native-type="submit" type="primary">
-      Submit
-    </el-button>
+    <el-button class="button" native-type="submit" type="primary"> Submit </el-button>
   </el-form>
 </template>
 
@@ -41,11 +39,7 @@
 import { reactive } from "vue";
 import { useTypedStore } from "../store";
 import { useRouter } from "vue-router";
-import {
-  registerSchema,
-  RegisterSchema,
-  RegisterData,
-} from "../schemas/register.schema";
+import { registerSchema, RegisterSchema, RegisterData } from "../schemas/register.schema";
 import { useValidate } from "../hooks/useValidate";
 
 const store = useTypedStore();
@@ -57,10 +51,7 @@ const registerData = reactive<RegisterData>({
   confirmPassword: "",
 });
 
-const { errors, validate } = useValidate<RegisterSchema>(
-  registerSchema,
-  registerData
-);
+const { errors, validate } = useValidate<RegisterSchema>(registerSchema, registerData);
 
 const register = async () => {
   const isValid = await validate();

@@ -22,7 +22,7 @@ func (p *UpdatePayload) Validate() error {
 		(p.Phone == nil || len(*p.Phone) == 0) &&
 		(p.City == nil || len(*p.City) == 0) &&
 		p.Fields == nil {
-		return errors.New("Incorrect params for update")
+		return errors.New("incorrect params for update")
 	}
 
 	return nil

@@ -53,12 +53,12 @@ type AddCustomField struct {
 
 func (p *AddCustomField) Validate() error {
 	if len(p.Name) == 0 {
-		return errors.New("Incorrect params for custom field add")
+		return errors.New("incorrect params for custom field add")
 	}
 
 	p.FieldType = strings.ToLower(p.FieldType)
 	if p.FieldType != "card" && p.FieldType != "contact" {
-		return errors.New("Incorrect value for type")
+		return errors.New("incorrect value for type")
 	}
 
 	return nil

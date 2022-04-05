@@ -9,7 +9,6 @@ export type Getters = {
 
 export const getters: GetterFuncs<State> & Getters = {
   dashboards: (state) => state.dashboards,
-  isSuccess: (state) =>
-    state.status !== StateStatus.Error && state.status !== StateStatus.Never,
+  isSuccess: (state) => state.status !== StateStatus.Error && state.status !== StateStatus.Never,
   dashboardsError: (state) => state.error,
 };
