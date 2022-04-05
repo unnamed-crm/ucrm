@@ -19,6 +19,10 @@ export type SignInResponse = {
   token: string;
 };
 
+export type VerificationCodePayload = {
+  email: string;
+};
+
 export const state: State = {
   status: StateStatus.Loading,
   error: null,

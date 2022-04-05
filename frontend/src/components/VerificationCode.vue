@@ -1,6 +1,6 @@
 <template>
   <!-- eslint-disable vue/no-v-for-template-key -->
-  <el-form-item label="Verification Code" :error="props.error">
+  <el-form-item label="Verification Code" :error="errors.verificationCode">
     <el-row justify="space-between" :gutter="5">
       <template v-for="(input, index) in inputRefs" :key="index">
         <el-col :span="4">
@@ -8,7 +8,7 @@
             type="text"
             minlength="1"
             :maxlength="props.length"
-            :ref="(el) => el && (input.element = el)"
+            :ref="(el: HTMLInputElement) => el && (input.element = el)"
             v-model.trim="input.value"
             @input="(value) => onCodeChange(value, index)"
             @keydown="(event) => onCodePress(event, index)"
@@ -20,19 +20,21 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, watch, defineProps, withDefaults, defineEmits } from "vue";
+import { reactive, watch, defineProps, withDefaults, defineExpose } from "vue";
+import { useValidate } from "../hooks/useValidate";
+import {
+  verificationCodeSchema,
+  VerificationCodeSchema,
+  VerificationCodeData,
+} from "../schemas/common.schema";
 
 interface VerificationCodeProps {
-  length: number;
-  error: string;
+  length?: number;
 }
 
 const props = withDefaults(defineProps<VerificationCodeProps>(), {
   length: 5,
-  error: "",
 });
-
-const emit = defineEmits(["onValueChange"]);
 
 enum KEY_CODE {
   BACKSPACE = "Backspace",
@@ -42,6 +44,14 @@ enum KEY_CODE {
   DOWN = "ArrowDown",
 }
 
+const verificationCodeData = reactive<VerificationCodeData>({
+  verificationCode: null,
+});
+const { errors, validate } = useValidate<VerificationCodeSchema>(
+  verificationCodeSchema,
+  verificationCodeData
+);
+
 const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
   Array.from({ length: props.length }).map(() => ({
     element: null,
@@ -50,8 +60,8 @@ const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
 );
 
 watch(inputRefs, (inputs) => {
-  const code = inputs.map((el) => el.value).join("");
-  emit("onValueChange", code);
+  const code = parseInt(inputs.map((el) => el.value).join(""), 10) || 0;
+  verificationCodeData.verificationCode = code;
 });
 
 const onCodeChange = (value: string, index: number) => {
@@ -119,6 +129,11 @@ const onCodePress = (event: KeyboardEvent, index: number) => {
       break;
   }
 };
+
+defineExpose({
+  validate,
+  getVerificationCode: () => verificationCodeData,
+});
 </script>
 
 <style lang="scss" scoped></style>

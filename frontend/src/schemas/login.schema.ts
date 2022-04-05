@@ -13,4 +13,4 @@ export const loginSchema = yup.object({
 });
 
 export type LoginSchema = typeof loginSchema;
-export type LoginData = yup.InferType<typeof loginSchema>;
+export type LoginData = yup.InferType<LoginSchema>;

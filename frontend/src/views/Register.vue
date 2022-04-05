@@ -1,7 +1,7 @@
 <template>
   <el-form
     class="form"
-    @submit.prevent="register(formRef)"
+    @submit.prevent="register()"
     label-position="top"
     hide-required-asterisk
     novalidate
@@ -31,7 +31,7 @@
         placeholder="password..."
       />
     </el-form-item>
-    <template v-if="!receivedVerificationCode.length">
+    <template v-if="!hasVerificationCode">
       <el-button
         class="button"
         native-type="button"
@@ -42,11 +42,7 @@
       </el-button>
     </template>
     <template v-else>
-      <VerificationCode
-        :length="receivedVerificationCode.length"
-        :error="errors.verificationCode"
-        @onValueChange="onCodeValueChange"
-      />
+      <VerificationCode ref="verificationCodeRef" />
       <el-button class="button" native-type="submit" type="primary">
         Submit
       </el-button>
@@ -55,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import { useTypedStore } from "../store";
 import { useRouter } from "vue-router";
 import VerificationCode from "../components/VerificationCode.vue";
@@ -73,7 +69,6 @@ const registerData = reactive<RegisterData>({
   email: "",
   password: "",
   confirmPassword: "",
-  verificationCode: "",
 });
 
 const { errors, validate } = useValidate<RegisterSchema>(
@@ -81,24 +76,28 @@ const { errors, validate } = useValidate<RegisterSchema>(
   registerData
 );
 
-const onCodeValueChange = (value: string) => {
-  registerData.verificationCode = value;
-};
-
-const receivedVerificationCode = reactive(["", "", ""]);
+const verificationCodeRef = ref<InstanceType<typeof VerificationCode>>(null);
+const hasVerificationCode = ref<boolean>(false);
 
 const sendVerifyCode = async () => {
-  // avoid validate registerData.registerData
-  // get verification code
-  // receivedVerificationCode = code.split('');
+  const isRegisterDataValid = await validate();
+  if (!isRegisterDataValid) return;
+
+  store
+    .dispatch("verificationCode", { email: registerData.email })
+    .then(() => (hasVerificationCode.value = true));
 };
 
 const register = async () => {
-  const isValid = await validate();
+  const isRegisterDataValid = await validate();
+  const isVerificationCodeValid = await verificationCodeRef.value.validate();
+  if (!isRegisterDataValid || !isVerificationCodeValid) return;
 
-  if (!isValid) return;
-
-  store.dispatch("register", registerData).then(() => router.push("/"));
+  const data = {
+    ...registerData,
+    ...verificationCodeRef.value.getVerificationCode(),
+  };
+  store.dispatch("register", data).then(() => router.push("/"));
 };
 </script>
 
