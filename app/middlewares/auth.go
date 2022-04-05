@@ -12,7 +12,17 @@ import (
 	blogger "github.com/sirupsen/logrus"
 )
 
-func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
+type AuthGuard struct {
+	cfg config.JWTConfig
+}
+
+func NewAuthGuard(cfg config.JWTConfig) *AuthGuard {
+	return &AuthGuard{
+		cfg: cfg,
+	}
+}
+
+func (ag *AuthGuard) Next() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
@@ -24,7 +34,7 @@ func AuthGuard(cfg config.JWTConfig) func(next http.Handler) http.Handler {
 				jwtToken := authHeader[1]
 				customClaims := &auth.Claims{}
 				token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
-					return []byte(cfg.SigningKey), nil
+					return []byte(ag.cfg.SigningKey), nil
 				})
 				if err != nil || !token.Valid {
 					blogger.Error("[AuthGuard] Error :%s", err.Error())
