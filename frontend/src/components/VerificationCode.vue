@@ -49,14 +49,14 @@ const verificationCodeData = reactive<VerificationCodeData>({
 });
 const { errors, validate } = useValidate<VerificationCodeSchema>(
   verificationCodeSchema,
-  verificationCodeData
+  verificationCodeData,
 );
 
 const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
   Array.from({ length: props.length }).map(() => ({
     element: null,
     value: "",
-  }))
+  })),
 );
 
 watch(inputRefs, (inputs) => {

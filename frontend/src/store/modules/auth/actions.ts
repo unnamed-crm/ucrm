@@ -19,7 +19,7 @@ export type Actions = {
   [ActionTypes.Logout](context: ActionAugments<State>): void;
   [ActionTypes.VerificationCode](
     context: ActionAugments<State>,
-    data: VerificationCodePayload
+    data: VerificationCodePayload,
   ): void;
 };
 
@@ -67,10 +67,7 @@ export const actions: ActionFuncs<State> & Actions = {
       await axios.post(`${HOST_URL}/users/sendVerifyCode`, data);
       commit(MutationTypes.VerificationCodeSuccess);
     } catch (error) {
-      commit(
-        MutationTypes.AuthError,
-        (error.response.data as FetchError) || null
-      );
+      commit(MutationTypes.AuthError, (error.response.data as FetchError) || null);
       throw error;
     }
   },

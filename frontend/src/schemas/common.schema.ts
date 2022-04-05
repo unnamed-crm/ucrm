@@ -8,7 +8,7 @@ export const verificationCodeSchema = yup.object({
     .test(
       "length",
       "Verification Code are not full",
-      (value) => value && value.toString().length === 5
+      (value) => value && value.toString().length === 5,
     ),
 });
 
