@@ -32,20 +32,13 @@
       />
     </el-form-item>
     <template v-if="!hasVerificationCode">
-      <el-button
-        class="button"
-        native-type="button"
-        @click="sendVerifyCode"
-        type="primary"
-      >
+      <el-button class="button" native-type="button" @click="sendVerifyCode" type="primary">
         Send Verify Code
       </el-button>
     </template>
     <template v-else>
       <VerificationCode ref="verificationCodeRef" />
-      <el-button class="button" native-type="submit" type="primary">
-        Submit
-      </el-button>
+      <el-button class="button" native-type="submit" type="primary"> Submit </el-button>
     </template>
   </el-form>
 </template>
@@ -55,11 +48,7 @@ import { reactive, ref } from "vue";
 import { useTypedStore } from "../store";
 import { useRouter } from "vue-router";
 import VerificationCode from "../components/VerificationCode.vue";
-import {
-  registerSchema,
-  RegisterSchema,
-  RegisterData,
-} from "../schemas/register.schema";
+import { registerSchema, RegisterSchema, RegisterData } from "../schemas/register.schema";
 import { useValidate } from "../hooks/useValidate";
 
 const store = useTypedStore();
@@ -71,10 +60,7 @@ const registerData = reactive<RegisterData>({
   confirmPassword: "",
 });
 
-const { errors, validate } = useValidate<RegisterSchema>(
-  registerSchema,
-  registerData
-);
+const { errors, validate } = useValidate<RegisterSchema>(registerSchema, registerData);
 
 const verificationCodeRef = ref<InstanceType<typeof VerificationCode>>(null);
 const hasVerificationCode = ref<boolean>(false);

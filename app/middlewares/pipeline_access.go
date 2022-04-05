@@ -8,11 +8,21 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/repository"
+	"github.com/ignavan39/ucrm-go/app/pipeline"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) func(next http.Handler) http.Handler {
+type PipelineAccessGuard struct {
+	repo pipeline.Repository
+}
+
+func NewPipelineAccessGuard(repo pipeline.Repository) *PipelineAccessGuard {
+	return &PipelineAccessGuard{
+		repo: repo,
+	}
+}
+
+func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -54,7 +64,7 @@ func PipelineAccessGuard(repo repository.PipelineRepository, accessType string) 
 			}
 
 			userId := auth.GetUserIdFromContext(ctx)
-			ok, err := repo.GetAccessPipelineById(id, userId, accessType)
+			ok, err := pag.repo.GetAccessById(id, userId, accessType)
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),

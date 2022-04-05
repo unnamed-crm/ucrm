@@ -11,19 +11,28 @@ import (
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
 	"github.com/go-redis/redis/v8"
-	"github.com/ignavan39/ucrm-go/app/api"
-	"github.com/ignavan39/ucrm-go/app/api/cards"
-	"github.com/ignavan39/ucrm-go/app/api/connect"
-	"github.com/ignavan39/ucrm-go/app/api/contact"
-	"github.com/ignavan39/ucrm-go/app/api/dashboards"
-	"github.com/ignavan39/ucrm-go/app/api/pipelines"
-	"github.com/ignavan39/ucrm-go/app/api/users"
-	"github.com/ignavan39/ucrm-go/app/core"
+	"github.com/ignavan39/ucrm-go/app"
+	authUC "github.com/ignavan39/ucrm-go/app/auth/usecase"
+	cardApi "github.com/ignavan39/ucrm-go/app/card/api"
+	chatRepo "github.com/ignavan39/ucrm-go/app/chat/repository"
+	"github.com/ignavan39/ucrm-go/app/middlewares"
 
-	"github.com/ignavan39/ucrm-go/app/api/ws"
-	"github.com/ignavan39/ucrm-go/app/auth"
+	cardRepo "github.com/ignavan39/ucrm-go/app/card/repository"
+	connectApi "github.com/ignavan39/ucrm-go/app/connect/api"
+	contactApi "github.com/ignavan39/ucrm-go/app/contact/api"
+	contactRepo "github.com/ignavan39/ucrm-go/app/contact/repository"
+	"github.com/ignavan39/ucrm-go/app/core"
+	dashboardApi "github.com/ignavan39/ucrm-go/app/dashboard/api"
+	dashboardRepo "github.com/ignavan39/ucrm-go/app/dashboard/repository"
+	pipelineApi "github.com/ignavan39/ucrm-go/app/pipeline/api"
+	pipelineRepo "github.com/ignavan39/ucrm-go/app/pipeline/repository"
+
+	dashboardSettingsRepo "github.com/ignavan39/ucrm-go/app/dashboard-settings/repository"
+	userApi "github.com/ignavan39/ucrm-go/app/user/api"
+	userRepo "github.com/ignavan39/ucrm-go/app/user/repository"
+	"github.com/ignavan39/ucrm-go/app/ws"
+
 	conf "github.com/ignavan39/ucrm-go/app/config"
-	"github.com/ignavan39/ucrm-go/app/repository/database"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 	redisCache "github.com/ignavan39/ucrm-go/pkg/redis-cache"
 	"github.com/ignavan39/ucrm-go/pkg/rmq"
@@ -40,12 +49,12 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
-	if config.Evnironment == conf.DevelopEnironment {
+	if config.Environment == conf.DevelopEnvironment {
 		time.Sleep(15 * time.Second)
 	}
 
 	withLogger := false
-	if config.Evnironment == conf.DevelopEnironment {
+	if config.Environment == conf.DevelopEnvironment {
 		withLogger = true
 	}
 
@@ -72,23 +81,33 @@ func main() {
 
 	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
 
-	web := api.NewAPIServer(":8081").
+	web := app.NewAPIServer(":8081").
 		WithCors(config.Cors)
-	dbService := database.NewDbService(rwConn)
+
+	userRepo := userRepo.NewRepository(rwConn)
+	chatRepo := chatRepo.NewRepository(rwConn)
+	dashboardRepo := dashboardRepo.NewRepository(rwConn)
+	pipelineRepo := pipelineRepo.NewRepository(rwConn)
+	cardRepo := cardRepo.NewRepository(rwConn)
+	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
 
 	mailgin := core.NewMailgunApi(*config)
-	dispatcher := core.NewDispatcher(rabbitMqConn, dbService)
-	authorizer := auth.NewAuthorizer(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := users.NewController(authorizer, dbService, mailgin, config.Mail, *cache)
-	dashboardController := dashboards.NewController(dbService, dbService)
-	pipelineController := pipelines.NewController(dbService)
-	cardController := cards.NewController(dbService, dbService)
-	wsController := ws.NewController(dbService, dispatcher)
-	connectController := connect.NewController(dispatcher, dbService, *config)
-	contactController := contact.NewController(dbService, dbService)
+	dispatcher := core.NewDispatcher(rabbitMqConn, chatRepo)
+	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
+	userController := userApi.NewController(authorizer, userRepo, mailgin, config.Mail, *cache)
+	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
+	pipelineController := pipelineApi.NewController(pipelineRepo)
+	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)
+	wsController := ws.NewController(dashboardRepo, dispatcher)
+	connectController := connectApi.NewController(dispatcher, dashboardRepo, *config)
+	contactController := contactApi.NewController(contactRepo.NewRepository(rwConn), cardRepo)
+
+	pipelineAccessGuard := middlewares.NewPipelineAccessGuard(pipelineRepo)
+	dashboardAccesGuard := middlewares.NewDashboardAccessGuard(dashboardRepo)
+	authGuard := middlewares.NewAuthGuard(config.JWT)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
-		if config.Evnironment == conf.DevelopEnironment {
+		if config.Environment == conf.DevelopEnvironment {
 			v1.Use(
 				chim.Logger,
 				chim.RequestID,
@@ -97,13 +116,13 @@ func main() {
 		v1.Use(
 			chim.Recoverer,
 		)
-		users.RegisterRouter(v1, userController)
-		dashboards.RegisterRouter(v1, dashboardController, dbService, config.JWT)
-		pipelines.RegisterRouter(v1, pipelineController, dbService, dbService, config.JWT)
-		cards.RegisterRouter(v1, cardController, dbService, config.JWT)
+		userApi.RegisterRouter(v1, userController)
+		dashboardApi.RegisterRouter(v1, dashboardController, *dashboardAccesGuard, *authGuard)
+		pipelineApi.RegisterRouter(v1, pipelineController, *authGuard, *pipelineAccessGuard, *dashboardAccesGuard)
+		cardApi.RegisterRouter(v1, cardController, *authGuard)
 		ws.RegisterRouter(v1, wsController)
-		connect.RegisterRouter(v1, connectController, config.JWT)
-		contact.RegisterRouter(v1, contactController, dbService, config.JWT)
+		connectApi.RegisterRouter(v1, connectController, *authGuard)
+		contactApi.RegisterRouter(v1, contactController, *authGuard)
 	})
 
 	if err := web.Start(); err != nil {

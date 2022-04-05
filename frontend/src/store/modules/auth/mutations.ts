@@ -12,10 +12,7 @@ export enum MutationTypes {
 
 export type Mutations = {
   [MutationTypes.AuthRequest](state: State): void;
-  [MutationTypes.AuthSuccess](
-    state: State,
-    signInResponse: SignInResponse
-  ): void;
+  [MutationTypes.AuthSuccess](state: State, signInResponse: SignInResponse): void;
   [MutationTypes.AuthError](state: State, errorPayload: FetchError): void;
   [MutationTypes.Logout](state: State): void;
   [MutationTypes.VerificationCodeRequest](state: State): void;

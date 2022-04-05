@@ -15,10 +15,7 @@ export enum ActionTypes {
 
 export type Actions = {
   [ActionTypes.Login](context: ActionAugments<State>, data: LoginData): void;
-  [ActionTypes.Register](
-    context: ActionAugments<State>,
-    data: RegisterData
-  ): void;
+  [ActionTypes.Register](context: ActionAugments<State>, data: RegisterData): void;
   [ActionTypes.Logout](context: ActionAugments<State>): void;
   [ActionTypes.VerificationCode](
     context: ActionAugments<State>,
@@ -30,10 +27,7 @@ export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.Login]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const response = await axios.post<SignInResponse>(
-        `${HOST_URL}/users/sign-in`,
-        data
-      );
+      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/sign-in`, data);
 
       const { token, user } = response.data;
 
@@ -41,10 +35,7 @@ export const actions: ActionFuncs<State> & Actions = {
       axios.defaults.headers.common["Authorization"] = token;
       commit(MutationTypes.AuthSuccess, { token, user });
     } catch (error) {
-      commit(
-        MutationTypes.AuthError,
-        (error.response.data as FetchError) || null
-      );
+      commit(MutationTypes.AuthError, (error.response.data as FetchError) || null);
       localStorage.removeItem("token");
       throw error;
     }
@@ -52,10 +43,7 @@ export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.Register]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const response = await axios.post<SignInResponse>(
-        `${HOST_URL}/users/sign-up`,
-        data
-      );
+      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/sign-up`, data);
 
       const { token, user } = response.data;
 
@@ -63,10 +51,7 @@ export const actions: ActionFuncs<State> & Actions = {
       axios.defaults.headers.common["Authorization"] = token;
       commit(MutationTypes.AuthSuccess, { token, user });
     } catch (error) {
-      commit(
-        MutationTypes.AuthError,
-        (error.response.data as FetchError) || null
-      );
+      commit(MutationTypes.AuthError, (error.response.data as FetchError) || null);
       localStorage.removeItem("token");
       throw error;
     }

@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	DevelopEnironment    = "develop"
-	ProductionEnironment = "production"
+	DevelopEnvironment    = "develop"
+	ProductionEnvironment = "production"
 )
 
-var environments = [...]string{DevelopEnironment, ProductionEnironment}
+var environments = [...]string{DevelopEnvironment, ProductionEnvironment}
 
 type MailLetter struct {
 	Subject  string `yaml:"subject"`
@@ -60,7 +60,7 @@ type Config struct {
 	RabbitMq    RabbitMqConfig
 	Redis       RedisConfig
 	Cors        CorsConfig
-	Evnironment string
+	Environment string
 	Mailgun     MailgunConfig
 	Mail        MailConfig
 }
@@ -103,7 +103,7 @@ func GetConfig() (*Config, error) {
 
 	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	if len(environment) == 0 {
-		environment = DevelopEnironment
+		environment = DevelopEnvironment
 	}
 
 	finded := validateEnvironment(environment)
@@ -165,7 +165,7 @@ func GetConfig() (*Config, error) {
 		Redis:       redis,
 		Cors:        coreConf.Cors,
 		Mail:        coreConf.Mail,
-		Evnironment: environment,
+		Environment: environment,
 		Mailgun:     mailgun,
 	}, nil
 }

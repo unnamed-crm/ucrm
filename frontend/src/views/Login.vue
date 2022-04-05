@@ -18,9 +18,7 @@
         placeholder="password..."
       />
     </el-form-item>
-    <el-button class="button" native-type="submit" type="primary">
-      Login
-    </el-button>
+    <el-button class="button" native-type="submit" type="primary"> Login </el-button>
   </el-form>
 </template>
 

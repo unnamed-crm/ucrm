@@ -1,5 +1,8 @@
 root = true
-
+[*.{ts,js,go}]
+indent_style = tab
+indent_size = tab
+tab_width = 2
 # Unix-style newlines with a newline ending every file
 [*]
 end_of_line = lf
