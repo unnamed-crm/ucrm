@@ -10,14 +10,13 @@ type UseValidateReturnType = {
 
 export const useValidate = <T extends yup.AnySchema>(
   schema: T,
-  data: yup.InferType<T>
+  data: yup.InferType<T>,
 ): UseValidateReturnType => {
   const errors = reactive<Errors>(
-    Object.fromEntries(Object.entries(data).map(([key, _]) => [key, ""]))
+    Object.fromEntries(Object.entries(data).map(([key, _]) => [key, ""])),
   );
 
-  const resetErrors = () =>
-    Object.keys(errors).map((key) => (errors[key] = ""));
+  const resetErrors = () => Object.keys(errors).map((key) => (errors[key] = ""));
 
   const checkIsFormValid = () => Object.values(errors).every((el) => !el);
 
@@ -32,9 +31,7 @@ export const useValidate = <T extends yup.AnySchema>(
   const validate = async () => {
     resetErrors();
 
-    await schema
-      .validate(data, { abortEarly: false })
-      .catch(handleValidationErrors);
+    await schema.validate(data, { abortEarly: false }).catch(handleValidationErrors);
 
     return checkIsFormValid();
   };

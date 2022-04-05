@@ -14,7 +14,7 @@ export type StateError = FetchError | null;
 export type ActionAugments<S> = Omit<ActionContext<S, RootState>, "commit"> & {
   commit<K extends keyof MutationFunc<S>>(
     key: K,
-    payload?: Parameters<MutationFunc<S>[K]>[1]
+    payload?: Parameters<MutationFunc<S>[K]>[1],
   ): ReturnType<MutationFunc<S>[K]>;
 };
 
