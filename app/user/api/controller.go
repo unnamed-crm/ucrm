@@ -7,23 +7,28 @@ import (
 
 	"github.com/ignavan39/ucrm-go/app/user"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"github.com/ignavan39/ucrm-go/pkg/utils"
 )
 
 func ErrorWrapper(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, user.ErrWrongCode),
-		errors.Is(err, user.ErrTooFrequentCodeEntry),
-		errors.Is(err, user.ErrUserAlreadyExist):
+	case utils.MultiplieErrorsIs(err,
+		user.ErrWrongCode,
+		user.ErrTooFrequentCodeEntry,
+		user.ErrUserAlreadyExist):
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
-	case errors.Is(err, user.ErrFailedParseTime),
-		errors.Is(err, user.ErrFailedRenderTemplateMessage),
-		errors.Is(err, user.ErrFailedSaveLastTimeToCache),
-		errors.Is(err, user.ErrFailedCreateAccessToken),
-		errors.Is(err, user.ErrFailedToSendMessage),
-		errors.Is(err, user.ErrTemplateNotFound):
+	case utils.MultiplieErrorsIs(
+		err,
+		user.ErrFailedParseTime,
+		user.ErrFailedRenderTemplateMessage,
+		user.ErrFailedSaveLastTimeToCache,
+		user.ErrFailedCreateAccessToken,
+		user.ErrFailedToSendMessage,
+		user.ErrTemplateNotFound,
+	):
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusInternalServerError,
@@ -170,11 +175,11 @@ func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	user,err := c.uc.RecoveryPassword(ctx,payload.Email,payload.Password,payload.Code)
+	user, err := c.uc.RecoveryPassword(ctx, payload.Email, payload.Password, payload.Code)
 	if err != nil {
 		ErrorWrapper(w, err)
 		return
 	}
 
-	httpext.JSON(w,user,http.StatusOK)
+	httpext.JSON(w, user, http.StatusOK)
 }
