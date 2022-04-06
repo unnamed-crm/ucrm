@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func CryptString(payload string,salt string) string {
+func CryptString(payload string, salt string) string {
 	pwd := sha1.New()
 	pwd.Write([]byte(payload))
 	pwd.Write([]byte(salt))

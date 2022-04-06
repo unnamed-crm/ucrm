@@ -61,17 +61,17 @@ func (r *Repository) UpdatePassword(email string, password string) (*models.User
 
 	row := sq.Update("users").
 		Set("password", password).
-		Where(sq.Eq{"email":email}).
+		Where(sq.Eq{"email": email}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.pool.Write()).
 		Suffix("returning id,email,password,avatar_url,created_at").
 		QueryRow()
-	
+
 	if err := row.Scan(&user.Id, &user.Email, &user.Password, &user.AvatarUrl, &user.CreatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return user,nil
+	return user, nil
 }

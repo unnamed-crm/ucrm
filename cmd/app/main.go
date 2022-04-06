@@ -95,7 +95,7 @@ func main() {
 	mailgin := core.NewMailgunApi(*config)
 	dispatcher := core.NewDispatcher(rabbitMqConn, chatRepo)
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := userApi.NewController(userUc.NewUserUseCase(authorizer,userRepo,mailgin,config.Mail,*cache))
+	userController := userApi.NewController(userUc.NewUserUseCase(authorizer, userRepo, mailgin, config.Mail, *cache))
 	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)

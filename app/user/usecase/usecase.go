@@ -41,7 +41,7 @@ func NewUserUseCase(
 }
 
 func (uc *UserUseCase) SignIn(ctx context.Context, email string, password string) (*user.SignResponse, error) {
-	userModel, err := uc.repo.GetOneByEmail(email, utils.CryptString(password,uc.auth.GetHashSalt()))
+	userModel, err := uc.repo.GetOneByEmail(email, utils.CryptString(password, uc.auth.GetHashSalt()))
 	if err != nil {
 		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
 		return nil, user.ErrUserAlreadyExist
@@ -67,22 +67,22 @@ func (uc *UserUseCase) SignUp(ctx context.Context, email string, password string
 	err := uc.cache.Get(ctx, fmt.Sprintf("%s_%s", cacheVerifyPrefix(), email), &cacheCode)
 
 	if err != nil {
-		return nil,user.ErrWrongCode
+		return nil, user.ErrWrongCode
 	}
 
 	if code != cacheCode {
-		return nil,user.ErrWrongCode
+		return nil, user.ErrWrongCode
 	}
 
-	userModel, err := uc.repo.Create(email, utils.CryptString(password,uc.auth.GetHashSalt()))
+	userModel, err := uc.repo.Create(email, utils.CryptString(password, uc.auth.GetHashSalt()))
 	if err != nil {
 		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
-		return nil,user.ErrUserAlreadyExist
+		return nil, user.ErrUserAlreadyExist
 	}
 
 	accessToken, err := uc.auth.CreateToken(ctx, userModel.Id)
 	if err != nil {
-		return nil,user.ErrFailedCreateAccessToken
+		return nil, user.ErrFailedCreateAccessToken
 	}
 
 	return &user.SignResponse{
@@ -91,33 +91,33 @@ func (uc *UserUseCase) SignUp(ctx context.Context, email string, password string
 	}, nil
 }
 
-func (uc *UserUseCase) RecoveryPassword(ctx context.Context, email string,password string,code int) (*models.User,error){
+func (uc *UserUseCase) RecoveryPassword(ctx context.Context, email string, password string, code int) (*models.User, error) {
 	var cacheCode int
 	err := uc.cache.Get(ctx, fmt.Sprintf("%s_%s", cacheVerifyPrefix(), email), &cacheCode)
 
 	if err != nil {
-		return nil,user.ErrWrongCode
+		return nil, user.ErrWrongCode
 	}
 
 	if code != cacheCode {
-		return nil,user.ErrWrongCode
+		return nil, user.ErrWrongCode
 	}
 
-	userModel, err := uc.repo.UpdatePassword(email, utils.CryptString(password,uc.auth.GetHashSalt()))
+	userModel, err := uc.repo.UpdatePassword(email, utils.CryptString(password, uc.auth.GetHashSalt()))
 	if err != nil {
 		blogger.Errorf("[user/recoveryPassword] CTX:[%v], ERROR:[%s]", ctx, err.Error())
-		return nil,err
+		return nil, err
 	}
 
-	return userModel,nil
+	return userModel, nil
 }
 
-func (uc *UserUseCase) SendVerifyCode(ctx context.Context,email string) (error) {
+func (uc *UserUseCase) SendVerifyCode(ctx context.Context, email string) error {
 	return uc.sendCode(ctx, cacheVerifyPrefix(), "verification", time.Minute*5, email)
 }
 
-func (uc *UserUseCase) 	SendRecoveryCode(ctx context.Context,email string) (error) {
-		return uc.sendCode(ctx, cacheVerifyPrefix(), "recovery-password", time.Minute*5, email)
+func (uc *UserUseCase) SendRecoveryCode(ctx context.Context, email string) error {
+	return uc.sendCode(ctx, cacheVerifyPrefix(), "recovery-password", time.Minute*5, email)
 }
 
 func (c *UserUseCase) sendCode(
@@ -126,7 +126,7 @@ func (c *UserUseCase) sendCode(
 	templateKey string,
 	expireTime time.Duration,
 	email string,
-) (error) {
+) error {
 	var lastTimeRaw string
 
 	err := c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), email), &lastTimeRaw)
@@ -160,7 +160,7 @@ func (c *UserUseCase) sendCode(
 
 	msg, err := utils.RenderTemplate(template.Template, utils.WrapTemplateData(Data))
 	if err != nil {
-		return  user.ErrFailedRenderTemplateMessage
+		return user.ErrFailedRenderTemplateMessage
 	}
 
 	_, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
@@ -169,7 +169,6 @@ func (c *UserUseCase) sendCode(
 	}
 	return nil
 }
-
 
 func cacheVerifyPrefix() string {
 	return "user_code"

@@ -20,6 +20,7 @@ func ErrorWrapper(w http.ResponseWriter, err error) {
 			Error: err.Error(),
 			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
+
 	case utils.MultiplieErrorsIs(
 		err,
 		user.ErrFailedParseTime,
@@ -33,11 +34,13 @@ func ErrorWrapper(w http.ResponseWriter, err error) {
 			Error: err.Error(),
 			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
+
 	case errors.Is(err, user.ErrUserNotFound):
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
+
 	default:
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
