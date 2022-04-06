@@ -1,8 +1,9 @@
 package api
 
 import (
-	"crypto/sha1"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/config"
-	"github.com/ignavan39/ucrm-go/app/core"
+	"github.com/ignavan39/ucrm-go/app/mailing"
 	"github.com/ignavan39/ucrm-go/app/user"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 	"github.com/ignavan39/ucrm-go/pkg/redis-cache"
@@ -21,7 +22,7 @@ import (
 type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
-	mailer     core.Mailer
+	mailer     mailing.Mailer
 	mailConfig config.MailConfig
 	cache      redisCache.RedisCache
 }
@@ -29,7 +30,7 @@ type Controller struct {
 func NewController(
 	a auth.AuthUseCase,
 	repo user.Repository,
-	mailer core.Mailer,
+	mailer mailing.Mailer,
 	mailConfig config.MailConfig,
 	cache redisCache.RedisCache,
 ) *Controller {
@@ -82,11 +83,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pwd := sha1.New()
-	pwd.Write([]byte(payload.Password))
-	pwd.Write([]byte(c.auth.GetHashSalt()))
-
-	user, err := c.repo.Create(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.repo.Create(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
 	if err != nil {
 		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -123,11 +120,7 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pwd := sha1.New()
-	pwd.Write([]byte(payload.Password))
-	pwd.Write([]byte(c.auth.GetHashSalt()))
-
-	user, err := c.repo.GetOneByEmail(payload.Email, fmt.Sprintf("%x", pwd.Sum(nil)))
+	user, err := c.repo.GetOneByEmail(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -162,7 +155,7 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var payload VerifyCodePayload
+	var payload SendCodePayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
@@ -173,76 +166,171 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var lastTimeRaw string
-
-	err = c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email), &lastTimeRaw)
-	if err == nil {
-		lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
-		if err != nil {
-			blogger.Errorf("Failed to parse lastTime: CTX: %v, Error: %s", ctx, err.Error())
+	err = c.sendMailMessage(ctx, cachePrefix(), "verification", time.Minute*5, payload.Email)
+	if err != nil {
+		if errors.Is(err, errTooFrequentCodeEntry) {
 			httpext.JSON(w, httpext.CommonError{
-				Error: "failed parse time",
+				Error: err.Error(),
+				Code:  http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		} else {
+			httpext.JSON(w, httpext.CommonError{
+				Error: err.Error(),
 				Code:  http.StatusInternalServerError,
 			}, http.StatusInternalServerError)
 			return
 		}
-		if !time.Now().Add(time.Duration(-5) * time.Minute).After(lastTime) {
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
+	var payload SignPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if len(payload.Password) < 5 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "password too short",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	var code int
+	err = c.cache.Get(ctx, fmt.Sprintf("%s_%s", cachePrefix(), payload.Email), &code)
+
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong code",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	if code != payload.Code {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "wrong code",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := c.repo.UpdatePassword(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
+	if err != nil {
+		blogger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: "user already exists",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+	httpext.JSON(w, user, http.StatusOK)
+}
+
+func (c *Controller) SendRecoveryCode(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var payload SendCodePayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
+
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = c.sendMailMessage(ctx, cachePrefix(), "recovery-password", time.Minute*5, payload.Email)
+	if err != nil {
+		if errors.Is(err, errTooFrequentCodeEntry) {
 			httpext.JSON(w, httpext.CommonError{
-				Error: "try later",
+				Error: err.Error(),
 				Code:  http.StatusBadRequest,
 			}, http.StatusBadRequest)
 			return
+		} else {
+			httpext.JSON(w, httpext.CommonError{
+				Error: err.Error(),
+				Code:  http.StatusInternalServerError,
+			}, http.StatusInternalServerError)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (c *Controller) sendMailMessage(
+	ctx context.Context,
+	cachePrefix string,
+	templateKey string,
+	expireTime time.Duration,
+	email string,
+) error {
+	var lastTimeRaw string
+
+	err := c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), email), &lastTimeRaw)
+	if err == nil {
+		lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
+		if err != nil {
+			blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
+			return errFailedParseTime
+		}
+		if !time.Now().Add(time.Duration(-5) * time.Minute).After(lastTime) {
+			return errTooFrequentCodeEntry
 		}
 	}
 
 	err = c.cache.Set(ctx,
-		fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email),
+		fmt.Sprintf("%s_%s", retryPeriodPrefix(), email),
 		time.Now().Format(time.RFC3339))
 
 	if err != nil {
-		blogger.Errorf("Failed to save lastTime to redis: CTX: %v, Error: %s", ctx, err.Error())
-		httpext.JSON(w, httpext.CommonError{
-			Error: "failed to save lastTime to redis",
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
-		return
+		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
+		return errFailedSaveLastTimeToCache
 	}
 
 	code := utils.GenerateRandomNumber(10000, 99999)
 	Data := make(map[string]string)
 	Data["Code"] = fmt.Sprint(code)
-	template, found := c.mailConfig.Letters["verification"]
-	c.cache.SetWithExpiration(ctx, fmt.Sprintf("%s_%s", cachePrefix(), payload.Email), time.Minute*5, code)
+	template, found := c.mailConfig.Letters[templateKey]
+	c.cache.SetWithExpiration(ctx, fmt.Sprintf("%s_%s", cachePrefix, email), expireTime, code)
 
 	if !found {
-		blogger.Error("verification template not found")
-		httpext.JSON(w, httpext.CommonError{
-			Error: "verification template not found",
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
-		return
+		return errTemplateNotFound
 	}
 
 	msg, err := utils.RenderTemplate(template.Template, utils.WrapTemplateData(Data))
 	if err != nil {
-		httpext.JSON(w, httpext.CommonError{
-			Error: "failed render message",
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
-		return
+		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
+		return errFailedRenderTemplateMessage
 	}
 
-	_, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, payload.Email)
+	_, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
 	if err != nil {
-		blogger.Errorf("CTX: %v, ERROR: %s", ctx, err.Error())
-		httpext.JSON(w, httpext.CommonError{
-			Error: "failed send message to email",
-			Code:  http.StatusInternalServerError,
-		}, http.StatusInternalServerError)
-		return
+		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
+		return errFailedToSendMessage
 	}
-	w.WriteHeader(http.StatusOK)
+	return nil
 }
+
+var (
+	errFailedParseTime             = errors.New("failed to parse lastTime from cache")
+	errTooFrequentCodeEntry        = errors.New("try latter")
+	errFailedSaveLastTimeToCache   = errors.New("failed to save lastTime to cache")
+	errTemplateNotFound            = errors.New("template not found")
+	errFailedRenderTemplateMessage = errors.New("failed to render template message")
+	errFailedToSendMessage         = errors.New("failed to send message")
+)
 
 func cachePrefix() string {
 	return "user_code"

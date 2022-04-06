@@ -22,6 +22,7 @@ import (
 	contactApi "github.com/ignavan39/ucrm-go/app/contact/api"
 	contactRepo "github.com/ignavan39/ucrm-go/app/contact/repository"
 	"github.com/ignavan39/ucrm-go/app/core"
+	"github.com/ignavan39/ucrm-go/app/mailing"
 	dashboardApi "github.com/ignavan39/ucrm-go/app/dashboard/api"
 	dashboardRepo "github.com/ignavan39/ucrm-go/app/dashboard/repository"
 	pipelineApi "github.com/ignavan39/ucrm-go/app/pipeline/api"
@@ -91,7 +92,7 @@ func main() {
 	cardRepo := cardRepo.NewRepository(rwConn)
 	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
 
-	mailgin := core.NewMailgunApi(*config)
+	mailgin := mailing.NewMailgunApi(*config)
 	dispatcher := core.NewDispatcher(rabbitMqConn, chatRepo)
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := userApi.NewController(authorizer, userRepo, mailgin, config.Mail, *cache)
