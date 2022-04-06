@@ -30,6 +30,7 @@ import (
 	dashboardSettingsRepo "github.com/ignavan39/ucrm-go/app/dashboard-settings/repository"
 	userApi "github.com/ignavan39/ucrm-go/app/user/api"
 	userRepo "github.com/ignavan39/ucrm-go/app/user/repository"
+	userUc "github.com/ignavan39/ucrm-go/app/user/usecase"
 	"github.com/ignavan39/ucrm-go/app/ws"
 
 	conf "github.com/ignavan39/ucrm-go/app/config"
@@ -94,7 +95,7 @@ func main() {
 	mailgin := core.NewMailgunApi(*config)
 	dispatcher := core.NewDispatcher(rabbitMqConn, chatRepo)
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := userApi.NewController(authorizer, userRepo, mailgin, config.Mail, *cache)
+	userController := userApi.NewController(userUc.NewUserUseCase(authorizer,userRepo,mailgin,config.Mail,*cache))
 	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)
