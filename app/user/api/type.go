@@ -13,6 +13,6 @@ type SignResponse struct {
 	Token string      `json:"token"`
 }
 
-type VerifyCodePayload struct {
+type SendCodePayload struct {
 	Email string `json:"email"`
 }
