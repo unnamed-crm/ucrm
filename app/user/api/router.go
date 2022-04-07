@@ -6,6 +6,8 @@ func RegisterRouter(r chi.Router, controller *Controller) {
 	r.Group(func(r chi.Router) {
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/sendVerifyCode", controller.SendVerifyCode)
+			r.Post("/sendRecoveryCode", controller.SendRecoveryCode)
+			r.Post("/recoveryPassword", controller.RecoveryPassword)
 			r.Post("/signUp", controller.SignUp)
 			r.Post("/signIn", controller.SignIn)
 		})
