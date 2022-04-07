@@ -1,9 +1,11 @@
+import { Module } from "vuex";
+import { RootState } from "@/store/types";
 import { actions } from "./actions";
 import { getters } from "./getters";
 import { mutations } from "./mutations";
-import { state } from "./state";
+import { State, state } from "./state";
 
-export const authModule = {
+export const auth: Module<State, RootState> = {
   state,
   mutations,
   actions,

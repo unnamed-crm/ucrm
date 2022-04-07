@@ -14,11 +14,26 @@ import (
 )
 
 const (
-	DevelopEnironment    = "develop"
-	ProductionEnironment = "production"
+	DevelopEnvironment    = "develop"
+	ProductionEnvironment = "production"
 )
 
-var environments = [...]string{DevelopEnironment, ProductionEnironment}
+var environments = [...]string{DevelopEnvironment, ProductionEnvironment}
+
+type MailLetter struct {
+	Subject  string `yaml:"subject"`
+	Template string `yaml:"template"`
+}
+
+type MailConfig struct {
+	Sender  string                `yaml:"sender"`
+	Letters map[string]MailLetter `yaml:"letters"`
+}
+
+type CoreConfig struct {
+	Cors CorsConfig `yaml:"cors"`
+	Mail MailConfig `yaml:"mail"`
+}
 
 type JWTConfig struct {
 	HashSalt       string        `env:"JWT_HASH_SALT"`
@@ -26,12 +41,28 @@ type JWTConfig struct {
 	ExpireDuration time.Duration `env:"JWT_EXPIRE_DURATION"`
 }
 
+type RedisConfig struct {
+	Password string `env:"REDIS_PASSWORD"`
+	Host     string `env:"REDIS_HOST"`
+	Port     int    `env:"REDIS_PORT"`
+	DB       int    `env:"REDIS_DB"`
+}
+
+type MailgunConfig struct {
+	PrivateKey string `env:"MAILGUN_API_KEY"`
+	Domain     string `env:"MAILGUN_DOMAIN"`
+	PublicKey  string `env:"MAILGUN_PUBLIC_KEY"`
+}
+
 type Config struct {
 	Database    pg.Config
 	JWT         JWTConfig
 	RabbitMq    RabbitMqConfig
+	Redis       RedisConfig
 	Cors        CorsConfig
-	Evnironment string
+	Environment string
+	Mailgun     MailgunConfig
+	Mail        MailConfig
 }
 
 func validateEnvironment(env string) bool {
@@ -43,14 +74,14 @@ func validateEnvironment(env string) bool {
 	return false
 }
 
-func confFromFile(fileName string) (*CorsConfig, error) {
+func confFromFile(fileName string) (*CoreConfig, error) {
 	blogger.Infoln(fmt.Sprintf("reading from %s", fileName))
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
 
-	var conf CorsConfig
+	var conf CoreConfig
 	defer file.Close()
 	if err := yaml.NewDecoder(file).Decode(&conf); err != nil {
 		return nil, err
@@ -72,8 +103,9 @@ func GetConfig() (*Config, error) {
 
 	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
 	if len(environment) == 0 {
-		environment = DevelopEnironment
+		environment = DevelopEnvironment
 	}
+
 	finded := validateEnvironment(environment)
 	if !finded {
 		return nil, fmt.Errorf("[Environment] Undeclared name :%s", environment)
@@ -94,7 +126,30 @@ func GetConfig() (*Config, error) {
 		Port:     os.Getenv("RABBITMQ_PORT"),
 	}
 
-	cors, err := confFromFile("./usr/local/bin/app/develop.yml")
+	mailgun := MailgunConfig{
+		Domain:     os.Getenv("MAILGUN_DOMAIN"),
+		PrivateKey: os.Getenv("MAILGUN_API_KEY"),
+		PublicKey:  os.Getenv("MAILGUN_PUBLIC_KEY"),
+	}
+
+	redisPort, err := strconv.ParseInt(os.Getenv("REDIS_PORT"), 10, 16)
+	if err != nil {
+		return nil, err
+	}
+
+	redisDb, err := strconv.ParseInt(os.Getenv("REDIS_DB"), 10, 16)
+	if err != nil {
+		return nil, err
+	}
+
+	redis := RedisConfig{
+		Host:     os.Getenv("REDIS_HOST"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		Port:     int(redisPort),
+		DB:       int(redisDb),
+	}
+
+	coreConf, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +162,10 @@ func GetConfig() (*Config, error) {
 			ExpireDuration: expireDuration,
 		},
 		RabbitMq:    rmq,
-		Cors:        *cors,
-		Evnironment: environment,
+		Redis:       redis,
+		Cors:        coreConf.Cors,
+		Mail:        coreConf.Mail,
+		Environment: environment,
+		Mailgun:     mailgun,
 	}, nil
 }
