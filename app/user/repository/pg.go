@@ -64,7 +64,7 @@ func (r *Repository) UpdatePassword(email string, password string) (*models.User
 		Where(sq.Eq{"email": email}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.pool.Write()).
-		Suffix("returning id,email,password,avatar_url,created_at").
+		Suffix("returning id, email, password, avatar_url, created_at").
 		QueryRow()
 
 	if err := row.Scan(&user.Id, &user.Email, &user.Password, &user.AvatarUrl, &user.CreatedAt); err != nil {
@@ -73,5 +73,6 @@ func (r *Repository) UpdatePassword(email string, password string) (*models.User
 		}
 		return nil, err
 	}
+
 	return user, nil
 }

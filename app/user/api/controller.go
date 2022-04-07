@@ -234,14 +234,15 @@ func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	httpext.JSON(w, user, http.StatusOK)
 }
 
 func (c *Controller) SendRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload SendCodePayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
 
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
@@ -266,6 +267,7 @@ func (c *Controller) SendRecoveryCode(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -293,7 +295,6 @@ func (c *Controller) sendMailMessage(
 	err = c.cache.Set(ctx,
 		fmt.Sprintf("%s_%s", retryPeriodPrefix(), email),
 		time.Now().Format(time.RFC3339))
-
 	if err != nil {
 		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
 		return errFailedSaveLastTimeToCache
