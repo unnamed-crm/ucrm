@@ -23,17 +23,25 @@ func NewRepository(pool pg.Pool) *Repository {
 
 func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, error) {
 	card := &models.Card{}
+	var dashboardId sql.NullString
 	var orderRow sql.NullInt32
 	order := 1
 
-	row := sq.Select(`max("order")`).
-		From("cards").
-		Where(sq.Eq{"pipeline_id": pipelineId}).
+	tx, err := r.pool.Write().Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	row := sq.Select(`max(c."order")`, "max(d.id)").
+		From("cards c").
+		LeftJoin("pipelines p on p.id = c.pipeline_id").
+		LeftJoin("dashboards d on p.dashboard_id = d.id").
+		Where(sq.Eq{"c.pipeline_id": pipelineId}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.pool.Read()).
+		RunWith(tx).
 		QueryRow()
 
-	if err := row.Scan(&orderRow); err != nil {
+	if err := row.Scan(&orderRow, &dashboardId); err != nil {
 		return nil, err
 	}
 
@@ -45,23 +53,77 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 		Columns("name", "pipeline_id", `"order"`).
 		Values(name, pipelineId, order).
 		Suffix(`returning id, name, pipeline_id, updated_at, "order"`).
-		RunWith(r.pool.Write()).
+		RunWith(tx).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
 
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+		if err = tx.Rollback(); err != nil {
+			return nil, err
+		}
 		return nil, err
+	}
+
+	if dashboardId.Valid {
+		fieldsRow, err := sq.Select("id").
+			From("fields f").
+			Where(sq.Eq{"f.dashboard_id": dashboardId.String,"f.type":"card"}).
+			RunWith(tx).
+			PlaceholderFormat(sq.Dollar).
+			Query()
+
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return nil, err
+			}
+		} else {
+			fieldsIds := make([]string, 0)
+
+			for fieldsRow.Next() {
+				var fieldId string
+				if err = fieldsRow.Scan(&fieldId); err != nil {
+					return nil, err
+				}
+
+				fieldsIds = append(fieldsIds, fieldId)
+			}
+
+			fieldsRow.Close()
+
+			for _, id := range fieldsIds {
+				_, err := sq.Insert("card_fields").
+					Columns("card_id", "field_id").
+					Values(card.Id, id).
+					RunWith(tx).
+					PlaceholderFormat(sq.Dollar).
+					Exec()
+
+				if err != nil {
+					if err = tx.Rollback(); err != nil {
+						return nil, err
+					}
+					return nil, err
+				}
+			}
+		}
 	}
 
 	var chat models.Chat
 	chatRow := sq.Insert("chats").
 		Columns("card_id").
 		Values(card.Id).
-		Suffix(`returning id, card_id, last_sender, last_employee_id, last_message`).
-		RunWith(r.pool.Write()).
+		Suffix(`returning id`).
+		RunWith(tx).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
-	if err := chatRow.Scan(&chat.Id, &chat.CardId, &chat.LastSender, &chat.LastEmployeeId, &chat.LastMessageId); err != nil {
+	if err := chatRow.Scan(&chat.Id); err != nil {
+		if err = tx.Rollback(); err != nil {
+			return nil, err
+		}
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
