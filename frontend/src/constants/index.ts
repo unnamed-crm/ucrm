@@ -1,0 +1,1 @@
+export const VERIFICATION_CODE_LENGTH = 5;

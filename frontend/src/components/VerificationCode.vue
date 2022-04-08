@@ -27,13 +27,14 @@ import {
   VerificationCodeSchema,
   VerificationCodeData,
 } from "../schemas/common.schema";
+import { VERIFICATION_CODE_LENGTH } from "../constants";
 
 interface VerificationCodeProps {
   length?: number;
 }
 
 const props = withDefaults(defineProps<VerificationCodeProps>(), {
-  length: 5,
+  length: VERIFICATION_CODE_LENGTH,
 });
 
 enum KEY_CODE {

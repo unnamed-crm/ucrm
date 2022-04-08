@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { VERIFICATION_CODE_LENGTH } from "../constants";
 
 export const verificationCodeSchema = yup.object({
   verificationCode: yup
@@ -8,7 +9,7 @@ export const verificationCodeSchema = yup.object({
     .test(
       "length",
       "Verification Code are not full",
-      (value) => value && value.toString().length === 5,
+      (value) => value && value.toString().length === VERIFICATION_CODE_LENGTH,
     ),
 });
 
