@@ -37,7 +37,7 @@
       </el-button>
     </template>
     <template v-else>
-      <VerificationCode ref="verificationCodeRef" />
+      <VerificationCode ref="verificationCodeRef" @resend="resendVerifyCode" />
       <el-button class="button" native-type="submit" type="primary"> Submit </el-button>
     </template>
   </el-form>
@@ -74,14 +74,17 @@ const sendVerifyCode = async () => {
     .then(() => (hasVerificationCode.value = true));
 };
 
+const resendVerifyCode = () => store.dispatch("verificationCode", { email: registerData.email });
+
 const register = async () => {
   const isRegisterDataValid = await validate();
   const isVerificationCodeValid = await verificationCodeRef.value.validate();
-  if (!isRegisterDataValid || !isVerificationCodeValid) return;
+  if (!isRegisterDataValid || !isVerificationCodeValid || !verificationCodeRef.value.isTimerLeft)
+    return;
 
   const data = {
     ...registerData,
-    ...verificationCodeRef.value.getVerificationCode(),
+    ...verificationCodeRef.value.verificationCodeData,
   };
   store.dispatch("register", data).then(() => router.push("/"));
 };

@@ -1,6 +1,6 @@
 <template>
   <!-- eslint-disable vue/no-v-for-template-key -->
-  <el-form-item label="Verification Code" :error="errors.verificationCode">
+  <el-form-item class="verify-code" label="Verification Code" :error="errors.verificationCode">
     <el-row justify="space-between" :gutter="5">
       <template v-for="(input, index) in inputRefs" :key="index">
         <el-col :span="4">
@@ -16,26 +16,53 @@
         </el-col>
       </template>
     </el-row>
+    <el-row>
+      <template v-if="!isTimerLeft">
+        <el-col>
+          <span class="resend-title">
+            Code can be resent after {{ time.mins.value }}:{{ time.secs.value }}
+          </span>
+        </el-col>
+      </template>
+      <template v-else>
+        <el-col>
+          <el-link class="resendLink" type="primary" @click.prevent="onResendClick">
+            Resend
+          </el-link>
+        </el-col>
+      </template>
+    </el-row>
   </el-form-item>
 </template>
 
 <script lang="ts" setup>
-import { reactive, watch, defineProps, withDefaults, defineExpose } from "vue";
+import {
+  reactive,
+  watch,
+  defineProps,
+  defineEmits,
+  withDefaults,
+  defineExpose,
+  onMounted,
+  onUnmounted,
+} from "vue";
 import { useValidate } from "../hooks/useValidate";
+import { useTimer } from "../hooks/useTimer";
 import {
   verificationCodeSchema,
   VerificationCodeSchema,
   VerificationCodeData,
 } from "../schemas/common.schema";
-import { VERIFICATION_CODE_LENGTH } from "../constants";
+import { VERIFICATION_CODE_LENGTH, VERIFICATION_CODE_RESEND_TIME } from "../constants";
 
 interface VerificationCodeProps {
   length?: number;
 }
 
-const props = withDefaults(defineProps<VerificationCodeProps>(), {
-  length: VERIFICATION_CODE_LENGTH,
-});
+type InputRef = {
+  element: HTMLInputElement;
+  value: string;
+};
 
 enum KEY_CODE {
   BACKSPACE = "Backspace",
@@ -45,6 +72,12 @@ enum KEY_CODE {
   DOWN = "ArrowDown",
 }
 
+const props = withDefaults(defineProps<VerificationCodeProps>(), {
+  length: VERIFICATION_CODE_LENGTH,
+});
+
+const emit = defineEmits(["resend"]);
+
 const verificationCodeData = reactive<VerificationCodeData>({
   verificationCode: null,
 });
@@ -53,12 +86,24 @@ const { errors, validate } = useValidate<VerificationCodeSchema>(
   verificationCodeData,
 );
 
-const inputRefs = reactive<{ element: HTMLInputElement; value: string }[]>(
+const { createInterval, removeInterval, time, isTimerLeft } = useTimer(
+  VERIFICATION_CODE_RESEND_TIME,
+);
+
+const inputRefs = reactive<InputRef[]>(
   Array.from({ length: props.length }).map(() => ({
     element: null,
     value: "",
   })),
 );
+
+onMounted(() => {
+  createInterval();
+});
+
+onUnmounted(() => {
+  removeInterval();
+});
 
 watch(inputRefs, (inputs) => {
   const code = parseInt(inputs.map((el) => el.value).join(""), 10) || 0;
@@ -131,10 +176,28 @@ const onCodePress = (event: KeyboardEvent, index: number) => {
   }
 };
 
+const onResendClick = () => {
+  if (!isTimerLeft.value) return;
+  emit("resend");
+  removeInterval();
+  createInterval();
+};
+
 defineExpose({
   validate,
-  getVerificationCode: () => verificationCodeData,
+  verificationCodeData,
+  isTimerLeft,
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.verify-code {
+  margin-bottom: 5px;
+}
+.resend-title {
+  font-size: 12px;
+}
+.resend-link {
+  font-size: 14px;
+}
+</style>
