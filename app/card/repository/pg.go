@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	repository "github.com/ignavan39/ucrm-go/app/card"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
@@ -21,7 +22,7 @@ func NewRepository(pool pg.Pool) *Repository {
 	}
 }
 
-func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, error) {
+func (r *Repository) CreateOne(name string, pipelineId string, fields *map[string]string) (*models.Card, error) {
 	card := &models.Card{}
 	var dashboardId sql.NullString
 	var orderRow sql.NullInt32
@@ -67,7 +68,7 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 	if dashboardId.Valid {
 		fieldsRow, err := sq.Select("id").
 			From("fields f").
-			Where(sq.Eq{"f.dashboard_id": dashboardId.String,"f.type":"card"}).
+			Where(sq.Eq{"f.dashboard_id": dashboardId.String, "f.type": "card"}).
 			RunWith(tx).
 			PlaceholderFormat(sq.Dollar).
 			Query()
@@ -90,7 +91,35 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 
 			fieldsRow.Close()
 
-			for _, id := range fieldsIds {
+			noValueFieldIds := make([]string, 0)
+			if fields != nil {
+				fieldsMap := *fields
+
+				for _, id := range fieldsIds {
+					value, found := fieldsMap[id]
+					if !found {
+						noValueFieldIds = append(noValueFieldIds, id)
+					} else {
+						_, err := sq.Insert("card_fields").
+							Columns("card_id", "field_id", "value").
+							Values(card.Id, id, value).
+							RunWith(tx).
+							PlaceholderFormat(sq.Dollar).
+							Exec()
+
+						if err != nil {
+							if err = tx.Rollback(); err != nil {
+								return nil, err
+							}
+							return nil, repository.ErrFieldNotFound
+						}
+					}
+				}
+			} else {
+				noValueFieldIds = fieldsIds
+			}
+
+			for _, id := range noValueFieldIds {
 				_, err := sq.Insert("card_fields").
 					Columns("card_id", "field_id").
 					Values(card.Id, id).
@@ -127,7 +156,7 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 		return nil, err
 	}
 
-	card.Chat = &chat
+	card.Chat = chat
 	return card, nil
 }
 

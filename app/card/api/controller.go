@@ -2,12 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/card"
+	repository "github.com/ignavan39/ucrm-go/app/card"
 	"github.com/ignavan39/ucrm-go/app/core"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -41,8 +43,16 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.CreateOne(payload.Name, payload.PipelineId)
+	card, err := c.repo.CreateOne(payload.Name, payload.PipelineId, payload.Fields)
 	if err != nil {
+		if errors.Is(err, repository.ErrFieldNotFound) {
+			httpext.JSON(w, httpext.CommonError{
+				Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
+				Code:  http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
+
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
