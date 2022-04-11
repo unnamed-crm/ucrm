@@ -21,6 +21,18 @@ func NewController(repo pipeline.Repository) *Controller {
 	return &Controller{repo: repo}
 }
 
+// CreateOne  godoc
+// @Summary   Create pipeline
+// @Tags      pipelines
+// @Accept    json
+// @Produce   json
+// @Param     payload  body  CreateOnePayload  true  " "
+// @Success   201  {object}  CreatePipelineResponse
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /pipelines/create [post]
+// @security  JWT
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateOnePayload
@@ -44,19 +56,27 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var Response struct {
-		Pipeline models.Pipeline `json:"pipeline"`
-	}
+	var Response CreatePipelineResponse
 	Response.Pipeline = *pipeline
 
 	httpext.JSON(w, Response, http.StatusCreated)
 }
 
+// UpdateName godoc
+// @Summary   Update dashboard`s name
+// @Tags      pipelines
+// @Accept    json
+// @Param     payload     body   UpdateDashboardNamePayload  true  " "
+// @Param     pipelineId  query  string                      true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /pipelines/{pipelineId} [patch]
+// @security  JWT
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var payload struct {
-		Name string `json:"name"`
-	}
+	var payload UpdateDashboardNamePayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -88,9 +108,20 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// DeleteById godoc
+// @Summary   Delete pipeline
+// @Tags      pipelines
+// @Param     pipelineId  query  string  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /pipelines/{pipelineId} [delete]
+// @security  JWT
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "pipelineId")
+
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/deleteById",
@@ -111,6 +142,18 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// UpdateOrder godoc
+// @Summary   Update pipeline order
+// @Tags      pipelines
+// @Accept    json
+// @Param     pipelineId  query  string  true  " "
+// @Param     order       query  string  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /pipelines/order/{pipelineId}/{order} [patch]
+// @security  JWT
 func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	pipelineId := chi.URLParam(r, "pipelineId")

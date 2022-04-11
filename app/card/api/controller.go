@@ -28,6 +28,18 @@ func NewController(repo card.Repository, cardWebhookRepo dashboardSettings.CardW
 	}
 }
 
+// CreateOne godoc
+// @Summary   Create card
+// @Tags      cards
+// @Accept    json
+// @Produce   json
+// @Param     payload  body      CreateOnePayload  true  " "
+// @Success   201      {object}  models.Card
+// @Failure   400      {object}  httpext.CommonError
+// @Failure   401      {object}  httpext.CommonError
+// @Failure   500      {object}  httpext.CommonError
+// @Router    /cards/create [post]
+// @security  JWT
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateOnePayload
@@ -65,14 +77,25 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		go core.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
 	}
 
-	httpext.JSON(w, card, http.StatusOK)
+	httpext.JSON(w, card, http.StatusCreated)
 }
 
+// Delete godoc
+// @Summary   Delete card
+// @Tags      cards
+// @Produce   json
+// @Param     cardId  query     string  true  " "
+// @Success   200     {object}  models.Card
+// @Failure   400     {object}  httpext.CommonError
+// @Failure   401     {object}  httpext.CommonError
+// @Failure   500     {object}  httpext.CommonError
+// @Router    /cards/{cardId} [delete]
+// @security  JWT
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
-	card, err := c.repo.GetOneWithoutRelations(id)
 
+	card, err := c.repo.GetOneWithoutRelations(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Delete]:%s", err.Error()),
@@ -108,12 +131,28 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	}
+
 	if webhook != nil {
 		go core.SendCardUpdatesToSubscriber(webhook.Url, nil, card)
 	}
+
 	httpext.JSON(w, card, http.StatusOK)
 }
 
+// Update godoc
+// @Summary  Update card
+// @Description
+// @Accept    json
+// @Produce   json
+// @Tags      cards
+// @Param     cardId   query     string            true  " "
+// @Param     payload  body      UpdateOnePayload  true  " "
+// @Success   200      {object}  models.Card
+// @Failure   400      {object}  httpext.CommonError
+// @Failure   401      {object}  httpext.CommonError
+// @Failure   500      {object}  httpext.CommonError
+// @Router    /cards [patch]
+// @security  JWT
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload UpdateOnePayload
@@ -198,6 +237,19 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, updatedCard, http.StatusOK)
 }
 
+// GetOne godoc
+// @Summary      Get one card
+// @Description  Get one card by id
+// @Tags         cards
+// @Accept       json
+// @Produce      json
+// @Param        cardId  query     string  true      " "
+// @Success      200     {object}  models.Card
+// @Failure      400     {object}  httpext.CommonError
+// @Failure      401     {object}  httpext.CommonError
+// @Failure      500     {object}  httpext.CommonError
+// @Router       /cards/{cardId} [get]
+// @security     JWT
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
@@ -231,6 +283,19 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, card, http.StatusOK)
 }
 
+// UpdateOrder godoc
+// @Summary      Update order
+// @Description  Update order
+// @Tags         cards
+// @Param        cardId      query  string  true  " "
+// @Param        pipelineId  query  string  true  " "
+// @Param        order       query  string  true  " "
+// @Success      200
+// @Failure      400  {object}  httpext.CommonError
+// @Failure      401  {object}  httpext.CommonError
+// @Failure      500  {object}  httpext.CommonError
+// @Router       /cards/order/{pipelineId}/{cardId}/order [get]
+// @security     JWT
 func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cardId := chi.URLParam(r, "cardId")

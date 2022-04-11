@@ -48,7 +48,6 @@ func (r *Repository) CreateOne(name string, pipelineId string) (*models.Card, er
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
-
 	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
 		return nil, err
 	}
@@ -75,7 +74,6 @@ func (r *Repository) CheckExists(cardId string) (bool, error) {
 		Where("id = ?").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-
 	if err != nil {
 		return false, err
 	}

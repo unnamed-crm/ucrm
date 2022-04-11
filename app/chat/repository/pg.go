@@ -21,10 +21,12 @@ func NewRepository(pool pg.Pool) *Repository {
 
 func (d *Repository) CreateOneMessage(payload models.MessagePayload, senderId string, deleted bool, status string, createdAt time.Time, chatId string) (*models.Message, error) {
 	message := &models.Message{}
+
 	stringifyPayload, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
+
 	row := sq.Insert("messages").Columns("chat_id", "payload", "sender_id", "created_at", "deleted", "status").
 		Values(chatId, string(stringifyPayload), senderId, createdAt, deleted, status).
 		Suffix("returning id,chat_id,payload,sender_id,created_at,deleted,status").
@@ -32,6 +34,7 @@ func (d *Repository) CreateOneMessage(payload models.MessagePayload, senderId st
 	if err := row.Scan(&message.Id, &message.ChatId, &message.Payload, &message.SenderId, &message.Deleted, &message.Status); err != nil {
 		return nil, err
 	}
+
 	message.Payload = payload
 	return message, nil
 }

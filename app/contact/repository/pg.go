@@ -33,7 +33,6 @@ func (r *Repository) GetOne(ctx context.Context, contactId string) (*models.Cont
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

@@ -27,6 +27,18 @@ func NewController(repo dashboard.Repository, webhookRepo dashboardSettings.Card
 	}
 }
 
+// CreateOne godoc
+// @Summary   Create dashboard
+// @Tags      dashboards
+// @Accept    json
+// @Produce   json
+// @Param     payload  body      CreateOnePayload  true  " "
+// @Success   200      {object}  models.Dashboard
+// @Failure   400      {object}  httpext.CommonError
+// @Failure   401      {object}  httpext.CommonError
+// @Failure   500      {object}  httpext.CommonError
+// @Router    /dashboards/create [patch]
+// @security  JWT
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateDashboardPayload
@@ -50,11 +62,19 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpext.JSON(w, CreateDashboardResponse{
-		Dashboard: *dashboard,
-	}, http.StatusCreated)
+	httpext.JSON(w, *dashboard, http.StatusCreated)
 }
 
+// AddAccess godoc
+// @Summary   Add Access
+// @Tags      dashboards
+// @Param     payload  body  AddAccessPayload  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards/addAccess [post]
+// @security  JWT
 func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	var payload AddAccessPayload
 
@@ -114,6 +134,16 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetOneDashboard godoc
+// @Summary   Get dashboard
+// @Tags      dashboards
+// @Produce   json
+// @Success   200  {object}  models.Dashboard
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId} [get]
+// @security  JWT
 func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	if len(id) == 0 {
@@ -126,7 +156,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 
 	dashboard, err := c.repo.GetOne(id)
 	if err != nil {
-		blogger.Error("[dashboard/getOnde] ERROR :%s", err.Error())
+		blogger.Error("[dashboards/getOnde] ERROR :%s", err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusInternalServerError,
@@ -145,6 +175,18 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, dashboard, http.StatusOK)
 }
 
+// UpdateName    godoc
+// @Summary   Update dashboard name
+// @Tags      dashboards
+// @Accept    json
+// @Param     dashboardId  query  string             true  " "
+// @Param     payload      body   UpdateNamePayload  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId} [patch]
+// @security  JWT
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	var payload UpdateNamePayload
@@ -178,6 +220,16 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// DeleteById godoc
+// @Summary   Delete dashboard
+// @Param     dashboardId  query  string  true  " "
+// @Tags      dashboards
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId} [delete]
+// @security  JWT
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 
@@ -193,6 +245,18 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// AddWebhook    godoc
+// @Summary   Add webhook
+// @Tags      contacts
+// @Accept    json
+// @Param     dashboardId  query  string             true  " "
+// @Param     payload      body   UpdateNamePayload  true  " "
+// @Success   201
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId}/webhook [patch]
+// @security  JWT
 func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	var payload AddWebhookPayload
@@ -226,6 +290,19 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// AddWebhook    godoc
+// @Summary   Add webhook
+// @Tags      dashboards
+// @Accept    json
+// @Produce   json
+// @Param     dashboardId  query     string              true  " "
+// @Param     payload      body      AddSettingsPayload  true  " "
+// @Success   200          {object}  models.DashboardSettings
+// @Failure   400          {object}  httpext.CommonError
+// @Failure   401          {object}  httpext.CommonError
+// @Failure   500          {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId}/settings [patch]
+// @security  JWT
 func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
 	if len(id) == 0 {
@@ -262,6 +339,18 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, settings, http.StatusOK)
 }
 
+// CreateCustomField    godoc
+// @Summary   Create custom field
+// @Tags      dashboards
+// @Accept    json
+// @Produce   json
+// @Param     dashboardId  query     string          true  " "
+// @Param     payload      body      AddCustomField  true  " "
+// @Success   200          {object}  models.Field
+// @Failure   400          {string}  string  "[CreateOne]:  {error}"
+// @Failure   400          {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId}/custom-field [post]
+// @security  JWT
 func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	dashboardId := chi.URLParam(r, "dashboardId")
@@ -306,6 +395,19 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, field, http.StatusOK)
 }
 
+// RemoveAccess    godoc
+// @Summary   Remove access
+// @Tags      dashboards
+// @Accept    json
+// @Produce   json
+// @Param     dashboardId  query     string  true  " "
+// @Param     userId       query     string  true  " "
+// @Success   200          {object}  string
+// @Failure   400          {object}  httpext.CommonError
+// @Failure   401          {object}  httpext.CommonError
+// @Failure   500          {object}  httpext.CommonError
+// @Router    /dashboards/{dashboardId}/{userId} [delete]
+// @security  JWT
 func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "dashboardId")
@@ -348,6 +450,17 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// UpdateAccess    godoc
+// @Summary   Update access
+// @Tags      dashboards
+// @Accept    json
+// @Produce   json
+// @Param     AddAccessPayload  body  string  true  " "
+// @Success   200
+// @Failure   400  {string}  string  "[CreateOne]:  {error}"
+// @Failure   400  {object}  httpext.CommonError
+// @Router    /dashboards/updateAccess [patch]
+// @security  JWT
 func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload AddAccessPayload
@@ -392,7 +505,17 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *Controller) GetOneByUser(w http.ResponseWriter, r *http.Request) {
+// GetOneByUser    godoc
+// @Summary   Get dashboards by user
+// @Tags      dashboards
+// @Produce   json
+// @Success   200  {object}  []models.Dashboard
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /dashboards [get]
+// @security  JWT
+func (c *Controller) GetByUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userId := auth.GetUserIdFromContext(ctx)
 

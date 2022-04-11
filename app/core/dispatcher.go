@@ -29,6 +29,7 @@ func (d *Dispatcher) GetRecieverByQueueName(queueName string) *Reciever {
 			}
 		}
 	}
+
 	return nil
 }
 

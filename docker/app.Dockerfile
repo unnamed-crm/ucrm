@@ -10,6 +10,7 @@ RUN go mod verify
 COPY /app ./app
 COPY /pkg ./pkg
 COPY /cmd ./cmd
+COPY /docs ./docs
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o app ./cmd/app/main.go
 

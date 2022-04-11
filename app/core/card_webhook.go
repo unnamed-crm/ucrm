@@ -14,6 +14,7 @@ func SendCardUpdatesToSubscriber(hostUrl string, newState interface{}, oldState 
 	argMap := map[string]interface{}{}
 	argMap["newState"] = newState
 	argMap["oldState"] = oldState
+
 	stringifyArgs, err := json.Marshal(argMap)
 	if err != nil {
 		blogger.Errorf("[Trigger] url webhook: %s, [Error] :%s", hostUrl, err.Error())
@@ -33,6 +34,7 @@ func SendCardUpdatesToSubscriber(hostUrl string, newState interface{}, oldState 
 	req.Header.Set("Content-Type", "application/json")
 	tr := &http.Transport{}
 	client := &http.Client{Transport: tr, Timeout: time.Duration(30) * time.Second}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		blogger.Errorf("[Trigger] url webhook: %s, [Error] :%s", hostUrl, err.Error())

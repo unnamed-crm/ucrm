@@ -14,10 +14,8 @@ import (
 	"github.com/ignavan39/ucrm-go/app"
 	authUC "github.com/ignavan39/ucrm-go/app/auth/usecase"
 	cardApi "github.com/ignavan39/ucrm-go/app/card/api"
-	chatRepo "github.com/ignavan39/ucrm-go/app/chat/repository"
-	"github.com/ignavan39/ucrm-go/app/middlewares"
-
 	cardRepo "github.com/ignavan39/ucrm-go/app/card/repository"
+	chatRepo "github.com/ignavan39/ucrm-go/app/chat/repository"
 	connectApi "github.com/ignavan39/ucrm-go/app/connect/api"
 	contactApi "github.com/ignavan39/ucrm-go/app/contact/api"
 	contactRepo "github.com/ignavan39/ucrm-go/app/contact/repository"
@@ -25,8 +23,10 @@ import (
 	dashboardApi "github.com/ignavan39/ucrm-go/app/dashboard/api"
 	dashboardRepo "github.com/ignavan39/ucrm-go/app/dashboard/repository"
 	"github.com/ignavan39/ucrm-go/app/mailing"
+	"github.com/ignavan39/ucrm-go/app/middlewares"
 	pipelineApi "github.com/ignavan39/ucrm-go/app/pipeline/api"
 	pipelineRepo "github.com/ignavan39/ucrm-go/app/pipeline/repository"
+	"github.com/ignavan39/ucrm-go/app/swagger"
 
 	dashboardSettingsRepo "github.com/ignavan39/ucrm-go/app/dashboard-settings/repository"
 	userApi "github.com/ignavan39/ucrm-go/app/user/api"
@@ -34,12 +34,19 @@ import (
 	"github.com/ignavan39/ucrm-go/app/ws"
 
 	conf "github.com/ignavan39/ucrm-go/app/config"
+	_ "github.com/ignavan39/ucrm-go/docs"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 	redisCache "github.com/ignavan39/ucrm-go/pkg/redis-cache"
 	"github.com/ignavan39/ucrm-go/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
 
+// @title                       Unnamed URCM
+// @version                     1.0
+// @description                 Unnamed URCM
+// @securityDefinitions.apiKey  JWT
+// @in                          header
+// @name                        Authorization
 func main() {
 	blogger.SetOutput(os.Stdout)
 	blogger.SetFormatter(&blogger.TextFormatter{})
@@ -122,6 +129,7 @@ func main() {
 		pipelineApi.RegisterRouter(v1, pipelineController, *authGuard, *pipelineAccessGuard, *dashboardAccesGuard)
 		cardApi.RegisterRouter(v1, cardController, *authGuard)
 		ws.RegisterRouter(v1, wsController)
+		swagger.RegisterRouter(v1)
 		connectApi.RegisterRouter(v1, connectController, *authGuard)
 		contactApi.RegisterRouter(v1, contactController, *authGuard)
 	})
