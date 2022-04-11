@@ -6,6 +6,8 @@ export enum MutationTypes {
   AuthSuccess = "AuthSuccess",
   AuthError = "AuthError",
   Logout = "Logout",
+  VerificationCodeRequest = "VerifyCodeRequest",
+  VerificationCodeSuccess = "VerifyCodeRequest",
 }
 
 export type Mutations = {
@@ -13,6 +15,8 @@ export type Mutations = {
   [MutationTypes.AuthSuccess](state: State, signInResponse: SignInResponse): void;
   [MutationTypes.AuthError](state: State, errorPayload: FetchError): void;
   [MutationTypes.Logout](state: State): void;
+  [MutationTypes.VerificationCodeRequest](state: State): void;
+  [MutationTypes.VerificationCodeSuccess](state: State): void;
 };
 
 export const mutations: MutationFunc<State> & Mutations = {
@@ -33,5 +37,12 @@ export const mutations: MutationFunc<State> & Mutations = {
     state.status = StateStatus.Never;
     state.error = null;
     state.token = "";
+  },
+  [MutationTypes.VerificationCodeRequest](state) {
+    state.status = StateStatus.Loading;
+  },
+  [MutationTypes.VerificationCodeSuccess](state) {
+    state.status = StateStatus.Never;
+    state.error = null;
   },
 };

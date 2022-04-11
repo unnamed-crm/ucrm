@@ -2,7 +2,7 @@ import { HOST_URL } from "@/store";
 import axios from "axios";
 import { ActionAugments, ActionFuncs, FetchError } from "@/store/types";
 import { MutationTypes } from "./mutations";
-import { State, SignInResponse } from "./state";
+import { State, SignInResponse, VerificationCodePayload } from "./state";
 import { LoginData } from "@/schemas/login.schema";
 import { RegisterData } from "@/schemas/register.schema";
 
@@ -10,12 +10,17 @@ export enum ActionTypes {
   Login = "login",
   Register = "register",
   Logout = "logout",
+  VerificationCode = "verificationCode",
 }
 
 export type Actions = {
   [ActionTypes.Login](context: ActionAugments<State>, data: LoginData): void;
   [ActionTypes.Register](context: ActionAugments<State>, data: RegisterData): void;
   [ActionTypes.Logout](context: ActionAugments<State>): void;
+  [ActionTypes.VerificationCode](
+    context: ActionAugments<State>,
+    data: VerificationCodePayload,
+  ): void;
 };
 
 export const actions: ActionFuncs<State> & Actions = {
@@ -55,5 +60,15 @@ export const actions: ActionFuncs<State> & Actions = {
     commit(MutationTypes.Logout);
     localStorage.removeItem("token");
     delete axios.defaults.headers.common["Authorization"];
+  },
+  async [ActionTypes.VerificationCode]({ commit }, data) {
+    commit(MutationTypes.VerificationCodeRequest);
+    try {
+      await axios.post(`${HOST_URL}/users/sendVerifyCode`, data);
+      commit(MutationTypes.VerificationCodeSuccess);
+    } catch (error) {
+      commit(MutationTypes.AuthError, (error.response.data as FetchError) || null);
+      throw error;
+    }
   },
 };

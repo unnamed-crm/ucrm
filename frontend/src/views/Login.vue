@@ -53,7 +53,6 @@ watch([authStatus, authError], ([status, error]) => {
 
 const login = async () => {
   const isValid = await validate();
-
   if (!isValid) return;
 
   store.dispatch("login", loginData).then(() => router.push("/"));

@@ -48,6 +48,11 @@ definitions:
       time:
         type: string
     type: object
+  api.SendCodePayload:
+    properties:
+      email:
+        type: string
+    type: object
   api.SignPayload:
     properties:
       code:
@@ -101,11 +106,6 @@ definitions:
       name:
         type: string
       phone:
-        type: string
-    type: object
-  api.VerifyCodePayload:
-    properties:
-      email:
         type: string
     type: object
   core.ClientQueueConfig:
@@ -1258,7 +1258,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/api.VerifyCodePayload'
+          $ref: '#/definitions/api.SendCodePayload'
       responses:
         "200":
           description: ""

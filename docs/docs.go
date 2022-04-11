@@ -1500,7 +1500,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.VerifyCodePayload"
+                            "$ref": "#/definitions/api.SendCodePayload"
                         }
                     }
                 ],
@@ -1693,6 +1693,14 @@ const docTemplate = `{
                 }
             }
         },
+        "api.SendCodePayload": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "api.SignPayload": {
             "type": "object",
             "properties": {
@@ -1775,14 +1783,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.VerifyCodePayload": {
-            "type": "object",
-            "properties": {
-                "email": {
                     "type": "string"
                 }
             }

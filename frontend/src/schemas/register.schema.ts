@@ -14,4 +14,4 @@ export const registerSchema = yup.object({
 });
 
 export type RegisterSchema = typeof registerSchema;
-export type RegisterData = yup.InferType<typeof registerSchema>;
+export type RegisterData = yup.InferType<RegisterSchema>;
