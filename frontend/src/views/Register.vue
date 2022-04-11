@@ -1,7 +1,7 @@
 <template>
   <el-form
     class="form"
-    @submit.prevent="register(formRef)"
+    @submit.prevent="register()"
     label-position="top"
     hide-required-asterisk
     novalidate
@@ -31,14 +31,23 @@
         placeholder="password..."
       />
     </el-form-item>
-    <el-button class="button" native-type="submit" type="primary"> Submit </el-button>
+    <template v-if="!hasVerificationCode">
+      <el-button class="button" native-type="button" @click="sendVerifyCode" type="primary">
+        Send Verify Code
+      </el-button>
+    </template>
+    <template v-else>
+      <VerificationCode ref="verificationCodeRef" @resend="resendVerifyCode" />
+      <el-button class="button" native-type="submit" type="primary"> Submit </el-button>
+    </template>
   </el-form>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import { useTypedStore } from "../store";
 import { useRouter } from "vue-router";
+import VerificationCode from "../components/VerificationCode.vue";
 import { registerSchema, RegisterSchema, RegisterData } from "../schemas/register.schema";
 import { useValidate } from "../hooks/useValidate";
 
@@ -53,12 +62,31 @@ const registerData = reactive<RegisterData>({
 
 const { errors, validate } = useValidate<RegisterSchema>(registerSchema, registerData);
 
+const verificationCodeRef = ref<InstanceType<typeof VerificationCode>>(null);
+const hasVerificationCode = ref<boolean>(false);
+
+const sendVerifyCode = async () => {
+  const isRegisterDataValid = await validate();
+  if (!isRegisterDataValid) return;
+
+  store
+    .dispatch("verificationCode", { email: registerData.email })
+    .then(() => (hasVerificationCode.value = true));
+};
+
+const resendVerifyCode = () => store.dispatch("verificationCode", { email: registerData.email });
+
 const register = async () => {
-  const isValid = await validate();
+  const isRegisterDataValid = await validate();
+  const isVerificationCodeValid = await verificationCodeRef.value.validate();
+  if (!isRegisterDataValid || !isVerificationCodeValid || !verificationCodeRef.value.isTimerLeft)
+    return;
 
-  if (!isValid) return;
-
-  store.dispatch("register", registerData).then(() => router.push("/"));
+  const data = {
+    ...registerData,
+    ...verificationCodeRef.value.verificationCodeData,
+  };
+  store.dispatch("register", data).then(() => router.push("/"));
 };
 </script>
 
