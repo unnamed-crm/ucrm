@@ -26,14 +26,22 @@ func NewController(dispatcher *core.Dispatcher, dashboardRepo dashboard.Reposito
 }
 
 // CreateQueue godoc
+// @Accept       json
+// @Produce      json
 // @Summary      Create queue
 // @Description  Create queue
-// @Tags     connect
-// @Success  200  
+// @Param        payload  body      CreateQueuePayload  true  " "
+// @Success      200      {object}  core.ClientQueueConfig
+// @Failure      400      {object}  httpext.CommonError
+// @Failure      401      {object}  httpext.CommonError
+// @Failure      500      {object}  httpext.CommonError
+// @Tags         connect
 // @Router       /connect/create [post]
+// @security     JWT
 func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateQueuePayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -53,17 +61,25 @@ func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	httpext.JSON(w, queue.GetOptions(), http.StatusOK)
 }
 
 // CreateQueue godoc
-// @Summary      Create queue
-// @Description  Create queue
+// @Accept       json
+// @Summary      Ping
+// @Description  Ping
+// @Param        payload  body  PingPayload  true  " "
 // @Tags         connect
-// @Success      200  
+// @Success      200
+// @Failure      400  {object}  httpext.CommonError
+// @Failure      401  {object}  httpext.CommonError
+// @Failure      500  {object}  httpext.CommonError
 // @Router       /connect/ping [post]
+// @security     JWT
 func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 	var payload PingPayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -94,12 +110,20 @@ func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 }
 
 // Unsubscribe godoc
-// @Summary  Unsubscribe
+// @Summary      Unsubscribe
+// @Description  Unsubscribe
+// @Accept       json
+// @Param        payload  body  SubscribePayload  true  " "
 // @Tags         connect
-// @Success      200  
-// @Router   /connect/unsubscribe [post]
+// @Success      200
+// @Failure      400  {object}  httpext.CommonError
+// @Failure      401  {object}  httpext.CommonError
+// @Failure      500  {object}  httpext.CommonError
+// @Router       /connect/unsubscribe [post]
+// @security     JWT
 func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	var payload SubscribePayload
+
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -126,5 +150,6 @@ func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	w.WriteHeader(http.StatusOK)
 }

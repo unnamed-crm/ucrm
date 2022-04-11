@@ -14,7 +14,7 @@ import (
 	"github.com/ignavan39/ucrm-go/app/core"
 	"github.com/ignavan39/ucrm-go/app/user"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
-	"github.com/ignavan39/ucrm-go/pkg/redis-cache"
+	redisCache "github.com/ignavan39/ucrm-go/pkg/redis-cache"
 	"github.com/ignavan39/ucrm-go/pkg/utils"
 )
 
@@ -42,6 +42,15 @@ func NewController(
 	}
 }
 
+// SignUp    godoc
+// @Summary  Sign-up
+// @Tags     users
+// @Accept   json
+// @Success  201  {object}  SignResponse
+// @Failure  400  {object}  httpext.CommonError
+// @Failure  401  {object}  httpext.CommonError
+// @Failure  500  {object}  httpext.CommonError
+// @Router   /users/signUp [post]
 func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 	var payload SignPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
@@ -105,16 +114,25 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpext.JSON(w, SignResponse{
-		User:  *user,
-		Token: accessToken,
-	}, http.StatusCreated)
+	response := SignResponse{*user, accessToken}
+	httpext.JSON(w, response, http.StatusCreated)
 }
 
+// SignIn    godoc
+// @Summary  Sign-in
+// @Tags     users
+// @Accept   json
+// @Param    payload  body      SignPayload  true  " "
+// @Success  200      {object}  SignResponse
+// @Failure  400  {object}  httpext.CommonError
+// @Failure  401  {object}  httpext.CommonError
+// @Failure  500  {object}  httpext.CommonError
+// @Router   /users/signIn [post]
 func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var payload SignPayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
 
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
@@ -144,7 +162,6 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
 	accessToken, err := c.auth.CreateToken(ctx, user.Id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
@@ -154,17 +171,25 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpext.JSON(w, SignResponse{
-		User:  *user,
-		Token: accessToken,
-	}, http.StatusCreated)
+	response := SignResponse{*user, accessToken}
+	httpext.JSON(w, response, http.StatusOK)
 }
 
+// SendVerifyCode    godoc
+// @Summary  Send verification code
+// @Tags     users
+// @Accept   json
+// @Param    payload  body  VerifyCodePayload  true  " "
+// @Success  200
+// @Failure  400      {object}  httpext.CommonError
+// @Failure  401      {object}  httpext.CommonError
+// @Failure  500      {object}  httpext.CommonError
+// @Router   /users/sendVerifyCode [post]
 func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload VerifyCodePayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
 
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
@@ -174,7 +199,6 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var lastTimeRaw string
-
 	err = c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email), &lastTimeRaw)
 	if err == nil {
 		lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
@@ -198,7 +222,6 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 	err = c.cache.Set(ctx,
 		fmt.Sprintf("%s_%s", retryPeriodPrefix(), payload.Email),
 		time.Now().Format(time.RFC3339))
-
 	if err != nil {
 		blogger.Errorf("Failed to save lastTime to redis: CTX: %v, Error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -241,6 +264,7 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

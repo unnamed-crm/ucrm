@@ -40,9 +40,12 @@ import (
 	blogger "github.com/sirupsen/logrus"
 )
 
-// @title        Unnamed URCM
-// @version      1.0
-// @description  Unnamed URCM
+// @title                       Unnamed URCM
+// @version                     1.0
+// @description                 Unnamed URCM
+// @securityDefinitions.apiKey  JWT
+// @in                          header
+// @name                        Authorization
 
 func main() {
 	blogger.SetOutput(os.Stdout)

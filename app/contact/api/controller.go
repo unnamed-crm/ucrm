@@ -24,6 +24,16 @@ func NewController(contactRepo contact.Repository, cardRepo card.Repository) *Co
 	}
 }
 
+// GetOne godoc
+// @Summary   Get contact
+// @Tags      contacts
+// @Produce   json
+// @Success   200  {object}  models.Contact
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /contacts/{contactId} [get]
+// @security  JWT
 func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	contactId := chi.URLParam(r, "contactId")
@@ -49,6 +59,18 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, contact, http.StatusOK)
 }
 
+// CreateOne godoc
+// @Summary   Create contact
+// @Tags      contacts
+// @Accept    json
+// @Produce   json
+// @Param     payload  body      CreateOnePayload  true  " "
+// @Success   201      {object}  models.Contact
+// @Failure   400      {object}  httpext.CommonError
+// @Failure   401      {object}  httpext.CommonError
+// @Failure   500      {object}  httpext.CommonError
+// @Router    /contacts/create [post]
+// @security  JWT
 func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload CreateOnePayload
@@ -75,6 +97,17 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, contact, http.StatusOK)
 }
 
+// Rename godoc
+// @Summary   Rename contact
+// @Tags      contacts
+// @Param     contactId  query  string  true  " "
+// @Param     newName    query  string  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /contacts/{contactId}/{newName} [patch]
+// @security  JWT
 func (c *Controller) Rename(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	contactId := chi.URLParam(r, "contactId")
@@ -109,6 +142,18 @@ func (c *Controller) Rename(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Update godoc
+// @Accept    json
+// @Summary   Update contact
+// @Tags      contacts
+// @Param     contactId  query  string         true  " "
+// @Param     payload    body   UpdatePayload  true  " "
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /contacts/{contactId} [patch]
+// @security  JWT
 func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload UpdatePayload
@@ -149,13 +194,22 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Delete godoc
-// @Summary  Unsubscribe
-// @Tags     contacts
-// @Success  200  
-// @Router   /contacts/{cardId} [delete]
+// @Accept    json
+// @Produce   json
+// @Summary   Delete contact
+// @Param     contactId  query  string  true  " "
+// @Tags      contacts
+// @Success   200
+// @Failure   400  {object}  httpext.CommonError
+// @Failure   401  {object}  httpext.CommonError
+// @Failure   500  {object}  httpext.CommonError
+// @Router    /contacts/{contactId} [delete]
+// @security  JWT
 func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	contactId := chi.URLParam(r, "contactId")

@@ -22,6 +22,7 @@ func NewRepository(pool pg.Pool) *Repository {
 
 func (r *Repository) Create(name string, userId string) (*models.Dashboard, error) {
 	dashboard := &models.Dashboard{}
+
 	row := sq.Insert("dashboards").Columns("name", "author_id").
 		Values(name, userId).
 		Suffix("returning id,name,author_id,updated_at").
@@ -37,6 +38,7 @@ func (r *Repository) Create(name string, userId string) (*models.Dashboard, erro
 	if err != nil {
 		return nil, err
 	}
+
 	return dashboard, nil
 }
 
@@ -89,6 +91,7 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 		}
 		return nil, err
 	}
+
 	defer rows.Close()
 	pipelines := make(map[string]models.Pipeline)
 
@@ -127,7 +130,6 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 			c.Order = int(order.Int64)
 			c.Id = id.String
 			c.PipelineId = pipelineId.String
-
 			pipeline.Cards = append(pipeline.Cards, c)
 		}
 
@@ -356,8 +358,10 @@ func (d *Repository) UpdateAccess(dashboardId string, userId string, access stri
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
+
 func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
 	_, err := sq.Delete("dashboards_user").
 		Where(sq.And{sq.Eq{"dashboard_id": dashboardId}, sq.Eq{"user_id": userId}}).
@@ -367,6 +371,7 @@ func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

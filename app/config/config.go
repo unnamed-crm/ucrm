@@ -76,6 +76,7 @@ func validateEnvironment(env string) bool {
 
 func confFromFile(fileName string) (*CoreConfig, error) {
 	blogger.Infoln(fmt.Sprintf("reading from %s", fileName))
+
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
