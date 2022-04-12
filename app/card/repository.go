@@ -1,13 +1,15 @@
 package card
 
 import (
+	"errors"
+
 	"github.com/ignavan39/ucrm-go/app/models"
 )
 
 const CardFieldType string = "card"
 
 type Repository interface {
-	CreateOne(name string, pipelineId string) (*models.Card, error)
+	CreateOne(name string, pipelineId string, fields *map[string]string) (*models.Card, error)
 	Update(cardId string, name *string, cardFields *map[string]string) (*models.Card, error)
 	CheckExists(cardId string) (bool, error)
 	GetOne(cardId string) (*models.Card, error)
@@ -16,3 +18,5 @@ type Repository interface {
 	UpdateOrders(cardIdsToNewOrder map[string]int) error
 	GetAllByPipelineId(cardId string) ([]models.Card, error)
 }
+
+var ErrFieldNotFound = errors.New("field not found")

@@ -10,5 +10,5 @@ type Card struct {
 	Name       string      `json:"name"`
 	Contacts   []Contact   `json:"contacts"`
 	Fields     []CardField `json:"fields"`
-	Chat       *Chat       `json:"chat,omitempty"`
+	Chat       Chat        `json:"chat"`
 }

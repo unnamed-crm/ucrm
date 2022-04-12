@@ -3,8 +3,9 @@ package api
 import "errors"
 
 type CreateOnePayload struct {
-	PipelineId string `json:"pipeline_id"`
-	Name       string `json:"name"`
+	PipelineId string             `json:"pipeline_id"`
+	Name       string             `json:"name"`
+	Fields     *map[string]string `json:"fields,omitempty"`
 }
 
 type UpdateOnePayload struct {
