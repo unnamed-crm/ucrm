@@ -33,11 +33,12 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		return nil, err
 	}
 
-	row := sq.Select(`max(c."order")`, "max(d.id)").
+	row := sq.Select(`max(c."order")`,"d.id").
 		From("cards c").
 		LeftJoin("pipelines p on p.id = c.pipeline_id").
 		LeftJoin("dashboards d on p.dashboard_id = d.id").
 		Where(sq.Eq{"c.pipeline_id": pipelineId}).
+		GroupBy("d.id").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
 		QueryRow()
