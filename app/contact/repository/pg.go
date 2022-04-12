@@ -7,6 +7,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ignavan39/ucrm-go/app/models"
+
+	repository "github.com/ignavan39/ucrm-go/app/contact"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 	blogger "github.com/sirupsen/logrus"
 )
@@ -71,19 +73,106 @@ func (r *Repository) GetOne(ctx context.Context, contactId string) (*models.Cont
 	return contact, nil
 }
 
-func (r *Repository) Create(ctx context.Context, dashboardId string, cardId *string, name string, phone string, city string) (*models.Contact, error) {
+func (r *Repository) Create(ctx context.Context, dashboardId string, cardId *string, name string, phone string, city string, fields *map[string]string) (*models.Contact, error) {
 	contact := &models.Contact{}
+	isUpdateWithTransaction := fields != nil
+	var tx *sql.Tx
 
-	row := sq.Insert("contacts").
+	if isUpdateWithTransaction {
+		var err error
+		tx, err = r.pool.Write().Begin()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	qb := sq.Insert("contacts").
 		Columns("dashboard_id", "card_id", "name", "phone", "city").
 		Suffix("returning id, dashboard_id, card_id, name, phone, city").
-		Values(dashboardId, &cardId, name, phone, city).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
+		Values(dashboardId, &cardId, name, phone, city)
+
+	if isUpdateWithTransaction {
+		qb = qb.RunWith(tx)
+	} else {
+		qb = qb.RunWith(r.pool.Write())
+	}
+	row := qb.PlaceholderFormat(sq.Dollar).
 		QueryRow()
 	if err := row.Scan(&contact.Id, &contact.DashboardId, &contact.CardId, &contact.Name, &contact.Phone, &contact.City); err != nil {
 		blogger.Errorf("[contact/Delete] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		return nil, err
+	}
+
+	if fields != nil {
+		fieldsRow, err := sq.Select("id").
+			From("fields f").
+			Where(sq.Eq{"f.dashboard_id": contact.DashboardId, "f.type": "contact"}).
+			RunWith(r.pool.Read()).
+			PlaceholderFormat(sq.Dollar).
+			Query()
+
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return nil, err
+			}
+		} else {
+			fieldsIds := make([]string, 0)
+
+			for fieldsRow.Next() {
+				var fieldId string
+				if err = fieldsRow.Scan(&fieldId); err != nil {
+					return nil, err
+				}
+
+				fieldsIds = append(fieldsIds, fieldId)
+			}
+
+			fieldsRow.Close()
+
+			noValueFieldIds := make([]string, 0)
+			if fields != nil {
+				fieldsMap := *fields
+
+				for _, id := range fieldsIds {
+					value, found := fieldsMap[id]
+					if !found {
+						noValueFieldIds = append(noValueFieldIds, id)
+					} else {
+						_, err := sq.Insert("contact_fields").
+							Columns("contact_id", "field_id", "value").
+							Values(contact.Id, id, value).
+							RunWith(tx).
+							PlaceholderFormat(sq.Dollar).
+							Exec()
+
+						if err != nil {
+							if err = tx.Rollback(); err != nil {
+								return nil, err
+							}
+							return nil, repository.ErrFieldNotFound
+						}
+					}
+				}
+			} else {
+				noValueFieldIds = fieldsIds
+			}
+
+			for _, id := range noValueFieldIds {
+				_, err := sq.Insert("contact_fields").
+					Columns("contact_id", "field_id").
+					Values(contact.Id, id).
+					RunWith(tx).
+					PlaceholderFormat(sq.Dollar).
+					Exec()
+
+				if err != nil {
+					if err = tx.Rollback(); err != nil {
+						return nil, err
+					}
+					return nil, err
+				}
+			}
+		}
 	}
 
 	return contact, nil
