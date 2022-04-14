@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -84,8 +85,16 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact, err := c.contactRepo.Create(ctx, payload.DashboardId, payload.CardId, payload.Name, payload.Phone, payload.City)
+	contactModel, err := c.contactRepo.Create(ctx, payload.DashboardId, payload.CardId, payload.Name, payload.Phone, payload.City, payload.Fields)
 	if err != nil {
+		if errors.Is(err, contact.ErrFieldNotFound) {
+			httpext.JSON(w, httpext.CommonError{
+				Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
+				Code:  http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
+
 		blogger.Errorf("[contact/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
@@ -94,7 +103,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpext.JSON(w, contact, http.StatusOK)
+	httpext.JSON(w, contactModel, http.StatusOK)
 }
 
 // Rename godoc

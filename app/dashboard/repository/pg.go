@@ -76,10 +76,11 @@ func (r *Repository) GetOneInternal(dashboardId string) (*models.Dashboard, erro
 func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
 
-	rows, err := sq.Select("d.*", "p.id", `p."order"`, "p.name", "c.name", `c."order"`, "c.id", "c.pipeline_id").
+	rows, err := sq.Select("d.*", "p.id", `p."order"`, "p.name", "c.name", `c."order"`, "c.id", "c.pipeline_id", "f.id", "f.name", "f.type").
 		From("dashboards d").
 		LeftJoin("pipelines p on d.id = p.dashboard_id").
 		LeftJoin("cards c on c.pipeline_id = p.id").
+		LeftJoin("fields f on f.dashboard_id = d.id").
 		Where(sq.Eq{"d.id": dashboardId}).
 		OrderBy(`p."order"`, `c."order"`).
 		RunWith(r.pool.Read()).
@@ -94,11 +95,13 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 
 	defer rows.Close()
 	pipelines := make(map[string]models.Pipeline)
+	fields := make(map[string]models.Field)
 
 	for rows.Next() {
 		var p models.Pipeline
 		var order sql.NullInt64
 		var name, id, pipelineId sql.NullString
+		var fieldName, fieldId, fieldType sql.NullString
 
 		if err := rows.Scan(
 			&dashboard.Id,
@@ -111,7 +114,11 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 			&name,
 			&order,
 			&id,
-			&pipelineId); err != nil {
+			&pipelineId,
+			&fieldId,
+			&fieldName,
+			&fieldType,
+		); err != nil {
 			return nil, err
 		}
 
@@ -133,11 +140,26 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 			pipeline.Cards = append(pipeline.Cards, c)
 		}
 
+		var f models.Field
+		if fieldName.Valid && fieldId.Valid && fieldType.Valid {
+			f.Id = fieldId.String
+			f.Name = fieldName.String
+			f.Type = fieldType.String
+			fields[f.Id] = f
+		}
+
 		pipelines[p.Id] = pipeline
 	}
 
+	dashboard.Fields = make([]models.Field, 0)
+	dashboard.Pipelines = make([]models.Pipeline, 0)
+
 	for _, p := range pipelines {
 		dashboard.Pipelines = append(dashboard.Pipelines, p)
+	}
+
+	for _, f := range fields {
+		dashboard.Fields = append(dashboard.Fields, f)
 	}
 
 	return &dashboard, nil

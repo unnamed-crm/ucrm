@@ -9,6 +9,7 @@ type Dashboard struct {
 	UpdatedAt time.Time         `json:"updated_at"`
 	Users     []DashboardsUsers `json:"users,omitempty"`
 	Pipelines []Pipeline        `json:"pipelines"`
+	Fields    []Field           `json:"fields"`
 }
 
 type DashboardsUsers struct {

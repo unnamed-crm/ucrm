@@ -33,7 +33,7 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		return nil, err
 	}
 
-	row := sq.Select(`max(c."order")`,"d.id").
+	row := sq.Select(`max(c."order")`, "d.id").
 		From("cards c").
 		LeftJoin("pipelines p on p.id = c.pipeline_id").
 		LeftJoin("dashboards d on p.dashboard_id = d.id").
@@ -65,7 +65,7 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		return nil, err
 	}
 
-	if dashboardId.Valid {
+	if dashboardId.Valid && fields != nil {
 		fieldsRow, err := sq.Select("id").
 			From("fields f").
 			Where(sq.Eq{"f.dashboard_id": dashboardId.String, "f.type": "card"}).
