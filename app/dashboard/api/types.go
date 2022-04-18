@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/ignavan39/ucrm-go/app/models"
 )
@@ -19,6 +20,20 @@ type AddAccessPayload struct {
 	DashboardId string `json:"dashboard_id"`
 	Access      string `json:"access"`
 	UserId      string `json:"user_id"`
+}
+
+type GetOneDashboardFields struct {
+	Contacts []models.Field `json:"contacts"`
+	Cards    []models.Field `json:"card"`
+}
+
+type GetOneDashboardResponse struct {
+	Id        string                `json:"id"`
+	UpdatedAt time.Time             `json:"updated_at"`
+	Name      string                `json:"name"`
+	AuthorId  string                `json:"author_id"`
+	Pipelines []models.Pipeline     `json:"pipelines"`
+	Fields    GetOneDashboardFields `json:"fields"`
 }
 
 var Access = []string{"rw", "admin", "r"}

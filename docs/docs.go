@@ -919,7 +919,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Dashboard"
+                            "$ref": "#/definitions/api.GetOneDashboardResponse"
                         }
                     },
                     "400": {
@@ -1655,10 +1655,16 @@ const docTemplate = `{
         "api.CreateOnePayload": {
             "type": "object",
             "properties": {
-                "dashboard_id": {
-                    "type": "string"
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "name": {
+                    "type": "string"
+                },
+                "pipeline_id": {
                     "type": "string"
                 }
             }
@@ -1678,6 +1684,49 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "dashboard_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.GetOneDashboardFields": {
+            "type": "object",
+            "properties": {
+                "card": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Field"
+                    }
+                },
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Field"
+                    }
+                }
+            }
+        },
+        "api.GetOneDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "fields": {
+                    "$ref": "#/definitions/api.GetOneDashboardFields"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pipelines": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Pipeline"
+                    }
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -1983,6 +2032,12 @@ const docTemplate = `{
             "properties": {
                 "author_id": {
                     "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Field"
+                    }
                 },
                 "id": {
                     "type": "string"

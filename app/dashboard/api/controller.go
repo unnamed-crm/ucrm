@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ignavan39/ucrm-go/app/auth"
 	"github.com/ignavan39/ucrm-go/app/dashboard"
+	"github.com/ignavan39/ucrm-go/app/models"
 
 	dashboardSettings "github.com/ignavan39/ucrm-go/app/dashboard-settings"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
@@ -138,7 +139,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 // @Summary   Get dashboard
 // @Tags      dashboards
 // @Produce   json
-// @Success   200  {object}  models.Dashboard
+// @Success   200  {object}  GetOneDashboardResponse
 // @Failure   400  {object}  httpext.CommonError
 // @Failure   401  {object}  httpext.CommonError
 // @Failure   500  {object}  httpext.CommonError
@@ -172,7 +173,29 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpext.JSON(w, dashboard, http.StatusOK)
+	cardFields := make([]models.Field, 0)
+	contactFields := make([]models.Field, 0)
+	for _, field := range dashboard.Fields {
+		if field.Type == "card" {
+			cardFields = append(cardFields, field)
+		} else if field.Type == "contact" {
+			contactFields = append(contactFields, field)
+		}
+	}
+
+	response := GetOneDashboardResponse{
+		dashboard.Id,
+		dashboard.UpdatedAt,
+		dashboard.Name,
+		dashboard.AuthorId,
+		dashboard.Pipelines,
+		GetOneDashboardFields{
+			cardFields,
+			contactFields,
+		},
+	}
+
+	httpext.JSON(w, &response, http.StatusOK)
 }
 
 // UpdateName    godoc
