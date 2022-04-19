@@ -6,8 +6,6 @@ import (
 	"github.com/ignavan39/ucrm-go/app/models"
 )
 
-const CardFieldType string = "card"
-
 type Repository interface {
 	CreateOne(name string, pipelineId string, fields *map[string]string) (*models.Card, error)
 	Update(cardId string, name *string, cardFields *map[string]string) (*models.Card, error)

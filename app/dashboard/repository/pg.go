@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/ignavan39/ucrm-go/app/dashboard/api"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
@@ -325,7 +326,7 @@ func (r *Repository) AddCustomField(dashboardId string, name string, isNullable 
 	var completeSql string
 	var tableForInsert string
 
-	if fieldType == "card" {
+	if fieldType == api.FIELD_TYPE_CARD {
 		idColumnName = "card_id"
 		tableForInsert = "card_fields"
 
@@ -339,7 +340,7 @@ func (r *Repository) AddCustomField(dashboardId string, name string, isNullable 
 		}
 
 		completeSql = fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
-	} else if fieldType == "contact" {
+	} else if fieldType == api.FIELD_TYPE_CONTACT {
 		idColumnName = "contact_id"
 		tableForInsert = "contact_fields"
 		var err error

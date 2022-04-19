@@ -66,13 +66,18 @@ type AddCustomField struct {
 	FieldType  string `json:"field_type"`
 }
 
+const (
+	FIELD_TYPE_CONTACT = "contact"
+	FIELD_TYPE_CARD    = "card"
+)
+
 func (p *AddCustomField) Validate() error {
 	if len(p.Name) == 0 {
 		return errors.New("incorrect params for custom field add")
 	}
 
 	p.FieldType = strings.ToLower(p.FieldType)
-	if p.FieldType != "card" && p.FieldType != "contact" {
+	if p.FieldType != FIELD_TYPE_CARD && p.FieldType != FIELD_TYPE_CONTACT {
 		return errors.New("incorrect value for type")
 	}
 

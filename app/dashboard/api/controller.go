@@ -176,9 +176,9 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	cardFields := make([]models.Field, 0)
 	contactFields := make([]models.Field, 0)
 	for _, field := range dashboard.Fields {
-		if field.Type == "card" {
+		if field.Type == FIELD_TYPE_CARD {
 			cardFields = append(cardFields, field)
-		} else if field.Type == "contact" {
+		} else if field.Type == FIELD_TYPE_CONTACT {
 			contactFields = append(contactFields, field)
 		}
 	}
