@@ -83,8 +83,3 @@ func (p *AddCustomField) Validate() error {
 
 	return nil
 }
-
-const (
-	FIELD_TYPE_CONTACT = "contact"
-	FIELD_TYPE_CARD    = "card"
-)
