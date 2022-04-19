@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/ignavan39/ucrm-go/app/dashboard/api"
 	"github.com/ignavan39/ucrm-go/app/models"
 
 	repository "github.com/ignavan39/ucrm-go/app/contact"
@@ -106,7 +107,7 @@ func (r *Repository) Create(ctx context.Context, dashboardId string, cardId *str
 	if fields != nil {
 		fieldsRow, err := sq.Select("id").
 			From("fields f").
-			Where(sq.Eq{"f.dashboard_id": contact.DashboardId, "f.type": "contact"}).
+			Where(sq.Eq{"f.dashboard_id": contact.DashboardId, "f.type": api.FIELD_TYPE_CONTACT}).
 			RunWith(r.pool.Read()).
 			PlaceholderFormat(sq.Dollar).
 			Query()

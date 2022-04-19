@@ -24,9 +24,13 @@ definitions:
     type: object
   api.CreateOnePayload:
     properties:
-      dashboard_id:
-        type: string
+      fields:
+        additionalProperties:
+          type: string
+        type: object
       name:
+        type: string
+      pipeline_id:
         type: string
     type: object
   api.CreatePipelineResponse:
@@ -39,6 +43,34 @@ definitions:
       chat_id:
         type: string
       dashboard_id:
+        type: string
+    type: object
+  api.GetOneDashboardFields:
+    properties:
+      card:
+        items:
+          $ref: '#/definitions/models.Field'
+        type: array
+      contacts:
+        items:
+          $ref: '#/definitions/models.Field'
+        type: array
+    type: object
+  api.GetOneDashboardResponse:
+    properties:
+      author_id:
+        type: string
+      fields:
+        $ref: '#/definitions/api.GetOneDashboardFields'
+      id:
+        type: string
+      name:
+        type: string
+      pipelines:
+        items:
+          $ref: '#/definitions/models.Pipeline'
+        type: array
+      updated_at:
         type: string
     type: object
   api.PingPayload:
@@ -237,6 +269,10 @@ definitions:
     properties:
       author_id:
         type: string
+      fields:
+        items:
+          $ref: '#/definitions/models.Field'
+        type: array
       id:
         type: string
       name:
@@ -826,7 +862,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Dashboard'
+            $ref: '#/definitions/api.GetOneDashboardResponse'
         "400":
           description: Bad Request
           schema:

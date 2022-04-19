@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/ignavan39/ucrm-go/app/dashboard/api"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
@@ -76,7 +77,10 @@ func (r *Repository) GetOneInternal(dashboardId string) (*models.Dashboard, erro
 func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 	var dashboard models.Dashboard
 
-	rows, err := sq.Select("d.*", "p.id", `p."order"`, "p.name", "c.name", `c."order"`, "c.id", "c.pipeline_id", "f.id", "f.name", "f.type").
+	rows, err := sq.Select("d.*",
+		"f.id", "f.name", "f.type", "f.is_nullable",
+		"p.id", "p.name", `p."order"`,
+		"c.id", "c.name", `c."order"`, "c.pipeline_id").
 		From("dashboards d").
 		LeftJoin("pipelines p on d.id = p.dashboard_id").
 		LeftJoin("cards c on c.pipeline_id = p.id").
@@ -94,71 +98,90 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 	}
 
 	defer rows.Close()
-	pipelines := make(map[string]models.Pipeline)
-	fields := make(map[string]models.Field)
+
+	idToFields := make(map[string]models.Field)
+	idToPipelines := make(map[string]*models.Pipeline)
+
+	var pipelineRow PipelineRow
+	var cardRow CardRow
+	var fieldRow FieldRow
+	var tempPipeline *models.Pipeline
 
 	for rows.Next() {
-		var p models.Pipeline
-		var order sql.NullInt64
-		var name, id, pipelineId sql.NullString
-		var fieldName, fieldId, fieldType sql.NullString
-
 		if err := rows.Scan(
 			&dashboard.Id,
 			&dashboard.UpdatedAt,
 			&dashboard.Name,
 			&dashboard.AuthorId,
-			&p.Id,
-			&p.Order,
-			&p.Name,
-			&name,
-			&order,
-			&id,
-			&pipelineId,
-			&fieldId,
-			&fieldName,
-			&fieldType,
+			&fieldRow.Id,
+			&fieldRow.Name,
+			&fieldRow.Type,
+			&fieldRow.IsNullable,
+			&pipelineRow.Id,
+			&pipelineRow.Name,
+			&pipelineRow.Order,
+			&cardRow.Id,
+			&cardRow.Name,
+			&cardRow.Order,
+			&cardRow.PipelineId,
 		); err != nil {
 			return nil, err
 		}
 
-		pipeline, found := pipelines[p.Id]
-		if !found {
-			pipeline = p
+		if fieldRow.Id.Valid {
+			id := fieldRow.Id.String
+			_, found := idToFields[id]
+
+			if !found {
+				field := models.Field{
+					Id:         id,
+					IsNullable: fieldRow.IsNullable.Bool,
+					Name:       fieldRow.Name.String,
+					Type:       fieldRow.Type.String,
+				}
+				idToFields[id] = field
+			}
 		}
 
-		if pipeline.Cards == nil {
-			pipeline.Cards = make([]models.Card, 0)
+		if pipelineRow.Id.Valid {
+			id := pipelineRow.Id.String
+			_, found := idToPipelines[id]
+
+			if !found {
+				pipeline := models.Pipeline{
+					Id:    id,
+					Name:  pipelineRow.Name.String,
+					Order: int(pipelineRow.Order.Int64),
+				}
+				idToPipelines[id] = &pipeline
+				tempPipeline = &pipeline
+			}
 		}
 
-		var c models.Card
-		if name.Valid {
-			c.Name = name.String
-			c.Order = int(order.Int64)
-			c.Id = id.String
-			c.PipelineId = pipelineId.String
-			pipeline.Cards = append(pipeline.Cards, c)
-		}
+		if cardRow.Id.Valid {
+			if len((*tempPipeline).Cards) == 0 {
+				(*tempPipeline).Cards = make([]models.Card, 0)
+			}
 
-		var f models.Field
-		if fieldName.Valid && fieldId.Valid && fieldType.Valid {
-			f.Id = fieldId.String
-			f.Name = fieldName.String
-			f.Type = fieldType.String
-			fields[f.Id] = f
-		}
+			card := models.Card{
+				Id:         cardRow.Id.String,
+				Name:       cardRow.Name.String,
+				PipelineId: cardRow.PipelineId.String,
+				Order:      int(cardRow.Order.Int64),
+			}
 
-		pipelines[p.Id] = pipeline
+			(*tempPipeline).Cards = append((*tempPipeline).Cards, card)
+		}
 	}
 
 	dashboard.Fields = make([]models.Field, 0)
 	dashboard.Pipelines = make([]models.Pipeline, 0)
 
-	for _, p := range pipelines {
-		dashboard.Pipelines = append(dashboard.Pipelines, p)
+	for _, p := range idToPipelines {
+		dashboard.Pipelines = append(dashboard.Pipelines, *p)
 	}
 
-	for _, f := range fields {
+	for _, f := range idToFields {
 		dashboard.Fields = append(dashboard.Fields, f)
 	}
 
@@ -302,7 +325,7 @@ func (r *Repository) AddCustomField(dashboardId string, name string, isNullable 
 	var completeSql string
 	var tableForInsert string
 
-	if fieldType == "card" {
+	if fieldType == api.FIELD_TYPE_CARD {
 		idColumnName = "card_id"
 		tableForInsert = "card_fields"
 
@@ -316,7 +339,7 @@ func (r *Repository) AddCustomField(dashboardId string, name string, isNullable 
 		}
 
 		completeSql = fmt.Sprintf("with p as (%s) select id from cards where pipeline_id in (select * from p)", selectQuery)
-	} else if fieldType == "contact" {
+	} else if fieldType == api.FIELD_TYPE_CONTACT {
 		idColumnName = "contact_id"
 		tableForInsert = "contact_fields"
 		var err error
