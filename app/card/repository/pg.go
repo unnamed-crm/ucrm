@@ -8,6 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	repository "github.com/ignavan39/ucrm-go/app/card"
+	"github.com/ignavan39/ucrm-go/app/dashboard/api"
 	"github.com/ignavan39/ucrm-go/app/models"
 	"github.com/ignavan39/ucrm-go/pkg/pg"
 )
@@ -68,7 +69,7 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 	if dashboardId.Valid && fields != nil {
 		fieldsRow, err := sq.Select("id").
 			From("fields f").
-			Where(sq.Eq{"f.dashboard_id": dashboardId.String, "f.type": "card"}).
+			Where(sq.Eq{"f.dashboard_id": dashboardId.String, "f.type": api.FIELD_TYPE_CARD}).
 			RunWith(tx).
 			PlaceholderFormat(sq.Dollar).
 			Query()
