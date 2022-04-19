@@ -29,7 +29,7 @@ func (d *Repository) CreateOneMessage(payload models.MessagePayload, senderId st
 
 	row := sq.Insert("messages").Columns("chat_id", "payload", "sender_id", "created_at", "deleted", "status").
 		Values(chatId, string(stringifyPayload), senderId, createdAt, deleted, status).
-		Suffix("returning id,chat_id,payload,sender_id,created_at,deleted,status").
+		Suffix("returning id, chat_id, payload,sender_id, created_at, deleted, status").
 		RunWith(d.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
 	if err := row.Scan(&message.Id, &message.ChatId, &message.Payload, &message.SenderId, &message.Deleted, &message.Status); err != nil {
 		return nil, err

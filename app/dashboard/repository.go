@@ -15,5 +15,6 @@ type Repository interface {
 	AddSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error)
 	DeleteById(dashboardId string) error
 	AddCustomField(dashboardId string, name string, isNullable bool, fieldType string) (*models.Field, error)
+	DeleteCustomField(fieldId string) error
 	GetOneByUser(userId string) ([]models.Dashboard, error)
 }

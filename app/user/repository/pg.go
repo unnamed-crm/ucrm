@@ -26,7 +26,7 @@ func (r *Repository) Create(email string, password string) (*models.User, error)
 	row := sq.Insert("users").
 		Columns("password", "email").
 		Values(password, email).
-		Suffix("returning id,password,email,created_at").
+		Suffix("returning id, password, email, created_at").
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()

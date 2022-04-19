@@ -34,6 +34,7 @@ func RegisterRouter(
 					r.Delete("/removeAccess/{dashboardId}/{userId}", controller.RemoveAccess)
 					r.Patch("/updateAccess", controller.UpdateAccess)
 					r.Post("/addAccess", controller.AddAccess)
+					r.Delete("/{dashboardId}/custom-field/{fieldId}", controller.DeleteCustomField)
 				})
 			})
 		})
