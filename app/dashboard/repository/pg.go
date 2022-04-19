@@ -171,7 +171,6 @@ func (r *Repository) GetOne(dashboardId string) (*models.Dashboard, error) {
 			}
 
 			(*tempPipeline).Cards = append((*tempPipeline).Cards, card)
-			//fmt.Println("%#v\n\n\n", (*tempPipeline).Cards)
 		}
 	}
 
