@@ -112,6 +112,7 @@ func main() {
 
 	pipelineAccessGuard := middlewares.NewPipelineAccessGuard(pipelineRepo)
 	dashboardAccesGuard := middlewares.NewDashboardAccessGuard(dashboardRepo)
+	customFieldGuard := middlewares.NewCustomFieldGuard(dashboardRepo)
 	authGuard := middlewares.NewAuthGuard(config.JWT)
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
@@ -125,7 +126,7 @@ func main() {
 			chim.Recoverer,
 		)
 		userApi.RegisterRouter(v1, userController)
-		dashboardApi.RegisterRouter(v1, dashboardController, *dashboardAccesGuard, *authGuard)
+		dashboardApi.RegisterRouter(v1, dashboardController, *dashboardAccesGuard, *customFieldGuard, *authGuard)
 		pipelineApi.RegisterRouter(v1, pipelineController, *authGuard, *pipelineAccessGuard, *dashboardAccesGuard)
 		cardApi.RegisterRouter(v1, cardController, *authGuard)
 		ws.RegisterRouter(v1, wsController)

@@ -22,37 +22,45 @@ func NewDashboardAccessGuard(repo dashboard.Repository) *DashboardAccessGuard {
 	}
 }
 
+type DashboardAccessGuardPayload struct {
+	DashboardId string `json:"dashboard_id"`
+}
+
 func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			id := chi.URLParam(r, "dashboardId")
 			if len(id) == 0 {
-				var payload struct {
-					DashboardId string `json:"dashboard_id"`
-				}
+				dashboardIdFromContext, ok := ctx.Value("dashboardId").(string)
+				if ok || len(dashboardIdFromContext) != 0 {
+					id = dashboardIdFromContext
+				} else {
+					var payload DashboardAccessGuardPayload
 
-				body, err := ioutil.ReadAll(r.Body)
-				if err != nil {
-					httpext.JSON(w, httpext.CommonError{
-						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
-					}, http.StatusBadRequest)
-					return
-				}
+					body, err := ioutil.ReadAll(r.Body)
+					if err != nil {
+						httpext.JSON(w, httpext.CommonError{
+							Error: "failed decode payload",
+							Code:  http.StatusBadRequest,
+						}, http.StatusBadRequest)
+						return
+					}
 
-				reader := ioutil.NopCloser(bytes.NewReader(body))
-				r.Body = reader
-				err = json.Unmarshal(body, &payload)
-				if err != nil {
-					httpext.JSON(w, httpext.CommonError{
-						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
-					}, http.StatusBadRequest)
-					return
-				}
+					reader := ioutil.NopCloser(bytes.NewReader(body))
+					r.Body = reader
 
-				id = payload.DashboardId
+					err = json.Unmarshal(body, &payload)
+					if err != nil {
+						httpext.JSON(w, httpext.CommonError{
+							Error: "failed decode payload",
+							Code:  http.StatusBadRequest,
+						}, http.StatusBadRequest)
+						return
+					}
+
+					id = payload.DashboardId
+				}
 			}
 
 			if len(id) == 0 {

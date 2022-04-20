@@ -2,39 +2,38 @@ package middlewares
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/pipeline"
+	"github.com/ignavan39/ucrm-go/app/dashboard"
 	"github.com/ignavan39/ucrm-go/pkg/httpext"
 )
 
-type PipelineAccessGuard struct {
-	repo pipeline.Repository
+type CustomFieldGuard struct {
+	repo dashboard.Repository
 }
 
-func NewPipelineAccessGuard(repo pipeline.Repository) *PipelineAccessGuard {
-	return &PipelineAccessGuard{
+func NewCustomFieldGuard(repo dashboard.Repository) *CustomFieldGuard {
+	return &CustomFieldGuard{
 		repo: repo,
 	}
 }
 
-type PipelineAccessGuardPayload struct {
-	PipelineId string `json:"pipeline_id"`
+type CustomFieldGuardPayload struct {
+	FieldId string `json:"field_id"`
 }
 
-func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) http.Handler {
+func (cfg *CustomFieldGuard) Next() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			fieldId := chi.URLParam(r, "fieldId")
 
-			id := chi.URLParam(r, "pipelineId")
-			if len(id) == 0 {
-				var payload PipelineAccessGuardPayload
-
+			if len(fieldId) == 0 {
+				var payload CustomFieldGuardPayload
 				body, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
@@ -46,7 +45,6 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 
 				reader := ioutil.NopCloser(bytes.NewReader(body))
 				r.Body = reader
-
 				err = json.Unmarshal(body, &payload)
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
@@ -56,34 +54,29 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 					return
 				}
 
-				id = payload.PipelineId
+				fieldId = payload.FieldId
 			}
 
-			if len(id) == 0 {
+			if len(fieldId) == 0 {
 				httpext.JSON(w, httpext.CommonError{
-					Error: "[PipelineAccessGuard]/wrong id",
+					Error: "[AccessGuard]/wrong field id",
 					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
 
-			userId := auth.GetUserIdFromContext(ctx)
-			ok, err := pag.repo.GetAccessById(id, userId, accessType)
-			if err != nil {
+			dashboardId, err := cfg.repo.GetDashboardIdByFieldId(fieldId)
+			if err != nil || dashboardId == nil {
 				httpext.JSON(w, httpext.CommonError{
-					Error: err.Error(),
-					Code:  http.StatusInternalServerError,
-				}, http.StatusInternalServerError)
+					Error: "[AccessGuard]/wrong field id",
+					Code:  http.StatusBadRequest,
+				}, http.StatusBadRequest)
 				return
 			}
 
-			if ok {
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
-
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Forbidden"))
+			newCtx := context.WithValue(ctx, "dashboardId", *dashboardId)
+			next.ServeHTTP(w, r.WithContext(newCtx))
+			return
 		})
 	}
 }

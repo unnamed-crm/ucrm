@@ -17,4 +17,5 @@ type Repository interface {
 	AddCustomField(dashboardId string, name string, isNullable bool, fieldType string) (*models.Field, error)
 	DeleteCustomField(fieldId string) error
 	GetOneByUser(userId string) ([]models.Dashboard, error)
+	GetDashboardIdByFieldId(fieldId string) (*string, error)
 }

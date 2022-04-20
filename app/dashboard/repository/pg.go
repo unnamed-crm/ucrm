@@ -422,10 +422,10 @@ func (d *Repository) UpdateAccess(dashboardId string, userId string, access stri
 	return nil
 }
 
-func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
+func (r *Repository) RemoveAccess(dashboardId string, userId string) error {
 	_, err := sq.Delete("dashboards_user").
 		Where(sq.And{sq.Eq{"dashboard_id": dashboardId}, sq.Eq{"user_id": userId}}).
-		RunWith(d.pool.Write()).
+		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
@@ -435,14 +435,14 @@ func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
 	return nil
 }
 
-func (d *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
+func (r *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
 	dashboards := make([]models.Dashboard, 0)
 
 	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
 		Where(sq.Eq{"du.user_id": userId}).
-		RunWith(d.pool.Read()).
+		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
 
@@ -469,4 +469,23 @@ func (d *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
 	}
 
 	return dashboards, nil
+}
+
+func (r *Repository) GetDashboardIdByFieldId(fieldId string) (*string, error) {
+	row := sq.Select("dashboard_id").
+		From("fields").
+		Where(sq.Eq{"id": fieldId}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Read()).
+		QueryRow()
+
+	var dashboardId string
+	if err := row.Scan(&dashboardId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &dashboardId, nil
 }
