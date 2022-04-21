@@ -9,6 +9,7 @@ func RegisterRouter(
 	r chi.Router,
 	controller *Controller,
 	dashboardAccesGuard middlewares.DashboardAccessGuard,
+	customFieldGuard middlewares.CustomFieldGuard,
 	authGuard middlewares.AuthGuard,
 ) {
 	r.Group(func(r chi.Router) {
@@ -24,9 +25,9 @@ func RegisterRouter(
 				r.Use(dashboardAccesGuard.Next("r"))
 				r.Get("/{dashboardId}", controller.GetOneDashboard)
 			})
-			r.Group(func(r chi.Router) {
-				r.Use(dashboardAccesGuard.Next("admin"))
-				r.Route("/admin", func(r chi.Router) {
+			r.Route("/admin", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
+					r.Use(dashboardAccesGuard.Next("admin"))
 					r.Patch("/{dashboardId}", controller.UpdateName)
 					r.Delete("/{dashboardId}", controller.DeleteById)
 					r.Post("/{dashboardId}/webhook", controller.AddWebhook)
@@ -35,7 +36,13 @@ func RegisterRouter(
 					r.Patch("/updateAccess", controller.UpdateAccess)
 					r.Post("/addAccess", controller.AddAccess)
 				})
+				r.Group(func(r chi.Router) {
+					r.Use(customFieldGuard.Next())
+					r.Use(dashboardAccesGuard.Next("admin"))
+					r.Delete("/custom-field/{fieldId}", controller.DeleteCustomField)
+				})
 			})
+
 		})
 	})
 }

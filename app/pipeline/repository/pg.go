@@ -41,7 +41,8 @@ func (r *Repository) Create(name string, dashboardId string) (*models.Pipeline, 
 		order = int(orderRow.Int32) + 1
 	}
 
-	row = sq.Insert("pipelines").Columns("name", "dashboard_id", `"order"`).
+	row = sq.Insert("pipelines").
+		Columns("name", "dashboard_id", `"order"`).
 		Values(name, dashboardId, order).
 		Suffix(`returning id, name, "order", dashboard_id, updated_at`).
 		RunWith(r.pool.Write()).

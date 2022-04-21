@@ -33,6 +33,7 @@ func (ag *AuthGuard) Next() func(next http.Handler) http.Handler {
 			} else {
 				jwtToken := authHeader[1]
 				customClaims := &auth.Claims{}
+
 				token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
 					return []byte(ag.cfg.SigningKey), nil
 				})

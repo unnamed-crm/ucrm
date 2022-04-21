@@ -725,7 +725,7 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Get dashboards by user",
+                "summary": "Get user` + "`" + `s dashboards",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -757,12 +757,15 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/addAccess": {
+        "/dashboards/admin/addAccess": {
             "post": {
                 "security": [
                     {
                         "JWT": []
                     }
+                ],
+                "consumes": [
+                    "application/json"
                 ],
                 "tags": [
                     "dashboards"
@@ -804,8 +807,53 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/create": {
-            "patch": {
+        "/dashboards/admin/custom-field/{fieldId}": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Delete custom field",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "fieldId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboards/admin/removeAccess/{dashboardId}/{userId}": {
+            "delete": {
                 "security": [
                     {
                         "JWT": []
@@ -820,23 +868,28 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Create dashboard",
+                "summary": "Remove access",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": " ",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateOnePayload"
-                        }
+                        "name": "dashboardId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": " ",
+                        "name": "userId",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Dashboard"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -860,7 +913,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/updateAccess": {
+        "/dashboards/admin/updateAccess": {
             "patch": {
                 "security": [
                     {
@@ -901,47 +954,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/{dashboardId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboards"
-                ],
-                "summary": "Get dashboard",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.GetOneDashboardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpext.CommonError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/httpext.CommonError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpext.CommonError"
-                        }
-                    }
-                }
-            },
+        "/dashboards/admin/{dashboardId}": {
             "delete": {
                 "security": [
                     {
@@ -1041,58 +1054,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/{dashboardId}/custom-field": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboards"
-                ],
-                "summary": "Create custom field",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": " ",
-                        "name": "dashboardId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "description": " ",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.AddCustomField"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Field"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpext.CommonError"
-                        }
-                    }
-                }
-            }
-        },
-        "/dashboards/{dashboardId}/settings": {
+        "/dashboards/admin/{dashboardId}/settings": {
             "patch": {
                 "security": [
                     {
@@ -1155,7 +1117,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/{dashboardId}/webhook": {
+        "/dashboards/admin/{dashboardId}/webhook": {
             "patch": {
                 "security": [
                     {
@@ -1212,8 +1174,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/dashboards/{dashboardId}/{userId}": {
-            "delete": {
+        "/dashboards/create": {
+            "patch": {
                 "security": [
                     {
                         "JWT": []
@@ -1228,7 +1190,105 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Remove access",
+                "summary": "Create dashboard",
+                "parameters": [
+                    {
+                        "description": " ",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateOnePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Dashboard"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboards/{dashboardId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Get dashboard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.GetOneDashboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpext.CommonError"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboards/{dashboardId}/custom-field": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Create custom field",
                 "parameters": [
                     {
                         "type": "string",
@@ -1238,18 +1298,20 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
                         "description": " ",
-                        "name": "userId",
-                        "in": "query",
-                        "required": true
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.AddCustomField"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.Field"
                         }
                     },
                     "400": {

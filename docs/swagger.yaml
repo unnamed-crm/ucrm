@@ -824,10 +824,76 @@ paths:
             $ref: '#/definitions/httpext.CommonError'
       security:
       - JWT: []
-      summary: Get dashboards by user
+      summary: Get user`s dashboards
       tags:
       - dashboards
   /dashboards/{dashboardId}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetOneDashboardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+      security:
+      - JWT: []
+      summary: Get dashboard
+      tags:
+      - dashboards
+  /dashboards/{dashboardId}/custom-field:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ' '
+        in: query
+        name: dashboardId
+        required: true
+        type: string
+      - description: ' '
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddCustomField'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Field'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+      security:
+      - JWT: []
+      summary: Create custom field
+      tags:
+      - dashboards
+  /dashboards/admin/{dashboardId}:
     delete:
       parameters:
       - description: ' '
@@ -853,31 +919,6 @@ paths:
       security:
       - JWT: []
       summary: Delete dashboard
-      tags:
-      - dashboards
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.GetOneDashboardResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-      security:
-      - JWT: []
-      summary: Get dashboard
       tags:
       - dashboards
     patch:
@@ -915,78 +956,7 @@ paths:
       summary: Update dashboard name
       tags:
       - dashboards
-  /dashboards/{dashboardId}/{userId}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' '
-        in: query
-        name: dashboardId
-        required: true
-        type: string
-      - description: ' '
-        in: query
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-      security:
-      - JWT: []
-      summary: Remove access
-      tags:
-      - dashboards
-  /dashboards/{dashboardId}/custom-field:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' '
-        in: query
-        name: dashboardId
-        required: true
-        type: string
-      - description: ' '
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/api.AddCustomField'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Field'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-      security:
-      - JWT: []
-      summary: Create custom field
-      tags:
-      - dashboards
-  /dashboards/{dashboardId}/settings:
+  /dashboards/admin/{dashboardId}/settings:
     patch:
       consumes:
       - application/json
@@ -1026,7 +996,7 @@ paths:
       summary: Add webhook
       tags:
       - dashboards
-  /dashboards/{dashboardId}/webhook:
+  /dashboards/admin/{dashboardId}/webhook:
     patch:
       consumes:
       - application/json
@@ -1062,8 +1032,10 @@ paths:
       summary: Add webhook
       tags:
       - contacts
-  /dashboards/addAccess:
+  /dashboards/admin/addAccess:
     post:
+      consumes:
+      - application/json
       parameters:
       - description: ' '
         in: body
@@ -1089,6 +1061,98 @@ paths:
       security:
       - JWT: []
       summary: Add Access
+      tags:
+      - dashboards
+  /dashboards/admin/custom-field/{fieldId}:
+    delete:
+      parameters:
+      - description: ' '
+        in: query
+        name: fieldId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+      security:
+      - JWT: []
+      summary: Delete custom field
+      tags:
+      - dashboards
+  /dashboards/admin/removeAccess/{dashboardId}/{userId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ' '
+        in: query
+        name: dashboardId
+        required: true
+        type: string
+      - description: ' '
+        in: query
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+      security:
+      - JWT: []
+      summary: Remove access
+      tags:
+      - dashboards
+  /dashboards/admin/updateAccess:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ' '
+        in: body
+        name: AddAccessPayload
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpext.CommonError'
+      security:
+      - JWT: []
+      summary: Update access
       tags:
       - dashboards
   /dashboards/create:
@@ -1124,31 +1188,6 @@ paths:
       security:
       - JWT: []
       summary: Create dashboard
-      tags:
-      - dashboards
-  /dashboards/updateAccess:
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' '
-        in: body
-        name: AddAccessPayload
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ""
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpext.CommonError'
-      security:
-      - JWT: []
-      summary: Update access
       tags:
       - dashboards
   /pipelines/{pipelineId}:

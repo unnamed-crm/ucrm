@@ -68,13 +68,14 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 
 // AddAccess godoc
 // @Summary   Add Access
+// @Accept    json
 // @Tags      dashboards
 // @Param     payload  body  AddAccessPayload  true  " "
 // @Success   200
 // @Failure   400  {object}  httpext.CommonError
 // @Failure   401  {object}  httpext.CommonError
 // @Failure   500  {object}  httpext.CommonError
-// @Router    /dashboards/addAccess [post]
+// @Router    /dashboards/admin/addAccess [post]
 // @security  JWT
 func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	var payload AddAccessPayload
@@ -208,7 +209,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 // @Failure   400  {object}  httpext.CommonError
 // @Failure   401  {object}  httpext.CommonError
 // @Failure   500  {object}  httpext.CommonError
-// @Router    /dashboards/{dashboardId} [patch]
+// @Router    /dashboards/admin/{dashboardId} [patch]
 // @security  JWT
 func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
@@ -251,7 +252,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 // @Failure   400  {object}  httpext.CommonError
 // @Failure   401  {object}  httpext.CommonError
 // @Failure   500  {object}  httpext.CommonError
-// @Router    /dashboards/{dashboardId} [delete]
+// @Router    /dashboards/admin/{dashboardId} [delete]
 // @security  JWT
 func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
@@ -278,7 +279,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 // @Failure   400  {object}  httpext.CommonError
 // @Failure   401  {object}  httpext.CommonError
 // @Failure   500  {object}  httpext.CommonError
-// @Router    /dashboards/{dashboardId}/webhook [patch]
+// @Router    /dashboards/admin/{dashboardId}/webhook [patch]
 // @security  JWT
 func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
@@ -324,7 +325,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 // @Failure   400          {object}  httpext.CommonError
 // @Failure   401          {object}  httpext.CommonError
 // @Failure   500          {object}  httpext.CommonError
-// @Router    /dashboards/{dashboardId}/settings [patch]
+// @Router    /dashboards/admin/{dashboardId}/settings [patch]
 // @security  JWT
 func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "dashboardId")
@@ -370,8 +371,9 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 // @Param     dashboardId  query     string          true  " "
 // @Param     payload      body      AddCustomField  true  " "
 // @Success   200          {object}  models.Field
-// @Failure   400          {string}  string  "[CreateOne]:  {error}"
 // @Failure   400          {object}  httpext.CommonError
+// @Failure   401          {object}  httpext.CommonError
+// @Failure   500          {object}  httpext.CommonError
 // @Router    /dashboards/{dashboardId}/custom-field [post]
 // @security  JWT
 func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
@@ -418,6 +420,41 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, field, http.StatusOK)
 }
 
+// DeleteCustomField    godoc
+// @Summary   Delete custom field
+// @Tags      dashboards
+// @Param     fieldId      query     string          true  " "
+// @Success   200
+// @Failure   400          {object}  httpext.CommonError
+// @Failure   401          {object}  httpext.CommonError
+// @Failure   500          {object}  httpext.CommonError
+// @Router    /dashboards/admin/custom-field/{fieldId} [delete]
+// @security  JWT
+func (c *Controller) DeleteCustomField(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	fieldId := chi.URLParam(r, "fieldId")
+
+	if len(fieldId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing fieldId: dashboards/deleteCustomField",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err := c.repo.DeleteCustomField(fieldId)
+	if err != nil {
+		blogger.Errorf("[dashboards/deleteCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
+		httpext.JSON(w, httpext.CommonError{
+			Error: fmt.Sprintf("[DeleteCustomField]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 // RemoveAccess    godoc
 // @Summary   Remove access
 // @Tags      dashboards
@@ -429,7 +466,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 // @Failure   400          {object}  httpext.CommonError
 // @Failure   401          {object}  httpext.CommonError
 // @Failure   500          {object}  httpext.CommonError
-// @Router    /dashboards/{dashboardId}/{userId} [delete]
+// @Router    /dashboards/admin/removeAccess/{dashboardId}/{userId} [delete]
 // @security  JWT
 func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -482,7 +519,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 // @Success   200
 // @Failure   400  {string}  string  "[CreateOne]:  {error}"
 // @Failure   400  {object}  httpext.CommonError
-// @Router    /dashboards/updateAccess [patch]
+// @Router    /dashboards/admin/updateAccess [patch]
 // @security  JWT
 func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -528,8 +565,8 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// GetOneByUser    godoc
-// @Summary   Get dashboards by user
+// GetByUser    godoc
+// @Summary   Get user`s dashboards
 // @Tags      dashboards
 // @Produce   json
 // @Success   200  {object}  []models.Dashboard

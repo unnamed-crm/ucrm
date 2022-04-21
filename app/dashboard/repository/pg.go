@@ -24,7 +24,8 @@ func NewRepository(pool pg.Pool) *Repository {
 func (r *Repository) Create(name string, userId string) (*models.Dashboard, error) {
 	dashboard := &models.Dashboard{}
 
-	row := sq.Insert("dashboards").Columns("name", "author_id").
+	row := sq.Insert("dashboards").
+		Columns("name", "author_id").
 		Values(name, userId).
 		Suffix("returning id,name,author_id,updated_at").
 		RunWith(r.pool.Write()).PlaceholderFormat(sq.Dollar).QueryRow()
@@ -277,7 +278,8 @@ func (r *Repository) DeleteById(dashboardId string) error {
 func (r *Repository) AddSettings(dashboardId string, secret string, xClientToken string) (*models.DashboardSettings, error) {
 	var res models.DashboardSettings
 
-	row := sq.Insert("dashboard_settings").Columns("dashboard_id", "client_token", "secret").
+	row := sq.Insert("dashboard_settings").
+		Columns("dashboard_id", "client_token", "secret").
 		Values(dashboardId, xClientToken, secret).
 		Suffix("on conflict (dashboard_id) do update set client_token = ?, secret = ? returning id,dashboard_id,client_token,secret", xClientToken, secret).
 		RunWith(r.pool.Write()).
@@ -393,6 +395,19 @@ func (r *Repository) AddCustomField(dashboardId string, name string, isNullable 
 	return field, nil
 }
 
+func (r *Repository) DeleteCustomField(fieldId string) error {
+	_, err := sq.Delete("fields").
+		Where(sq.Eq{"id": fieldId}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Write()).
+		Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *Repository) UpdateAccess(dashboardId string, userId string, access string) error {
 	_, err := sq.Update("dashboards_user").
 		Set("access", access).
@@ -407,10 +422,10 @@ func (d *Repository) UpdateAccess(dashboardId string, userId string, access stri
 	return nil
 }
 
-func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
+func (r *Repository) RemoveAccess(dashboardId string, userId string) error {
 	_, err := sq.Delete("dashboards_user").
 		Where(sq.And{sq.Eq{"dashboard_id": dashboardId}, sq.Eq{"user_id": userId}}).
-		RunWith(d.pool.Write()).
+		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
@@ -420,14 +435,14 @@ func (d *Repository) RemoveAccess(dashboardId string, userId string) error {
 	return nil
 }
 
-func (d *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
+func (r *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
 	dashboards := make([]models.Dashboard, 0)
 
 	rows, err := sq.Select("d.name", "d.author_id", "d.id", "d.updated_at").
 		From("dashboards d").
 		LeftJoin("dashboards_user du on d.id = du.dashboard_id").
 		Where(sq.Eq{"du.user_id": userId}).
-		RunWith(d.pool.Read()).
+		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
 
@@ -454,4 +469,23 @@ func (d *Repository) GetOneByUser(userId string) ([]models.Dashboard, error) {
 	}
 
 	return dashboards, nil
+}
+
+func (r *Repository) GetDashboardIdByFieldId(fieldId string) (*string, error) {
+	row := sq.Select("dashboard_id").
+		From("fields").
+		Where(sq.Eq{"id": fieldId}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.pool.Read()).
+		QueryRow()
+
+	var dashboardId string
+	if err := row.Scan(&dashboardId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &dashboardId, nil
 }
