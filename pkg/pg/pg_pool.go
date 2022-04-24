@@ -7,9 +7,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/log/logrusadapter"
 	"github.com/jackc/pgx/stdlib"
-	blogger "github.com/sirupsen/logrus"
 )
 
 const pgDefaultMaxOpenConnections = 20
@@ -52,8 +50,8 @@ func (s *SingleConnection) Close(ctx context.Context) error {
 	return s.conn.Close()
 }
 
-func NewSingle(ctx context.Context, config Config, withLogger bool) (*SingleConnection, error) {
-	db, err := OpenDb(config, withLogger)
+func NewSingle(ctx context.Context, config Config, logger pgx.Logger) (*SingleConnection, error) {
+	db, err := OpenDb(config, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +65,13 @@ type ReadAndWriteConnection struct {
 	write *sql.DB
 }
 
-func NewReadAndWriteConnection(ctx context.Context, read Config, write Config, withLogger bool) (*ReadAndWriteConnection, error) {
-	w, err := OpenDb(read, withLogger)
+func NewReadAndWriteConnection(ctx context.Context, read Config, write Config, logger pgx.Logger) (*ReadAndWriteConnection, error) {
+	w, err := OpenDb(read, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := OpenDb(write, withLogger)
+	r, err := OpenDb(write, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -92,15 +90,15 @@ func (r *ReadAndWriteConnection) Write() *sql.DB {
 	return r.write
 }
 
-func OpenDb(config Config, withLogger bool) (*sql.DB, error) {
+func OpenDb(config Config, logger pgx.Logger) (*sql.DB, error) {
 	var connConfig pgx.ConnConfig
-	if withLogger {
+	if logger != nil {
 		connConfig = pgx.ConnConfig{
 			Host:     config.Host,
 			Port:     config.Port,
 			Database: config.DB,
 			LogLevel: 4,
-			Logger:   logrusadapter.NewLogger(blogger.New()),
+			Logger:   logger,
 			User:     config.User,
 			Password: config.Password,
 		}

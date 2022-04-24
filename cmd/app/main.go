@@ -27,6 +27,8 @@ import (
 	pipelineApi "github.com/ignavan39/ucrm-go/app/pipeline/api"
 	pipelineRepo "github.com/ignavan39/ucrm-go/app/pipeline/repository"
 	"github.com/ignavan39/ucrm-go/app/swagger"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/log/logrusadapter"
 
 	dashboardSettingsRepo "github.com/ignavan39/ucrm-go/app/dashboard-settings/repository"
 	userApi "github.com/ignavan39/ucrm-go/app/user/api"
@@ -61,12 +63,12 @@ func main() {
 		time.Sleep(15 * time.Second)
 	}
 
-	withLogger := false
+	var pgLogger pgx.Logger
 	if config.Environment == conf.DevelopEnvironment {
-		withLogger = true
+		pgLogger = logrusadapter.NewLogger(blogger.New())
 	}
 
-	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, withLogger)
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	if err != nil {
 		blogger.Fatal(err.Error())
 	}
