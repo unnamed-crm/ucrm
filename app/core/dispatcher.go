@@ -6,7 +6,7 @@ import (
 )
 
 type Dispatcher struct {
-	recievers map[string]*Reciever
+	receivers map[string]*Receiver
 	queues    map[string]chan *ClientQueuePayload
 	conn      *amqp.Connection
 	chatRepo  chat.Repository
@@ -14,15 +14,15 @@ type Dispatcher struct {
 
 func NewDispatcher(conn *amqp.Connection, chatRepo chat.Repository) *Dispatcher {
 	return &Dispatcher{
-		recievers: make(map[string]*Reciever),
+		receivers: make(map[string]*Receiver),
 		queues:    make(map[string]chan *ClientQueuePayload),
 		conn:      conn,
 		chatRepo:  chatRepo,
 	}
 }
 
-func (d *Dispatcher) GetRecieverByQueueName(queueName string) *Reciever {
-	for _, r := range d.recievers {
+func (d *Dispatcher) GetReceiverByQueueName(queueName string) *Receiver {
+	for _, r := range d.receivers {
 		for name := range r.pool {
 			if name == queueName {
 				return r
@@ -33,24 +33,24 @@ func (d *Dispatcher) GetRecieverByQueueName(queueName string) *Reciever {
 	return nil
 }
 
-func (d *Dispatcher) GetChannel(dashboardId string) *Reciever {
-	reciever, found := d.recievers[dashboardId]
+func (d *Dispatcher) GetChannel(dashboardId string) *Receiver {
+	receiver, found := d.receivers[dashboardId]
 	if found {
-		return reciever
+		return receiver
 	}
 
 	channel := make(chan *ClientQueuePayload)
 	historyWriter := NewHistroyWriterMiddleware(d.chatRepo, channel)
-	newReciever := NewReciever(channel, d.conn).
+	newReceiver := NewReceiver(channel, d.conn).
 		WithMiddleware(historyWriter).
 		Start()
-	d.recievers[dashboardId] = newReciever
+	d.receivers[dashboardId] = newReceiver
 
-	return newReciever
+	return newReceiver
 }
 
 func (d *Dispatcher) Stop() {
-	for _, v := range d.recievers {
+	for _, v := range d.receivers {
 		v.Stop()
 	}
 }

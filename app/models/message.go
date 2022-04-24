@@ -8,11 +8,12 @@ type MessagePayload struct {
 }
 
 type Message struct {
-	Id        string         `json:"id"`
-	Payload   MessagePayload `json:"payload"`
-	SenderId  string         `json:"sender_id"`
-	CreatedAt time.Time      `json:"created_at"`
-	Deleted   bool           `json:"deleted"`
-	Status    string         `json:"status"`
-	ChatId    string         `json:"chat_id"`
+	Id         string         `json:"id"`
+	Payload    MessagePayload `json:"payload"`
+	SenderId   string         `json:"sender_id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	Deleted    bool           `json:"deleted"`
+	Status     string         `json:"status"`
+	ChatId     string         `json:"chat_id"`
+	ExternalId string         `json:"external_id"`
 }

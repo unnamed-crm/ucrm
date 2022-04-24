@@ -11,7 +11,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-type Reciever struct {
+type Receiver struct {
 	pool        map[string]*ClientQueue
 	queueOut    chan *ClientQueuePayload
 	conn        *amqp.Connection
@@ -20,8 +20,8 @@ type Reciever struct {
 	sync.RWMutex
 }
 
-func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reciever {
-	return &Reciever{
+func NewReceiver(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Receiver {
+	return &Receiver{
 		pool:     make(map[string]*ClientQueue),
 		queueOut: queueOut,
 		conn:     conn,
@@ -29,12 +29,12 @@ func NewReciever(queueOut chan *ClientQueuePayload, conn *amqp.Connection) *Reci
 	}
 }
 
-func (r *Reciever) Start() *Reciever {
+func (r *Receiver) Start() *Receiver {
 	r.removeUselessQueues(15*time.Second, false)
 	return r
 }
 
-func (r *Reciever) AddQueue(
+func (r *Receiver) AddQueue(
 	conf config.RabbitMqConfig,
 	dashboardId string,
 	chatId string,
@@ -54,7 +54,7 @@ func (r *Reciever) AddQueue(
 	return queue, nil
 }
 
-func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
+func (r *Receiver) removeUselessQueues(timer time.Duration, rage bool) {
 	go func() {
 		for {
 			time.Sleep(timer)
@@ -82,7 +82,7 @@ func (r *Reciever) removeUselessQueues(timer time.Duration, rage bool) {
 	}()
 }
 
-func (r *Reciever) Ping(queueName string, time time.Time) error {
+func (r *Receiver) Ping(queueName string, time time.Time) error {
 	r.RLock()
 	defer r.RUnlock()
 
@@ -95,7 +95,7 @@ func (r *Reciever) Ping(queueName string, time time.Time) error {
 	return nil
 }
 
-func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
+func (r *Receiver) Unsubscribe(queueName string) (bool, error) {
 	r.RLock()
 	defer r.RUnlock()
 	queue, found := r.pool[queueName]
@@ -116,17 +116,17 @@ func (r *Reciever) Unsubscribe(queueName string) (bool, error) {
 	return false, nil
 }
 
-func (r *Reciever) Out() <-chan *ClientQueuePayload {
+func (r *Receiver) Out() <-chan *ClientQueuePayload {
 	return r.queueOut
 }
 
-func (r *Reciever) WithMiddleware(m Middleware) *Reciever {
+func (r *Receiver) WithMiddleware(m Middleware) *Receiver {
 	r.middlewares = append(r.middlewares, m)
 	m.Start()
 	return r
 }
 
-func (r *Reciever) Stop() {
+func (r *Receiver) Stop() {
 	r.removeUselessQueues(0*time.Second, true)
 	<-r.close
 	close(r.close)

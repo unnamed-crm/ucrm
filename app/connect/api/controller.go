@@ -52,8 +52,8 @@ func (c *Controller) CreateQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := auth.GetUserIdFromContext(ctx)
-	reciever := c.dispatcher.GetChannel(payload.DashboardId)
-	queue, err := reciever.AddQueue(c.config.RabbitMq, payload.DashboardId, payload.ChatId, userId)
+	receiver := c.dispatcher.GetChannel(payload.DashboardId)
+	queue, err := receiver.AddQueue(c.config.RabbitMq, payload.DashboardId, payload.ChatId, userId)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -89,8 +89,8 @@ func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reciever := c.dispatcher.GetRecieverByQueueName(payload.QueueName)
-	if reciever == nil {
+	receiver := c.dispatcher.GetReceiverByQueueName(payload.QueueName)
+	if receiver == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "queue name not found",
 			Code:  http.StatusBadRequest,
@@ -98,7 +98,7 @@ func (c *Controller) Ping(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := reciever.Ping(payload.QueueName, payload.Time); err != nil {
+	if err := receiver.Ping(payload.QueueName, payload.Time); err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
 			Code:  http.StatusNotFound,
@@ -133,8 +133,8 @@ func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reciever := c.dispatcher.GetChannel(payload.DashboardId)
-	isInternal, err := reciever.Unsubscribe(payload.QueueName)
+	receiver := c.dispatcher.GetChannel(payload.DashboardId)
+	isInternal, err := receiver.Unsubscribe(payload.QueueName)
 	if err != nil {
 		if isInternal {
 			httpext.JSON(w, httpext.CommonError{

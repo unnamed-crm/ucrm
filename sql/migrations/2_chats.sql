@@ -6,7 +6,8 @@ create table messages (
     sender_id uuid not null,
     created_at timestamp not null default now(),
     deleted boolean not null default false,
-    status message_status not null default 'sent'
+    status message_status not null default 'sent',
+    external_id text not null
 );
 
 create type chat_last_sender as enum ('employee', 'client');
@@ -23,11 +24,9 @@ create table chats (
         null on update cascade
 );
 
-alter table messages
-add column chat_id uuid not null 
-constraint chat_id_fk references chats(id) 
-on delete cascade on update cascade
-
-create unique index chat_id_idx on chats(id);
+alter table
+    messages
+add
+    column chat_id uuid not null constraint chat_id_fk references chats(id) on delete cascade on update cascade create unique index chat_id_idx on chats(id);
 
 create unique index message_id_idx on messages(id);
