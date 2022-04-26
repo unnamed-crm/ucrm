@@ -42,7 +42,7 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASS:-pass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./sql/migrations:/docker-entrypoint-initdb.d
+      - ./migrations:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:
