@@ -5,7 +5,7 @@ on:
     branches: [master]
     inputs:
       version:
-        description: 'Version'     
+        description: "Version"
         required: true
 
 env:
@@ -25,34 +25,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
         with:
-          cosign-release: "v1.4.0"
-
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
-
-      - name: Extract Docker metadata Backend
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build Docker image
         run: |
-          docker build --build-arg version="${{ github.event.inputs.version }}" -f ./docker/app.Dockerfile -t ucrm .
-          docker tag ucrm "ignavan39/urcm:${{ github.event.inputs.version }}"
-          docker tag ucrm ignavan39/urcm:latest
+          docker build --build-arg version="${{ github.event.inputs.version }}" --no-cache -f ./docker/app.Dockerfile -t ucrm .
+          docker tag ucrm "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
+          docker tag ucrm ghcr.io/ignavan39/ucrm:latest
       - name: Push Image
         run: |
           docker push "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
@@ -69,34 +53,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
         with:
-          cosign-release: "v1.4.0"
-
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
-
-      - name: Extract Docker metadata Frontend
-        id: meta-front
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}
-
       - name: Build Docker image
         run: |
-          docker build --build-arg version="${{ github.event.inputs.version }}" -f ./docker/frontend.Dockerfile -t ucrm-frontend .
-          docker tag ucrm "ignavan39/urcm-frontend:${{ github.event.inputs.version }}"
-          docker tag ucrm ignavan39/urcm-frontend:latest
+          docker build --build-arg version="${{ github.event.inputs.version }}" --no-cache -f ./docker/frontend.Dockerfile -t ucrm-frontend .
+          docker tag ucrm-frontend "ghcr.io/ignavan39/ucrm-frontend:${{ github.event.inputs.version }}"
+          docker tag ucrm-frontend ghcr.io/ignavan39/ucrm-frontend:latest
       - name: Push Image
         run: |
           docker push "ghcr.io/ignavan39/ucrm-frontend:${{ github.event.inputs.version }}"
