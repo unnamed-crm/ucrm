@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ignavan39/ucrm-go/app/config"
+	"ucrm/app/config"
 	blogger "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )

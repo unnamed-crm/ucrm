@@ -1,6 +1,6 @@
 package dashboard
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import "ucrm/app/models"
 
 type Repository interface {
 	Create(name string, userId string) (*models.Dashboard, error)

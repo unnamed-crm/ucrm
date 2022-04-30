@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ignavan39/ucrm-go/app/models"
+	"ucrm/app/models"
 )
 
 type CreateDashboardPayload struct {

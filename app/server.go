@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/config"
+	"ucrm/app/config"
 	"github.com/rs/cors"
 )
 

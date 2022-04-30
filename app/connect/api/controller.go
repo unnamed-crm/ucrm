@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/config"
-	"github.com/ignavan39/ucrm-go/app/core"
-	"github.com/ignavan39/ucrm-go/app/dashboard"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"ucrm/app/auth"
+	"ucrm/app/config"
+	"ucrm/app/core"
+	"ucrm/app/dashboard"
+	"ucrm/pkg/httpext"
 )
 
 type Controller struct {

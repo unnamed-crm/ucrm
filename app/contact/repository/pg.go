@@ -6,11 +6,11 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/ignavan39/ucrm-go/app/dashboard/api"
-	"github.com/ignavan39/ucrm-go/app/models"
+	"ucrm/app/dashboard/api"
+	"ucrm/app/models"
 
-	repository "github.com/ignavan39/ucrm-go/app/contact"
-	"github.com/ignavan39/ucrm-go/pkg/pg"
+	repository "ucrm/app/contact"
+	"ucrm/pkg/pg"
 	blogger "github.com/sirupsen/logrus"
 )
 

@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/pkg/pg"
+	"ucrm/app/models"
+	"ucrm/pkg/pg"
 
 	sq "github.com/Masterminds/squirrel"
 )

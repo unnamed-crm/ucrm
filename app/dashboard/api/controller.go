@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/dashboard"
-	"github.com/ignavan39/ucrm-go/app/models"
+	"ucrm/app/auth"
+	"ucrm/app/dashboard"
+	"ucrm/app/models"
 
-	dashboardSettings "github.com/ignavan39/ucrm-go/app/dashboard-settings"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	dashboardSettings "ucrm/app/dashboard-settings"
+	"ucrm/pkg/httpext"
 	blogger "github.com/sirupsen/logrus"
 )
 

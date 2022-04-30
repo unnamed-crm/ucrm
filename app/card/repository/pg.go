@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	repository "github.com/ignavan39/ucrm-go/app/card"
-	"github.com/ignavan39/ucrm-go/app/dashboard/api"
-	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/pkg/pg"
+	repository "ucrm/app/card"
+	"ucrm/app/dashboard/api"
+	"ucrm/app/models"
+	"ucrm/pkg/pg"
 )
 
 type Repository struct {

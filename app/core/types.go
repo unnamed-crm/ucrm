@@ -1,6 +1,6 @@
 package core
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import "ucrm/app/models"
 
 type ClientQueuePayload struct {
 	Message     models.Message

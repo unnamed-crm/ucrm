@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ignavan39/ucrm-go/app/models"
+	"ucrm/app/models"
 )
 
 type Repository interface {

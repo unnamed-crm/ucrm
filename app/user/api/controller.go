@@ -10,13 +10,13 @@ import (
 
 	blogger "github.com/sirupsen/logrus"
 
-	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/config"
-	"github.com/ignavan39/ucrm-go/app/mailing"
-	"github.com/ignavan39/ucrm-go/app/user"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
-	redisCache "github.com/ignavan39/ucrm-go/pkg/redis-cache"
-	"github.com/ignavan39/ucrm-go/pkg/utils"
+	"ucrm/app/auth"
+	"ucrm/app/config"
+	"ucrm/app/mailing"
+	"ucrm/app/user"
+	"ucrm/pkg/httpext"
+	redisCache "ucrm/pkg/redis-cache"
+	"ucrm/pkg/utils"
 )
 
 type Controller struct {

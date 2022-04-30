@@ -8,13 +8,13 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/card"
-	repository "github.com/ignavan39/ucrm-go/app/card"
-	"github.com/ignavan39/ucrm-go/app/core"
-	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"ucrm/app/card"
+	repository "ucrm/app/card"
+	"ucrm/app/core"
+	"ucrm/app/models"
+	"ucrm/pkg/httpext"
 
-	dashboardSettings "github.com/ignavan39/ucrm-go/app/dashboard-settings"
+	dashboardSettings "ucrm/app/dashboard-settings"
 	blogger "github.com/sirupsen/logrus"
 )
 

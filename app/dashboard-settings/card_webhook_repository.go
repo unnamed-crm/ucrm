@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import "ucrm/app/models"
 
 type CardWebhookRepository interface {
 	AddCardWebhook(dashboardId string, url string, name *string) error

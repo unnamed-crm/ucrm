@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go/v4"
-	"github.com/ignavan39/ucrm-go/app/auth"
-	"github.com/ignavan39/ucrm-go/app/config"
+	"ucrm/app/auth"
+	"ucrm/app/config"
 
 	blogger "github.com/sirupsen/logrus"
 )

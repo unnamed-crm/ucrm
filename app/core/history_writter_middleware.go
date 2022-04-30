@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/ignavan39/ucrm-go/app/chat"
+	"ucrm/app/chat"
 	blogger "github.com/sirupsen/logrus"
 )
 

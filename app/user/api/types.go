@@ -1,6 +1,6 @@
 package api
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import "ucrm/app/models"
 
 type SignPayload struct {
 	Password string `json:"password"`

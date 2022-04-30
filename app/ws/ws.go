@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-chi/chi"
 	websocket "github.com/gorilla/websocket"
-	"github.com/ignavan39/ucrm-go/app/core"
-	"github.com/ignavan39/ucrm-go/app/dashboard"
+	"ucrm/app/core"
+	"ucrm/app/dashboard"
 	blogger "github.com/sirupsen/logrus"
 )
 

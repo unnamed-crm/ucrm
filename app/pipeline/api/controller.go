@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/app/pipeline"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"ucrm/app/models"
+	"ucrm/app/pipeline"
+	"ucrm/pkg/httpext"
 	blogger "github.com/sirupsen/logrus"
 )
 

@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/dashboard"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"ucrm/app/dashboard"
+	"ucrm/pkg/httpext"
 )
 
 type CustomFieldGuard struct {

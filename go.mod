@@ -1,4 +1,4 @@
-module github.com/ignavan39/ucrm-go
+module ucrm
 
 go 1.17
 

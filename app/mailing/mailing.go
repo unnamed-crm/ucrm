@@ -3,7 +3,7 @@ package mailing
 import (
 	"context"
 
-	"github.com/ignavan39/ucrm-go/app/config"
+	"ucrm/app/config"
 	"github.com/mailgun/mailgun-go/v4"
 )
 

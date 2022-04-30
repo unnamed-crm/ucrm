@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/card"
-	"github.com/ignavan39/ucrm-go/app/contact"
-	"github.com/ignavan39/ucrm-go/pkg/httpext"
+	"ucrm/app/card"
+	"ucrm/app/contact"
+	"ucrm/pkg/httpext"
 	blogger "github.com/sirupsen/logrus"
 )
 

@@ -1,6 +1,6 @@
 package user
 
-import "github.com/ignavan39/ucrm-go/app/models"
+import "ucrm/app/models"
 
 type Repository interface {
 	GetOneByEmail(email string, password string) (*models.User, error)

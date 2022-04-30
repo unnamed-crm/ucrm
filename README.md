@@ -1,6 +1,6 @@
 # Unnamed CRM
 
-![example workflow](https://github.com/ignavan39/ucrm-go/actions/workflows/build.yml/badge.svg)
+![example workflow](https://github.com/ignavan39/ucrm/actions/workflows/build.yml/badge.svg)
 
 ### How to start:
 

@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/ignavan39/ucrm-go/app/middlewares"
+	"ucrm/app/middlewares"
 )
 
 func RegisterRouter(

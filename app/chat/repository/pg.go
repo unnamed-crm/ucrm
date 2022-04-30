@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/ignavan39/ucrm-go/app/models"
-	"github.com/ignavan39/ucrm-go/pkg/pg"
+	"ucrm/app/models"
+	"ucrm/pkg/pg"
 )
 
 type Repository struct {

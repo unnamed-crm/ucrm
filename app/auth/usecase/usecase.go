@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go/v4"
-	"github.com/ignavan39/ucrm-go/app/auth"
+	"ucrm/app/auth"
 )
 
 type AuthUseCase struct {
