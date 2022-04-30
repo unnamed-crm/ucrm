@@ -47,21 +47,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Backend
-        id: build-and-push
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: .
-          file: docker/app.Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Sign the published Docker image Backend
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
+      - name: Build Docker image
+        run: |
+          docker build --build-arg version="${{ github.event.inputs.version }}" -f ./docker/app.Dockerfile -t ucrm .
+          docker tag ucrm "ignavan39/urcm:${{ github.event.inputs.version }}"
+          docker tag ucrm ignavan39/urcm:latest
+      - name: Push Image
+        run: |
+          docker push "ghcr.io/ignavan39/urcm:${{ github.event.inputs.version }}"
+          docker push ghcr.io/ignavan39/urcm:latest
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -97,18 +91,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}
 
-      - name: Build and Push Frontend
-        id: build-and-push-front
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: .
-          file: docker/frontend.Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-front.outputs.tags }}
-          labels: ${{ steps.meta-front.outputs.labels }}
-
-      - name: Sign the published Docker image Frontend
-        if: ${{ github.event_name != 'pull_request' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONT }}@${{ steps.build-and-push-front.outputs.digest }}
+      - name: Build Docker image
+        run: |
+          docker build --build-arg version="${{ github.event.inputs.version }}" -f ./docker/frontend.Dockerfile -t ucrm-frontend .
+          docker tag ucrm "ignavan39/urcm-frontend:${{ github.event.inputs.version }}"
+          docker tag ucrm ignavan39/urcm-frontend:latest
+      - name: Push Image
+        run: |
+          docker push "ghcr.io/ignavan39/urcm-frontend:${{ github.event.inputs.version }}"
+          docker push ghcr.io/ignavan39/urcm-frontend:latest
