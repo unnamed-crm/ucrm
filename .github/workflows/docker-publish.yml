@@ -3,9 +3,10 @@ name: Docker Push
 on:
   workflow_dispatch:
     branches: [master]
-  push:
-    tags:
-      - "release.*.*"
+    inputs:
+      version:
+        description: 'Version'     
+        required: true
 
 env:
   REGISTRY: ghcr.io
