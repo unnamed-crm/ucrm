@@ -55,8 +55,8 @@ jobs:
           docker tag ucrm ignavan39/urcm:latest
       - name: Push Image
         run: |
-          docker push "ghcr.io/ignavan39/urcm:${{ github.event.inputs.version }}"
-          docker push ghcr.io/ignavan39/urcm:latest
+          docker push "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
+          docker push ghcr.io/ignavan39/ucrm:latest
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -99,5 +99,5 @@ jobs:
           docker tag ucrm ignavan39/urcm-frontend:latest
       - name: Push Image
         run: |
-          docker push "ghcr.io/ignavan39/urcm-frontend:${{ github.event.inputs.version }}"
-          docker push ghcr.io/ignavan39/urcm-frontend:latest
+          docker push "ghcr.io/ignavan39/ucrm-frontend:${{ github.event.inputs.version }}"
+          docker push ghcr.io/ignavan39/ucrm-frontend:latest
