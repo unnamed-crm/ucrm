@@ -58,6 +58,7 @@ jobs:
           docker push ghcr.io/ignavan39/ucrm:latest
       - name: Deploy
         run: |
+          eval `ssh-agent -s`
           echo ${{ secrets.SSH_KEY }} >> id_rsa
           ssh-add id_rsa
           ssh ${{ secrets.IP }} -l root
