@@ -17,6 +17,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o app
 WORKDIR /
 FROM alpine:3.14
 
+
+COPY .env  /usr/local/bin/app
 COPY /config/ /usr/local/bin/app
 COPY --from=builder /app /usr/local/bin/app
 
