@@ -18,8 +18,8 @@ WORKDIR /
 FROM alpine:3.14
 
 
-COPY .env  /usr/local/bin/app
 COPY /config/ /usr/local/bin/app
+COPY .env  /usr/local/bin/app
 COPY --from=builder /app /usr/local/bin/app
 
 ENTRYPOINT ["/usr/local/bin/app/main"]
