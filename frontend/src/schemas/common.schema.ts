@@ -12,6 +12,11 @@ export const verificationCodeSchema = yup.object({
       (value) => value && value.toString().length === VERIFICATION_CODE_LENGTH,
     ),
 });
-
 export type VerificationCodeSchema = typeof verificationCodeSchema;
 export type VerificationCodeData = yup.InferType<VerificationCodeSchema>;
+
+export const recoverPasswordSchema = yup.object({
+  email: yup.string().required("This field is required").email("Email is not valid"),
+});
+export type RecoverPasswordSchema = typeof recoverPasswordSchema;
+export type RecoverPasswordData = yup.InferType<RecoverPasswordSchema>;
