@@ -138,26 +138,6 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		}
 	}
 
-	var chat models.Chat
-	chatRow := sq.Insert("chats").
-		Columns("card_id").
-		Values(card.Id).
-		Suffix(`returning id`).
-		RunWith(tx).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := chatRow.Scan(&chat.Id); err != nil {
-		if err = tx.Rollback(); err != nil {
-			return nil, err
-		}
-		return nil, err
-	}
-
-	if err = tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	card.Chat = chat
 	return card, nil
 }
 

@@ -12,7 +12,6 @@ import (
 
 	"ucrm/app/auth"
 	"ucrm/app/config"
-	"ucrm/app/mailing"
 	"ucrm/app/user"
 	"ucrm/pkg/httpext"
 	redisCache "ucrm/pkg/redis-cache"
@@ -22,7 +21,6 @@ import (
 type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
-	mailer     mailing.Mailer
 	mailConfig config.MailConfig
 	cache      redisCache.RedisCache
 }
@@ -30,14 +28,12 @@ type Controller struct {
 func NewController(
 	a auth.AuthUseCase,
 	repo user.Repository,
-	mailer mailing.Mailer,
 	mailConfig config.MailConfig,
 	cache redisCache.RedisCache,
 ) *Controller {
 	return &Controller{
 		auth:       a,
 		repo:       repo,
-		mailer:     mailer,
 		mailConfig: mailConfig,
 		cache:      cache,
 	}
@@ -341,7 +337,8 @@ func (c *Controller) sendMailMessage(
 		return errFailedRenderTemplateMessage
 	}
 
-	_, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
+	// _, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
+	blogger.Infof("Template msg: %s",msg)
 	if err != nil {
 		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
 		return errFailedToSendMessage

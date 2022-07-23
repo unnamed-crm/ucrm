@@ -48,20 +48,12 @@ type RedisConfig struct {
 	DB       int    `env:"REDIS_DB"`
 }
 
-type MailgunConfig struct {
-	PrivateKey string `env:"MAILGUN_API_KEY"`
-	Domain     string `env:"MAILGUN_DOMAIN"`
-	PublicKey  string `env:"MAILGUN_PUBLIC_KEY"`
-}
-
 type Config struct {
 	Database    pg.Config
 	JWT         JWTConfig
-	RabbitMq    RabbitMqConfig
 	Redis       RedisConfig
 	Cors        CorsConfig
 	Environment string
-	Mailgun     MailgunConfig
 	Mail        MailConfig
 }
 
@@ -120,19 +112,6 @@ func GetConfig() (*Config, error) {
 		DB:       os.Getenv("DATABASE_NAME"),
 	}
 
-	rmq := RabbitMqConfig{
-		Password: os.Getenv("RABBITMQ_PASSWORD"),
-		Host:     os.Getenv("RABBITMQ_HOST"),
-		User:     os.Getenv("RABBITMQ_USER"),
-		Port:     os.Getenv("RABBITMQ_PORT"),
-	}
-
-	mailgun := MailgunConfig{
-		Domain:     os.Getenv("MAILGUN_DOMAIN"),
-		PrivateKey: os.Getenv("MAILGUN_API_KEY"),
-		PublicKey:  os.Getenv("MAILGUN_PUBLIC_KEY"),
-	}
-
 	redisPort, err := strconv.ParseInt(os.Getenv("REDIS_PORT"), 10, 16)
 	if err != nil {
 		return nil, err
@@ -162,11 +141,9 @@ func GetConfig() (*Config, error) {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
-		RabbitMq:    rmq,
 		Redis:       redis,
 		Cors:        coreConf.Cors,
 		Mail:        coreConf.Mail,
 		Environment: environment,
-		Mailgun:     mailgun,
 	}, nil
 }

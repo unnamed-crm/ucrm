@@ -15,14 +15,10 @@ import (
 	authUC "ucrm/app/auth/usecase"
 	cardApi "ucrm/app/card/api"
 	cardRepo "ucrm/app/card/repository"
-	chatRepo "ucrm/app/chat/repository"
-	connectApi "ucrm/app/connect/api"
 	contactApi "ucrm/app/contact/api"
 	contactRepo "ucrm/app/contact/repository"
-	"ucrm/app/core"
 	dashboardApi "ucrm/app/dashboard/api"
 	dashboardRepo "ucrm/app/dashboard/repository"
-	"ucrm/app/mailing"
 	"ucrm/app/middlewares"
 	pipelineApi "ucrm/app/pipeline/api"
 	pipelineRepo "ucrm/app/pipeline/repository"
@@ -33,13 +29,11 @@ import (
 	dashboardSettingsRepo "ucrm/app/dashboard-settings/repository"
 	userApi "ucrm/app/user/api"
 	userRepo "ucrm/app/user/repository"
-	"ucrm/app/ws"
 
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/pg"
 	redisCache "ucrm/pkg/redis-cache"
-	"ucrm/pkg/rmq"
 	blogger "github.com/sirupsen/logrus"
 )
 
@@ -73,16 +67,6 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
-	rabbitMqConn, err := rmq.NewConnection(
-		config.RabbitMq.User,
-		config.RabbitMq.Password,
-		config.RabbitMq.Host,
-		config.RabbitMq.Port,
-	)
-	if err != nil {
-		blogger.Fatal(err.Error())
-	}
-
 	redis := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
 		Password: config.Redis.Password,
@@ -95,21 +79,16 @@ func main() {
 		WithCors(config.Cors)
 
 	userRepo := userRepo.NewRepository(rwConn)
-	chatRepo := chatRepo.NewRepository(rwConn)
 	dashboardRepo := dashboardRepo.NewRepository(rwConn)
 	pipelineRepo := pipelineRepo.NewRepository(rwConn)
 	cardRepo := cardRepo.NewRepository(rwConn)
 	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
 
-	mailgin := mailing.NewMailgunApi(*config)
-	dispatcher := core.NewDispatcher(rabbitMqConn, chatRepo)
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := userApi.NewController(authorizer, userRepo, mailgin, config.Mail, *cache)
+	userController := userApi.NewController(authorizer, userRepo, config.Mail, *cache)
 	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)
-	wsController := ws.NewController(dashboardRepo, dispatcher)
-	connectController := connectApi.NewController(dispatcher, dashboardRepo, *config)
 	contactController := contactApi.NewController(contactRepo.NewRepository(rwConn), cardRepo)
 
 	pipelineAccessGuard := middlewares.NewPipelineAccessGuard(pipelineRepo)
@@ -131,9 +110,7 @@ func main() {
 		dashboardApi.RegisterRouter(v1, dashboardController, *dashboardAccesGuard, *customFieldGuard, *authGuard)
 		pipelineApi.RegisterRouter(v1, pipelineController, *authGuard, *pipelineAccessGuard, *dashboardAccesGuard)
 		cardApi.RegisterRouter(v1, cardController, *authGuard)
-		ws.RegisterRouter(v1, wsController)
 		swagger.RegisterRouter(v1)
-		connectApi.RegisterRouter(v1, connectController, *authGuard)
 		contactApi.RegisterRouter(v1, contactController, *authGuard)
 	})
 
@@ -148,7 +125,6 @@ func main() {
 		<-appCloser
 		blogger.Info("[os.SIGNAL] close request")
 
-		dispatcher.Stop()
 		go web.Stop()
 		blogger.Info("[os.SIGNAL] done")
 	}()

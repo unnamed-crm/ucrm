@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"ucrm/app/card"
 	repository "ucrm/app/card"
-	"ucrm/app/core"
+
 	"ucrm/app/models"
 	"ucrm/pkg/httpext"
 
@@ -55,7 +55,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.CreateOne(payload.Name, payload.PipelineId, payload.Fields)
+	res, err := c.repo.CreateOne(payload.Name, payload.PipelineId, payload.Fields)
 	if err != nil {
 		if errors.Is(err, repository.ErrFieldNotFound) {
 			httpext.JSON(w, httpext.CommonError{
@@ -84,10 +84,10 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if webhook != nil {
-		go core.SendCardUpdatesToSubscriber(webhook.Url, card, nil)
+		go card.SendCardUpdatesToSubscriber(webhook.Url, res, nil)
 	}
 
-	httpext.JSON(w, card, http.StatusCreated)
+	httpext.JSON(w, res, http.StatusCreated)
 }
 
 // Delete godoc
@@ -105,7 +105,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "cardId")
 
-	card, err := c.repo.GetOneWithoutRelations(id)
+	res, err := c.repo.GetOneWithoutRelations(id)
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Delete]:%s", err.Error()),
@@ -114,7 +114,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if card == nil {
+	if res == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
 			Code:  http.StatusNotFound,
@@ -132,7 +132,7 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(card.PipelineId)
+	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(res.PipelineId)
 	if err != nil {
 		blogger.Errorf("[card/delete] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -143,10 +143,10 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if webhook != nil {
-		go core.SendCardUpdatesToSubscriber(webhook.Url, nil, card)
+		go card.SendCardUpdatesToSubscriber(webhook.Url, nil, res)
 	}
 
-	httpext.JSON(w, card, http.StatusOK)
+	httpext.JSON(w, res, http.StatusOK)
 }
 
 // Update godoc
@@ -194,7 +194,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	card, err := c.repo.GetOne(id)
+	oldCard, err := c.repo.GetOne(id)
 	if err != nil {
 		blogger.Errorf("[card/update] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -204,7 +204,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if card == nil {
+	if oldCard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
 			Code:  http.StatusNotFound,
@@ -230,7 +230,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(card.PipelineId)
+	webhook, err := c.cardWebhookRepo.GetCardWebhookByPipelineId(oldCard.PipelineId)
 	if err != nil {
 		blogger.Errorf("[card/update] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -241,7 +241,7 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if webhook != nil {
-		go core.SendCardUpdatesToSubscriber(webhook.Url, card, updatedCard)
+		go card.SendCardUpdatesToSubscriber(webhook.Url, oldCard, updatedCard)
 	}
 
 	httpext.JSON(w, updatedCard, http.StatusOK)
