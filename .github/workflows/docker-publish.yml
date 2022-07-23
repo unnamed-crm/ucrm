@@ -37,10 +37,6 @@ jobs:
           echo '$JWT_EXPIRE_DURATION'=${{ secrets.JWT_EXPIRE_DURATION }} >> .env
           echo '$JWT_HASH_SALT'=${{ secrets.JWT_HASH_SALT }} >> .env
           echo '$JWT_SIGNING_KEY'=${{ secrets.JWT_SIGNING_KEY }} >> .env
-          echo '$RABBITMQ_USER'=${{ secrets.RABBITMQ_USER }} >> .env
-          echo '$RABBITMQ_PASSWORD'=${{ secrets.RABBITMQ_PASSWORD }} >> .env
-          echo '$RABBITMQ_PORT'=${{ secrets.RABBITMQ_PORT }} >> .env
-          echo '$RABBITMQ_HOST'=${{ secrets.RABBITMQ_HOST }} >> .env
           echo '$MAILGUN_API_KEY'=${{ secrets.MAILGUN_API_KEY }} >> .env
           echo '$MAILGUN_DOMAIN'=${{ secrets.MAILGUN_DOMAIN }} >> .env
           echo '$MAILGUN_PUBLIC_KEY'=${{ secrets.MAILGUN_PUBLIC_KEY }} >> .env
@@ -56,14 +52,7 @@ jobs:
         run: |
           docker push "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
           docker push ghcr.io/ignavan39/ucrm:latest
-      - name: Deploy
-        run: |
-          eval `ssh-agent -s`
-          echo ${{ secrets.SSH_KEY }} >> id_rsa
-          ssh-add id_rsa
-          ssh ${{ secrets.IP }} -l root
-          docker pull ghcr.io/ignavan39/ucrm:latest
-
+   
   build-frontend:
     runs-on: ubuntu-latest
     permissions:
