@@ -7,6 +7,8 @@ on:
       version:
         description: "Version"
         required: true
+  push:
+    branches: [master]
 
 jobs:
   build-backend:
@@ -29,22 +31,6 @@ jobs:
 
       - name: Build Docker image
         run: |
-          echo '$DATABASE_NAME'=${{ secrets.DATABASE_NAME }} >> .env
-          echo '$DATABASE_USER'=${{ secrets.DATABASE_USER }} >> .env
-          echo '$DATABASE_PASS'=${{ secrets.DATABASE_PASS }} >> .env
-          echo '$DATABASE_PORT'=${{ secrets.DATABASE_PORT }} >> .env
-          echo '$DATABASE_HOST'=${{ secrets.DATABASE_HOST }} >> .env
-          echo '$JWT_EXPIRE_DURATION'=${{ secrets.JWT_EXPIRE_DURATION }} >> .env
-          echo '$JWT_HASH_SALT'=${{ secrets.JWT_HASH_SALT }} >> .env
-          echo '$JWT_SIGNING_KEY'=${{ secrets.JWT_SIGNING_KEY }} >> .env
-          echo '$MAILGUN_API_KEY'=${{ secrets.MAILGUN_API_KEY }} >> .env
-          echo '$MAILGUN_DOMAIN'=${{ secrets.MAILGUN_DOMAIN }} >> .env
-          echo '$MAILGUN_PUBLIC_KEY'=${{ secrets.MAILGUN_PUBLIC_KEY }} >> .env
-          echo '$REDIS_PASSWORD'=${{ secrets.REDIS_PASSWORD }} >> .env
-          echo '$REDIS_PORT'=${{ secrets.REDIS_PORT }} >> .env
-          echo '$REDIS_HOST'=${{ secrets.REDIS_HOST }} >> .env
-          echo '$REDIS_DB'=${{ secrets.REDIS_DB }} >> .env
-
           docker build --build-arg version="${{ github.event.inputs.version }}" --no-cache -f ./docker/app.Dockerfile -t ucrm .
           docker tag ucrm "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
           docker tag ucrm ghcr.io/ignavan39/ucrm:latest
