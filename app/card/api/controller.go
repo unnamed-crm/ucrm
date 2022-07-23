@@ -7,14 +7,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
 	"ucrm/app/card"
 	repository "ucrm/app/card"
 
+	"github.com/go-chi/chi"
+	"github.com/ignavan39/go-pkgs/httpext"
+
 	"ucrm/app/models"
-	"ucrm/pkg/httpext"
 
 	dashboardSettings "ucrm/app/dashboard-settings"
+
 	blogger "github.com/sirupsen/logrus"
 )
 
@@ -50,7 +52,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[CreateOne] failed decode payload",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -60,7 +61,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, repository.ErrFieldNotFound) {
 			httpext.JSON(w, httpext.CommonError{
 				Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
-				Code:  http.StatusBadRequest,
 			}, http.StatusBadRequest)
 			return
 		}
@@ -68,7 +68,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateOne]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -78,7 +77,6 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/createOne] CTX: [%v], ERROR:[%s]", err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[CreateOne] failed to get webhook",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -109,7 +107,6 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Delete]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -117,7 +114,6 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	if res == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
-			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -127,7 +123,6 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/delete] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Delete]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -137,7 +132,6 @@ func (c *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/delete] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[Delete] failed to get webhook",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -171,7 +165,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[Update] wrong id",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -180,7 +173,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[Update] failed decode payload",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -189,7 +181,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -199,7 +190,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/update] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Update]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -207,7 +197,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if oldCard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
-			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -217,7 +206,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/update] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[Update]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -225,7 +213,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 	if updatedCard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
-			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -235,7 +222,6 @@ func (c *Controller) Update(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/update] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[Update] failed to get pipeline",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -267,7 +253,6 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "[GetOne] wrong id",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -277,7 +262,6 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/getOne] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[GetOne]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -285,7 +269,6 @@ func (c *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	if card == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "card not found",
-			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -314,7 +297,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(cardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing cardId: cards/updateOrder",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -322,7 +304,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(orderQuery) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: cards/updateOrder",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -331,7 +312,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil || newOrder < 1 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: cards/updateOrder",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -341,7 +321,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/updateOrder] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -352,7 +331,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(cards) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "cards is empty",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -362,7 +340,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 			if c.Order == newOrder {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "Incorrect new order for update",
-					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
@@ -376,7 +353,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if newOrder > maxOrder {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong order",
-			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -412,7 +388,6 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[card/updateOrder] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
-			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}

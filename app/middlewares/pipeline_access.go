@@ -9,7 +9,8 @@ import (
 	"github.com/go-chi/chi"
 	"ucrm/app/auth"
 	"ucrm/app/pipeline"
-	"ucrm/pkg/httpext"
+	
+	"github.com/ignavan39/go-pkgs/httpext"
 )
 
 type PipelineAccessGuard struct {
@@ -39,7 +40,6 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
 						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
 					}, http.StatusBadRequest)
 					return
 				}
@@ -51,7 +51,6 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
 						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
 					}, http.StatusBadRequest)
 					return
 				}
@@ -62,7 +61,6 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[PipelineAccessGuard]/wrong id",
-					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
@@ -72,7 +70,6 @@ func (pag *PipelineAccessGuard) Next(accessType string) func(next http.Handler) 
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),
-					Code:  http.StatusInternalServerError,
 				}, http.StatusInternalServerError)
 				return
 			}

@@ -9,7 +9,8 @@ import (
 	"github.com/go-chi/chi"
 	"ucrm/app/auth"
 	"ucrm/app/dashboard"
-	"ucrm/pkg/httpext"
+	
+	"github.com/ignavan39/go-pkgs/httpext"
 )
 
 type DashboardAccessGuard struct {
@@ -42,7 +43,6 @@ func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler)
 					if err != nil {
 						httpext.JSON(w, httpext.CommonError{
 							Error: "failed decode payload",
-							Code:  http.StatusBadRequest,
 						}, http.StatusBadRequest)
 						return
 					}
@@ -54,7 +54,6 @@ func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler)
 					if err != nil {
 						httpext.JSON(w, httpext.CommonError{
 							Error: "failed decode payload",
-							Code:  http.StatusBadRequest,
 						}, http.StatusBadRequest)
 						return
 					}
@@ -66,7 +65,6 @@ func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler)
 			if len(id) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[DashboardAccessGuard]/wrong id",
-					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
@@ -76,7 +74,6 @@ func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler)
 			if err != nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: err.Error(),
-					Code:  http.StatusInternalServerError,
 				}, http.StatusInternalServerError)
 				return
 			}

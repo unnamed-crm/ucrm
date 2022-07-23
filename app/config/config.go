@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"ucrm/pkg/pg"
+	"github.com/ignavan39/go-pkgs/pg/v1"
 	blogger "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )

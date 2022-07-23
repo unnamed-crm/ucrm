@@ -7,9 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/go-chi/chi"
 	"ucrm/app/dashboard"
-	"ucrm/pkg/httpext"
+
+	"github.com/ignavan39/go-pkgs/httpext"
+	"github.com/go-chi/chi"
 )
 
 type CustomFieldGuard struct {
@@ -38,7 +39,6 @@ func (cfg *CustomFieldGuard) Next() func(next http.Handler) http.Handler {
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
 						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
 					}, http.StatusBadRequest)
 					return
 				}
@@ -49,7 +49,6 @@ func (cfg *CustomFieldGuard) Next() func(next http.Handler) http.Handler {
 				if err != nil {
 					httpext.JSON(w, httpext.CommonError{
 						Error: "failed decode payload",
-						Code:  http.StatusBadRequest,
 					}, http.StatusBadRequest)
 					return
 				}
@@ -60,7 +59,6 @@ func (cfg *CustomFieldGuard) Next() func(next http.Handler) http.Handler {
 			if len(fieldId) == 0 {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[AccessGuard]/wrong field id",
-					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
@@ -69,7 +67,6 @@ func (cfg *CustomFieldGuard) Next() func(next http.Handler) http.Handler {
 			if err != nil || dashboardId == nil {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "[AccessGuard]/wrong field id",
-					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
