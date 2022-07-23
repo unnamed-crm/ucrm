@@ -31,12 +31,24 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --build-arg version="${{ github.event.inputs.version }}" --no-cache -f ./docker/app.Dockerfile -t ucrm .
-          docker tag ucrm "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
+          export event_tag=${{ github.event.inputs.version }}
+          if [! -z $event_tag]; then
+            export IMAGE_TAG=${{ github.event.inputs.version }}
+          else 
+            export IMAGE_TAG=${{ github.sha }}
+          fi
+          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/app.Dockerfile -t ucrm .
+          docker tag ucrm "ghcr.io/ignavan39/ucrm:$IMAGE_TAG"
           docker tag ucrm ghcr.io/ignavan39/ucrm:latest
       - name: Push Image
         run: |
-          docker push "ghcr.io/ignavan39/ucrm:${{ github.event.inputs.version }}"
+          export event_tag=${{ github.event.inputs.version }}
+          if [! -z $event_tag]; then
+            export IMAGE_TAG=${{ github.event.inputs.version }}
+          else 
+            export IMAGE_TAG=${{ github.sha }}
+          fi
+          docker push "ghcr.io/ignavan39/ucrm:$IMAGE_TAG"
           docker push ghcr.io/ignavan39/ucrm:latest
    
   build-frontend:
@@ -59,10 +71,22 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --build-arg version="${{ github.event.inputs.version }}" --no-cache -f ./docker/frontend.Dockerfile -t ucrm-frontend .
-          docker tag ucrm-frontend "ghcr.io/ignavan39/ucrm-frontend:${{ github.event.inputs.version }}"
+          export event_tag=${{ github.event.inputs.version }}
+          if [! -z $event_tag]; then
+            export IMAGE_TAG=${{ github.event.inputs.version }}
+          else 
+            export IMAGE_TAG=${{ github.sha }}
+          fi
+          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/frontend.Dockerfile -t ucrm-frontend .
+          docker tag ucrm-frontend "ghcr.io/ignavan39/ucrm-frontend:$IMAGE_TAG"
           docker tag ucrm-frontend ghcr.io/ignavan39/ucrm-frontend:latest
       - name: Push Image
         run: |
-          docker push "ghcr.io/ignavan39/ucrm-frontend:${{ github.event.inputs.version }}"
+          export event_tag=${{ github.event.inputs.version }}
+          if [! -z $event_tag]; then
+            export IMAGE_TAG=${{ github.event.inputs.version }}
+          else 
+            export IMAGE_TAG=${{ github.sha }}
+          fi
+          docker push "ghcr.io/ignavan39/ucrm-frontend:$IMAGE_TAG"
           docker push ghcr.io/ignavan39/ucrm-frontend:latest
