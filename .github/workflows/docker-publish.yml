@@ -37,7 +37,7 @@ jobs:
           else 
             export IMAGE_TAG=${{ github.sha }}
           fi
-          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/app.Dockerfile -t ucrm .
+          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/app.dockerfile -t ucrm .
           docker tag ucrm "ghcr.io/ignavan39/ucrm:$IMAGE_TAG"
           docker tag ucrm ghcr.io/ignavan39/ucrm:latest
       - name: Push Image
@@ -77,7 +77,7 @@ jobs:
           else 
             export IMAGE_TAG=${{ github.sha }}
           fi
-          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/frontend.Dockerfile -t ucrm-frontend .
+          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/frontend.dockerfile -t ucrm-frontend .
           docker tag ucrm-frontend "ghcr.io/ignavan39/ucrm-frontend:$IMAGE_TAG"
           docker tag ucrm-frontend ghcr.io/ignavan39/ucrm-frontend:latest
       - name: Push Image
