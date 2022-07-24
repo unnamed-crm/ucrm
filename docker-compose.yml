@@ -4,7 +4,7 @@ volumes:
 
 services:
   postgres:
-    container_name: ucrm-go-db
+    container_name: ucrm-db
     image: postgres:11.13-alpine
     command:
       - "postgres"
@@ -67,7 +67,7 @@ services:
           - ucrm.db.loc
 
   redis:
-    container_name: ucrm-go-redis
+    container_name: ucrm-redis
     image: "redis:alpine"
     command: redis-server --requirepass ${REDIS_PASSWORD:-password}
     ports:
@@ -83,13 +83,13 @@ services:
           - ucrm.redis.loc
 
   app:
-    container_name: ucrm-go-app
+    container_name: ucrm-app
     depends_on:
       - postgres
       - redis
     build:
       context: ./
-      dockerfile: docker/app.Dockerfile
+      dockerfile: docker/app.dockerfile
     env_file:
       - .env
     image: app:docker
@@ -112,7 +112,7 @@ services:
     hostname: "ucrm-frontend"
     build:
       context: ./
-      dockerfile: docker/frontend.Dockerfile
+      dockerfile: docker/frontend.dockerfile
     ports:
       - 8080:80
     networks:
