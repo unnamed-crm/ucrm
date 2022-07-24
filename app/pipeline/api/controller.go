@@ -7,10 +7,10 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	blogger "github.com/sirupsen/logrus"
 	"ucrm/app/models"
 	"ucrm/app/pipeline"
 	"ucrm/pkg/httpext"
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Controller struct {

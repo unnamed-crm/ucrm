@@ -11,6 +11,8 @@ import (
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
 	"github.com/go-redis/redis/v8"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/log/logrusadapter"
 	"ucrm/app"
 	authUC "ucrm/app/auth/usecase"
 	cardApi "ucrm/app/card/api"
@@ -23,18 +25,16 @@ import (
 	pipelineApi "ucrm/app/pipeline/api"
 	pipelineRepo "ucrm/app/pipeline/repository"
 	"ucrm/app/swagger"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/log/logrusadapter"
 
 	dashboardSettingsRepo "ucrm/app/dashboard-settings/repository"
 	userApi "ucrm/app/user/api"
 	userRepo "ucrm/app/user/repository"
 
+	blogger "github.com/sirupsen/logrus"
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/pg"
 	redisCache "ucrm/pkg/redis-cache"
-	blogger "github.com/sirupsen/logrus"
 )
 
 // @title                       Unnamed URCM
@@ -67,11 +67,15 @@ func main() {
 		blogger.Fatal(err.Error())
 	}
 
+	blogger.Infof("database connection established")
+
 	redis := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
 		Password: config.Redis.Password,
 		DB:       config.Redis.DB,
 	})
+
+	blogger.Infof("redis connection established")
 
 	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
 

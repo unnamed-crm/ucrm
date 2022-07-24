@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"ucrm/app/config"
 	"github.com/rs/cors"
+	"ucrm/app/config"
 )
 
 type Server struct {

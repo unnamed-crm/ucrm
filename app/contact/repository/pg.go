@@ -9,9 +9,9 @@ import (
 	"ucrm/app/dashboard/api"
 	"ucrm/app/models"
 
+	blogger "github.com/sirupsen/logrus"
 	repository "ucrm/app/contact"
 	"ucrm/pkg/pg"
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Repository struct {

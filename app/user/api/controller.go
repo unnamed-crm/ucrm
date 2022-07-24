@@ -338,7 +338,7 @@ func (c *Controller) sendMailMessage(
 	}
 
 	// _, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
-	blogger.Infof("Template msg: %s",msg)
+	blogger.Infof("Template msg: %s", msg)
 	if err != nil {
 		blogger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
 		return errFailedToSendMessage

@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	blogger "github.com/sirupsen/logrus"
 	"ucrm/app/card"
 	"ucrm/app/contact"
 	"ucrm/pkg/httpext"
-	blogger "github.com/sirupsen/logrus"
 )
 
 type Controller struct {

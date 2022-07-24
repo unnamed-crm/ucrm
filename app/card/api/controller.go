@@ -14,8 +14,8 @@ import (
 	"ucrm/app/models"
 	"ucrm/pkg/httpext"
 
-	dashboardSettings "ucrm/app/dashboard-settings"
 	blogger "github.com/sirupsen/logrus"
+	dashboardSettings "ucrm/app/dashboard-settings"
 )
 
 type Controller struct {
