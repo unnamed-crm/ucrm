@@ -10,7 +10,7 @@ import (
 	repository "ucrm/app/card"
 	"ucrm/app/dashboard/api"
 	"ucrm/app/models"
-	"github.com/ignavan39/go-pkgs/pg/v1"
+	"ucrm/pkg/pg"
 )
 
 type Repository struct {

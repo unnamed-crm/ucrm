@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"ucrm/app/models"
-	"github.com/ignavan39/go-pkgs/pg/v1"
+	"ucrm/pkg/pg"
 
 	sq "github.com/Masterminds/squirrel"
 )

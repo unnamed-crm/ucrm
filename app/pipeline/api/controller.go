@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi"
 	"ucrm/app/models"
 	"ucrm/app/pipeline"
-
-	"github.com/go-chi/chi"
-	"github.com/ignavan39/go-pkgs/httpext"
+	"ucrm/pkg/httpext"
 	blogger "github.com/sirupsen/logrus"
 )
 
@@ -42,6 +41,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload: pipelines/createOne",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -51,6 +51,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[pipeline/create] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -81,6 +82,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload: pipelines/updateName",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -89,6 +91,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/updateName",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -98,6 +101,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[pipeline/updateName] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 	}
 
@@ -121,6 +125,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/deleteById",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -130,6 +135,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[pipeline/delete] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 	}
 
@@ -156,6 +162,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(pipelineId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing id: pipelines/updateOrder",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -163,6 +170,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(orderQuery) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing order: pipelines/updateOrder",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -171,6 +179,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil || newOrder < 1 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "incorrect value for order: pipelines/updateOrder",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -180,6 +189,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[pipeline/updateOrder] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -187,6 +197,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if len(pipelines) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "pipelines is empty",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -198,6 +209,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 			if p.Order == newOrder {
 				httpext.JSON(w, httpext.CommonError{
 					Error: "Incorrect new order for update",
+					Code:  http.StatusBadRequest,
 				}, http.StatusBadRequest)
 				return
 			}
@@ -211,6 +223,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	if newOrder > maxOrder {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong order",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -246,6 +259,7 @@ func (c *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[pipeline/updateOrder] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[UpdateOrder]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}

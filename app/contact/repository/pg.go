@@ -10,7 +10,7 @@ import (
 	"ucrm/app/models"
 
 	repository "ucrm/app/contact"
-	"github.com/ignavan39/go-pkgs/pg/v1"
+	"ucrm/pkg/pg"
 	blogger "github.com/sirupsen/logrus"
 )
 

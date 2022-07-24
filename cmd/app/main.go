@@ -32,10 +32,9 @@ import (
 
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
-	"github.com/ignavan39/go-pkgs/pg/v1"
-	redisCache "github.com/ignavan39/go-pkgs/cache/redis"
-	blogger "github.com/ignavan39/go-pkgs/logger"
-	logger "github.com/sirupsen/logrus"
+	"ucrm/pkg/pg"
+	redisCache "ucrm/pkg/redis-cache"
+	blogger "github.com/sirupsen/logrus"
 )
 
 // @title                       Unnamed URCM
@@ -45,12 +44,13 @@ import (
 // @in                          header
 // @name                        Authorization
 func main() {
-	blogger.Init()
+	blogger.SetOutput(os.Stdout)
+	blogger.SetFormatter(&blogger.TextFormatter{})
 
 	ctx := context.Background()
 	config, err := conf.GetConfig()
 	if err != nil {
-		blogger.Logger.Fatal(err.Error())
+		blogger.Fatal(err.Error())
 	}
 
 	if config.Environment == conf.DevelopEnvironment {
@@ -59,18 +59,12 @@ func main() {
 
 	var pgLogger pgx.Logger
 	if config.Environment == conf.DevelopEnvironment {
-		pgLogger = logrusadapter.NewLogger(logger.New())
+		pgLogger = logrusadapter.NewLogger(blogger.New())
 	}
 
-	rwConn, err := pg.NewReadAndWriteConnection(ctx, pg.Config{
-		User: config.Database.User,
-		Password: config.Database.Password,
-
-	}, pg.Config{
-
-	}, pgLogger)
+	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	if err != nil {
-		blogger.Logger.Fatal(err.Error())
+		blogger.Fatal(err.Error())
 	}
 
 	redis := redis.NewClient(&redis.Options{
@@ -79,7 +73,7 @@ func main() {
 		DB:       config.Redis.DB,
 	})
 
-	userCache := redisCache.NewRedisCache[any](redis, time.Minute*5, "cache",1000)
+	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
 
 	web := app.NewAPIServer(":8081").
 		WithCors(config.Cors)
@@ -91,7 +85,7 @@ func main() {
 	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
 
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := userApi.NewController(authorizer, userRepo, config.Mail, *userCache)
+	userController := userApi.NewController(authorizer, userRepo, config.Mail, *cache)
 	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)
@@ -121,18 +115,18 @@ func main() {
 	})
 
 	if err := web.Start(); err != nil {
-		blogger.Logger.Fatalf("API Server crashed with error :[%s]", err.Error())
+		blogger.Fatalf("API Server crashed with error :[%s]", err.Error())
 	}
-	blogger.Logger.Infof("API server has been started...")
+	blogger.Infof("API server has been started...")
 
 	appCloser := make(chan os.Signal)
 	signal.Notify(appCloser, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-appCloser
-		blogger.Logger.Info("[os.SIGNAL] close request")
+		blogger.Info("[os.SIGNAL] close request")
 
 		go web.Stop()
-		blogger.Logger.Info("[os.SIGNAL] done")
+		blogger.Info("[os.SIGNAL] done")
 	}()
 	web.WaitForDone()
 }

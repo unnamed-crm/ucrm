@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"ucrm/app/auth"
 	"ucrm/app/dashboard"
 	"ucrm/app/models"
 
-	"github.com/go-chi/chi"
-	"github.com/ignavan39/go-pkgs/httpext"
-
 	dashboardSettings "ucrm/app/dashboard-settings"
-
+	"ucrm/pkg/httpext"
 	blogger "github.com/sirupsen/logrus"
 )
 
@@ -50,6 +48,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -59,6 +58,7 @@ func (c *Controller) CreateOne(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -84,6 +84,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -92,6 +93,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -100,6 +102,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -107,6 +110,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if dashboard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "dashboard not found",
+			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -115,6 +119,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if payload.UserId == currentUser {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -123,6 +128,7 @@ func (c *Controller) AddAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -145,6 +151,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong id",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -154,6 +161,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 		blogger.Error("[dashboards/getOnde] ERROR :%s", err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -161,6 +169,7 @@ func (c *Controller) GetOneDashboard(w http.ResponseWriter, r *http.Request) {
 	if dashboard == nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "dashboard not found",
+			Code:  http.StatusNotFound,
 		}, http.StatusNotFound)
 		return
 	}
@@ -210,6 +219,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -217,6 +227,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	if len(payload.Name) < 2 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "name too short",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -225,6 +236,7 @@ func (c *Controller) UpdateName(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -249,6 +261,7 @@ func (c *Controller) DeleteById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -276,6 +289,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -283,6 +297,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	if len(payload.Url) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "url to short",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -291,6 +306,7 @@ func (c *Controller) AddWebhook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -316,6 +332,7 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong id",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -325,6 +342,7 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -337,6 +355,7 @@ func (c *Controller) AddSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -364,6 +383,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	if len(dashboardId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing dashboardId: dashboards/createCustomField",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -373,6 +393,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload: dashboards/createCustomField",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -381,6 +402,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -390,6 +412,7 @@ func (c *Controller) CreateCustomField(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[dashboards/createCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[CreateCustomField]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -414,6 +437,7 @@ func (c *Controller) DeleteCustomField(w http.ResponseWriter, r *http.Request) {
 	if len(fieldId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "missing fieldId: dashboards/deleteCustomField",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -423,6 +447,7 @@ func (c *Controller) DeleteCustomField(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[dashboards/deleteCustomFields] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[DeleteCustomField]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -449,6 +474,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	if len(id) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong id",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -457,6 +483,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	if len(userId) == 0 {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "wrong user id",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -465,6 +492,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 	if userId == currentUser {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -474,6 +502,7 @@ func (c *Controller) RemoveAccess(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[dashboards/RemoveAccess] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[RemoveAccess]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -500,6 +529,7 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "failed decode payload",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -508,6 +538,7 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -516,6 +547,7 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	if payload.UserId == currentUser {
 		httpext.JSON(w, httpext.CommonError{
 			Error: "you can't changed your access",
+			Code:  http.StatusBadRequest,
 		}, http.StatusBadRequest)
 		return
 	}
@@ -525,6 +557,7 @@ func (c *Controller) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 		blogger.Errorf("[dashboards/UpdateAccess] CTX: [%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[UpdateAccess]:%s", err.Error()),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
@@ -550,6 +583,7 @@ func (c *Controller) GetByUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
+			Code:  http.StatusInternalServerError,
 		}, http.StatusInternalServerError)
 		return
 	}
