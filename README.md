@@ -1,20 +1,40 @@
 # Unnamed CRM
-
 ![example workflow](https://github.com/ignavan39/ucrm/actions/workflows/build.yml/badge.svg)
 
-### How to start:
+#### 📌 it is fast and comfortable crm for your business
 
-#### Local development
+### 🤝 we can offer you:
+- digital pipelines
+- client cards with flexible field settings in the admin panel
+- customer contacts, also with flexible field settings
+- administration panel
+- setting the rights of workers
+- there is webhook support for your systems
+- there is support for custom fields in customer cards and customer contacts
+
+### ✅ Plans:
+
+- [ ] finish the frontend part
+- [ ] collection of statistics on employees for the administration panel
+
+
+### ✏️ For all your wishes
+please write to me:
+>ivanignatenko28@gmail.com
+
+either here:
+>https://github.com/ignavan39/ucrm/discussions/categories/ideas
+
+### 🛠 How to local start:
+
+##### Local development
 
 Start:
 ```bash
 $ docker-compose up --build
 ```
 
-### Debug
+##### Debug
 ```bash
 $ docker-compose -f docker-compose.debug.yml up --build
 ```
-## Database scheme
-
-![scheme](./.assets/scheme.png)
