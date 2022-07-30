@@ -38,3 +38,11 @@ $ docker-compose up --build
 ```bash
 $ docker-compose -f docker-compose.debug.yml up --build
 ```
+
+###  💻 For Contributions
+ 1. take any issue from the list into work, do it with a branch name like feat/ucrm-{issue_number}
+1. create a pull request with a wildcard name 
+[feat] - {issue_number} short description
+1. waiting for code review
+1. ???
+1. PROFIT
