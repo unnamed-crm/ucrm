@@ -33,4 +33,5 @@ jobs:
           cd ./frontend
           yarn
           export NODE_OPTIONS=--openssl-legacy-provider
+          yarn lint
           yarn build

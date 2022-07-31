@@ -2,7 +2,7 @@ import { reactive, computed, ComputedRef } from "vue";
 
 type Timer = {
   startTime: number;
-  interval: number | null;
+  interval: number;
 };
 
 type Time = {
@@ -18,6 +18,7 @@ type useTimerReturnType = {
 };
 
 export const useTimer = (timeToLeft: number): useTimerReturnType => {
+  const from = new Date();
   const timer = reactive<Timer>({
     startTime: timeToLeft,
     interval: null,
@@ -32,7 +33,9 @@ export const useTimer = (timeToLeft: number): useTimerReturnType => {
     if (value.length === 1) return `0${value}`;
     return value;
   });
-  const isTimerLeft = computed<boolean>(() => !timer.startTime);
+  const isTimerLeft = computed<boolean>(
+    () => from.getTime() < new Date().getTime() - timer.startTime,
+  );
 
   const time: Time = {
     mins,
