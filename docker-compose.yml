@@ -85,9 +85,9 @@ services:
     container_name: ucrm-smtp
     image: "ghcr.io/ignavan39/go-smtp:latest"
     ports:
-      - ${PORT:-8082}:80
+      - ${SMTP_PORT:-8082}:80
     environment:
-      - CONFIG_PATH=./app/config/smtp.yml
+      - CONFIG_PATH=./config/smtp.yml
     networks:
       ucrm:
         ipv4_address: ${NETWORK_PREFIX:-172.4}.4.15
