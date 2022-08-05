@@ -58,6 +58,8 @@ type Config struct {
 	Mail        MailConfig
 }
 
+var config Config
+
 func validateEnvironment(env string) bool {
 	for _, e := range environments {
 		if e == env {
@@ -84,15 +86,15 @@ func confFromFile(fileName string) (*CoreConfig, error) {
 	return &conf, nil
 }
 
-func GetConfig() (*Config, error) {
+func Init() error {
 	port, err := strconv.ParseInt(os.Getenv("DATABASE_PORT"), 10, 16)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	expireDuration, err := time.ParseDuration(os.Getenv("JWT_EXPIRE_DURATION"))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	environment := strings.ToLower(os.Getenv("ENVIRONMENT"))
@@ -102,7 +104,7 @@ func GetConfig() (*Config, error) {
 
 	finded := validateEnvironment(environment)
 	if !finded {
-		return nil, fmt.Errorf("[Environment] Undeclared name :%s", environment)
+		return fmt.Errorf("[Environment] Undeclared name :%s", environment)
 	}
 
 	pgCong := pg.Config{
@@ -115,12 +117,12 @@ func GetConfig() (*Config, error) {
 
 	redisPort, err := strconv.ParseInt(os.Getenv("REDIS_PORT"), 10, 16)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	redisDb, err := strconv.ParseInt(os.Getenv("REDIS_DB"), 10, 16)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	redis := RedisConfig{
@@ -132,10 +134,10 @@ func GetConfig() (*Config, error) {
 
 	coreConf, err := confFromFile("./usr/local/bin/app/develop.yml")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &Config{
+	config = Config{
 		Database: pgCong,
 		JWT: JWTConfig{
 			HashSalt:       os.Getenv("JWT_HASH_SALT"),
@@ -146,5 +148,10 @@ func GetConfig() (*Config, error) {
 		Cors:        coreConf.Cors,
 		Mail:        coreConf.Mail,
 		Environment: environment,
-	}, nil
+	}
+	return nil
+}
+
+func GetConfig() Config {
+	return config
 }

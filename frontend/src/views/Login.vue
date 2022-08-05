@@ -18,6 +18,11 @@
         placeholder="password..."
       />
     </el-form-item>
+    <el-row>
+      <el-col>
+        <el-link type="primary">Forgot Password</el-link>
+      </el-col>
+    </el-row>
     <el-button class="button" native-type="submit" type="primary"> Login </el-button>
   </el-form>
 </template>

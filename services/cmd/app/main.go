@@ -46,10 +46,12 @@ import (
 // @name                        Authorization
 func main() {
 	ctx := context.Background()
-	config, err := conf.GetConfig()
+	err := conf.Init()
 	if err != nil {
 		logger.Logger.Fatal(err.Error())
 	}
+
+	config := conf.GetConfig()
 
 	if config.Environment == conf.DevelopEnvironment {
 		time.Sleep(15 * time.Second)
@@ -96,7 +98,7 @@ func main() {
 	pipelineAccessGuard := middlewares.NewPipelineAccessGuard(pipelineRepo)
 	dashboardAccesGuard := middlewares.NewDashboardAccessGuard(dashboardRepo)
 	customFieldGuard := middlewares.NewCustomFieldGuard(dashboardRepo)
-	authGuard := middlewares.NewAuthGuard(config.JWT)
+	authGuard := middlewares.NewAuthGuard()
 
 	web.Router().Route("/api/v1", func(v1 chi.Router) {
 		if config.Environment == conf.DevelopEnvironment {

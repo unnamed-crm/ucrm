@@ -88,7 +88,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.repo.Create(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
+	user, err := c.repo.Create(payload.Email, utils.CryptString(payload.Password, config.GetConfig().JWT.HashSalt))
 	if err != nil {
 		logger.Logger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
@@ -134,7 +134,7 @@ func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.repo.GetOneByEmail(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
+	user, err := c.repo.GetOneByEmail(payload.Email, utils.CryptString(payload.Password, config.GetConfig().JWT.HashSalt))
 	if err != nil {
 		httpext.JSON(w, httpext.CommonError{
 			Error: err.Error(),
@@ -246,7 +246,7 @@ func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.repo.UpdatePassword(payload.Email, utils.CryptString(payload.Password, c.auth.GetHashSalt()))
+	user, err := c.repo.UpdatePassword(payload.Email, utils.CryptString(payload.Password, config.GetConfig().JWT.HashSalt))
 	if err != nil {
 		logger.Logger.Errorf("[user/sign-up] CTX:[%v], ERROR:[%s]", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{

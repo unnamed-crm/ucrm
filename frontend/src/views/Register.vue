@@ -1,7 +1,7 @@
 <template>
   <el-form
     class="form"
-    @submit.prevent="register()"
+    @submit.prevent="register"
     label-position="top"
     hide-required-asterisk
     novalidate
@@ -69,24 +69,24 @@ const sendVerifyCode = async () => {
   const isRegisterDataValid = await validate();
   if (!isRegisterDataValid) return;
 
-  store
-    .dispatch("verificationCode", { email: registerData.email })
-    .then(() => (hasVerificationCode.value = true));
+  await store.dispatch("verificationCode", { email: registerData.email });
+  hasVerificationCode.value = true;
 };
 
 const resendVerifyCode = () => store.dispatch("verificationCode", { email: registerData.email });
-
 const register = async () => {
   const isRegisterDataValid = await validate();
   const isVerificationCodeValid = await verificationCodeRef.value.validate();
-  if (!isRegisterDataValid || !isVerificationCodeValid || !verificationCodeRef.value.isTimerLeft)
+  if (!isRegisterDataValid || !isVerificationCodeValid || !verificationCodeRef.value.isTimerLeft) {
     return;
+  }
 
   const data = {
     ...registerData,
     ...verificationCodeRef.value.verificationCodeData,
   };
-  store.dispatch("register", data).then(() => router.push("/"));
+  await store.dispatch("register", data);
+  router.push("/");
 };
 </script>
 

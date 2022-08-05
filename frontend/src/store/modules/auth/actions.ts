@@ -27,7 +27,7 @@ export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.Login]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/sign-in`, data);
+      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/signIn`, data);
 
       const { token, user } = response.data;
 
@@ -43,7 +43,7 @@ export const actions: ActionFuncs<State> & Actions = {
   async [ActionTypes.Register]({ commit }, data) {
     commit(MutationTypes.AuthRequest);
     try {
-      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/sign-up`, data);
+      const response = await axios.post<SignInResponse>(`${HOST_URL}/users/signUp`, data);
 
       const { token, user } = response.data;
 

@@ -13,14 +13,10 @@ import (
 	"ucrm/pkg/logger"
 )
 
-type AuthGuard struct {
-	cfg config.JWTConfig
-}
+type AuthGuard struct{}
 
-func NewAuthGuard(cfg config.JWTConfig) *AuthGuard {
-	return &AuthGuard{
-		cfg: cfg,
-	}
+func NewAuthGuard() *AuthGuard {
+	return &AuthGuard{}
 }
 
 func (ag *AuthGuard) Next() func(next http.Handler) http.Handler {
@@ -36,7 +32,7 @@ func (ag *AuthGuard) Next() func(next http.Handler) http.Handler {
 				customClaims := &auth.Claims{}
 
 				token, err := jwt.ParseWithClaims(jwtToken, customClaims, func(token *jwt.Token) (interface{}, error) {
-					return []byte(ag.cfg.SigningKey), nil
+					return []byte(config.GetConfig().JWT.SigningKey), nil
 				})
 				if err != nil || !token.Valid {
 					logger.Logger.Error("[AuthGuard] Error :%s", err.Error())

@@ -79,7 +79,7 @@ const props = withDefaults(defineProps<VerificationCodeProps>(), {
 const emit = defineEmits(["resend"]);
 
 const verificationCodeData = reactive<VerificationCodeData>({
-  verificationCode: null,
+  code: null,
 });
 const { errors, validate } = useValidate<VerificationCodeSchema>(
   verificationCodeSchema,
@@ -107,7 +107,7 @@ onUnmounted(() => {
 
 watch(inputRefs, (inputs) => {
   const code = parseInt(inputs.map((el) => el.value).join(""), 10) || 0;
-  verificationCodeData.verificationCode = code;
+  verificationCodeData.code = code;
 });
 
 const onCodeChange = (value: string, index: number) => {
