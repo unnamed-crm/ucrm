@@ -1,0 +1,111 @@
+export declare const ElTreeV2: import("element-plus/es/utils").SFCWithInstall<import("vue").DefineComponent<{
+    readonly data: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeData>, () => [], unknown, unknown, unknown>;
+    readonly emptyText: import("element-plus/es/utils").BuildPropReturn<StringConstructor, unknown, unknown, unknown, unknown>;
+    readonly height: import("element-plus/es/utils").BuildPropReturn<NumberConstructor, 200, unknown, unknown, unknown>;
+    readonly props: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeOptionProps>, () => import("element-plus/es/utils").Mutable<{
+        readonly children: import("./src/virtual-tree").TreeOptionsEnum.CHILDREN;
+        readonly label: import("./src/virtual-tree").TreeOptionsEnum.LABEL;
+        readonly disabled: import("./src/virtual-tree").TreeOptionsEnum.DISABLED;
+        readonly value: import("./src/virtual-tree").TreeOptionsEnum.KEY;
+    }>, unknown, unknown, unknown>;
+    readonly highlightCurrent: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly showCheckbox: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly defaultCheckedKeys: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey[]>, () => [], unknown, unknown, unknown>;
+    readonly checkStrictly: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly defaultExpandedKeys: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey[]>, () => [], unknown, unknown, unknown>;
+    readonly indent: import("element-plus/es/utils").BuildPropReturn<NumberConstructor, 16, unknown, unknown, unknown>;
+    readonly icon: import("element-plus/es/utils").BuildPropReturn<StringConstructor, unknown, unknown, unknown, unknown>;
+    readonly expandOnClickNode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, true, unknown, unknown, unknown>;
+    readonly checkOnClickNode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly currentNodeKey: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey>, unknown, unknown, unknown, unknown>;
+    readonly accordion: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly filterMethod: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").FilterMethod>, unknown, unknown, unknown, unknown>;
+    readonly perfMode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, true, unknown, unknown, unknown>;
+}, {
+    t: import("../..").Translator;
+    ns: {
+        namespace: import("vue").ComputedRef<string>;
+        b: (blockSuffix?: string) => string;
+        e: (element?: string | undefined) => string;
+        m: (modifier?: string | undefined) => string;
+        be: (blockSuffix?: string | undefined, element?: string | undefined) => string;
+        em: (element?: string | undefined, modifier?: string | undefined) => string;
+        bm: (blockSuffix?: string | undefined, modifier?: string | undefined) => string;
+        bem: (blockSuffix?: string | undefined, element?: string | undefined, modifier?: string | undefined) => string;
+        is: {
+            (name: string, state: boolean | undefined): string;
+            (name: string): string;
+        };
+    };
+    flattenTree: import("vue").ComputedRef<import("./src/types").TreeNode[]>;
+    itemSize: number;
+    isNotEmpty: import("vue").ComputedRef<boolean>;
+    toggleExpand: (node: import("./src/types").TreeNode) => void;
+    toggleCheckbox: (node: import("./src/types").TreeNode, isChecked: boolean, nodeClick?: boolean) => void;
+    isExpanded: (node: import("./src/types").TreeNode) => boolean;
+    isIndeterminate: (node: import("./src/types").TreeNode) => boolean;
+    isChecked: (node: import("./src/types").TreeNode) => boolean;
+    isDisabled: (node: import("./src/types").TreeNode) => boolean;
+    isCurrent: (node: import("./src/types").TreeNode) => boolean;
+    isForceHiddenExpandIcon: (node: import("./src/types").TreeNode) => boolean;
+    handleNodeClick: (node: import("./src/types").TreeNode, e: MouseEvent) => void;
+    handleNodeCheck: (node: import("./src/types").TreeNode, checked: boolean) => void;
+}, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
+    "node-click": (data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode, e: MouseEvent) => MouseEvent;
+    "node-expand": (data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => import("./src/types").TreeNode;
+    "node-collapse": (data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => import("./src/types").TreeNode;
+    "current-change": (data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => import("./src/types").TreeNode;
+    check: (data: import("../tree/src/tree.type").TreeNodeData, checkedInfo: import("./src/types").CheckedInfo) => import("./src/types").CheckedInfo;
+    "check-change": (data: import("../tree/src/tree.type").TreeNodeData, checked: boolean) => boolean;
+    "node-contextmenu": (event: Event, data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => import("./src/types").TreeNode;
+}, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<import("vue").ExtractPropTypes<{
+    readonly data: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeData>, () => [], unknown, unknown, unknown>;
+    readonly emptyText: import("element-plus/es/utils").BuildPropReturn<StringConstructor, unknown, unknown, unknown, unknown>;
+    readonly height: import("element-plus/es/utils").BuildPropReturn<NumberConstructor, 200, unknown, unknown, unknown>;
+    readonly props: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeOptionProps>, () => import("element-plus/es/utils").Mutable<{
+        readonly children: import("./src/virtual-tree").TreeOptionsEnum.CHILDREN;
+        readonly label: import("./src/virtual-tree").TreeOptionsEnum.LABEL;
+        readonly disabled: import("./src/virtual-tree").TreeOptionsEnum.DISABLED;
+        readonly value: import("./src/virtual-tree").TreeOptionsEnum.KEY;
+    }>, unknown, unknown, unknown>;
+    readonly highlightCurrent: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly showCheckbox: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly defaultCheckedKeys: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey[]>, () => [], unknown, unknown, unknown>;
+    readonly checkStrictly: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly defaultExpandedKeys: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey[]>, () => [], unknown, unknown, unknown>;
+    readonly indent: import("element-plus/es/utils").BuildPropReturn<NumberConstructor, 16, unknown, unknown, unknown>;
+    readonly icon: import("element-plus/es/utils").BuildPropReturn<StringConstructor, unknown, unknown, unknown, unknown>;
+    readonly expandOnClickNode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, true, unknown, unknown, unknown>;
+    readonly checkOnClickNode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly currentNodeKey: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey>, unknown, unknown, unknown, unknown>;
+    readonly accordion: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, false, unknown, unknown, unknown>;
+    readonly filterMethod: import("element-plus/es/utils").BuildPropReturn<import("element-plus/es/utils").PropWrapper<import("./src/types").FilterMethod>, unknown, unknown, unknown, unknown>;
+    readonly perfMode: import("element-plus/es/utils").BuildPropReturn<BooleanConstructor, true, unknown, unknown, unknown>;
+}>> & {
+    "onCurrent-change"?: ((data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => any) | undefined;
+    "onNode-expand"?: ((data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => any) | undefined;
+    onCheck?: ((data: import("../tree/src/tree.type").TreeNodeData, checkedInfo: import("./src/types").CheckedInfo) => any) | undefined;
+    "onCheck-change"?: ((data: import("../tree/src/tree.type").TreeNodeData, checked: boolean) => any) | undefined;
+    "onNode-click"?: ((data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode, e: MouseEvent) => any) | undefined;
+    "onNode-contextmenu"?: ((event: Event, data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => any) | undefined;
+    "onNode-collapse"?: ((data: import("../tree/src/tree.type").TreeNodeData, node: import("./src/types").TreeNode) => any) | undefined;
+}, {
+    icon: string;
+    data: import("./src/types").TreeData;
+    props: import("./src/types").TreeOptionProps;
+    height: number;
+    emptyText: string;
+    checkStrictly: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    filterMethod: import("./src/types").FilterMethod;
+    accordion: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    indent: number;
+    showCheckbox: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    defaultCheckedKeys: import("./src/types").TreeKey[];
+    defaultExpandedKeys: import("./src/types").TreeKey[];
+    expandOnClickNode: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    checkOnClickNode: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    highlightCurrent: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+    currentNodeKey: import("element-plus/es/utils").BuildPropType<import("element-plus/es/utils").PropWrapper<import("./src/types").TreeKey>, unknown, unknown>;
+    perfMode: import("element-plus/es/utils").BuildPropType<BooleanConstructor, unknown, unknown>;
+}>> & Record<string, any>;
+export default ElTreeV2;
