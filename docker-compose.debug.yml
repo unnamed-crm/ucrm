@@ -115,18 +115,7 @@ services:
         ipv4_address: ${NETWORK_PREFIX:-172.4}.4.10
         aliases:
           - ucrm.api.loc
-  frontend:
-    hostname: "ucrm-frontend"
-    build:
-      context: ./
-      dockerfile: docker/frontend.Dockerfile
-    ports:
-      - 8080:80
-    networks:
-      ucrm:
-        ipv4_address: ${NETWORK_PREFIX:-172.4}.4.12
-        aliases:
-          - ucrm.api.frontend.loc
+
 networks:
   ucrm:
     name: ucrm

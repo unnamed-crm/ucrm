@@ -38,8 +38,8 @@ jobs:
             export IMAGE_TAG=${{ github.sha }}
           fi
           docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/app.dockerfile -t ucrm .
-          docker tag ucrm "ghcr.io/ignavan39/ucrm:$IMAGE_TAG"
-          docker tag ucrm ghcr.io/ignavan39/ucrm:latest
+          docker tag ucrm "ghcr.io/${{ github.repository }}:$IMAGE_TAG"
+          docker tag ucrm "ghcr.io/${{ github.repository }}:latest"
       - name: Push Image
         run: |
           export event_tag=${{ github.event.inputs.version }}
@@ -48,45 +48,5 @@ jobs:
           else 
             export IMAGE_TAG=${{ github.sha }}
           fi
-          docker push "ghcr.io/ignavan39/ucrm:$IMAGE_TAG"
-          docker push ghcr.io/ignavan39/ucrm:latest
-   
-  build-frontend:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image
-        run: |
-          export event_tag=${{ github.event.inputs.version }}
-          if [! -z $event_tag]; then
-            export IMAGE_TAG=${{ github.event.inputs.version }}
-          else 
-            export IMAGE_TAG=${{ github.sha }}
-          fi
-          docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/frontend.dockerfile -t ucrm-frontend .
-          docker tag ucrm-frontend "ghcr.io/ignavan39/ucrm-frontend:$IMAGE_TAG"
-          docker tag ucrm-frontend ghcr.io/ignavan39/ucrm-frontend:latest
-      - name: Push Image
-        run: |
-          export event_tag=${{ github.event.inputs.version }}
-          if [! -z $event_tag]; then
-            export IMAGE_TAG=${{ github.event.inputs.version }}
-          else 
-            export IMAGE_TAG=${{ github.sha }}
-          fi
-          docker push "ghcr.io/ignavan39/ucrm-frontend:$IMAGE_TAG"
-          docker push ghcr.io/ignavan39/ucrm-frontend:latest
+          docker push "ghcr.io/${{ github.repository }}:$IMAGE_TAG"
+          docker push "ghcr.io/${{ github.repository }}:latest"
