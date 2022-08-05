@@ -83,7 +83,7 @@ services:
           - ucrm.redis.loc
   smtp: 
     container_name: ucrm-smtp
-    image: "ghcr.io/ignavan39/go-smtp:latest"
+    image: "ghcr.io/enmex/go-smtp:latest"
     ports:
       - ${SMTP_PORT:-8082}:80
     environment:
