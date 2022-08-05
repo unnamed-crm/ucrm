@@ -87,7 +87,7 @@ services:
     ports:
       - ${PORT:-8082}:80
     environment:
-      - CONFIG_PATH=./config.example.yml
+      - CONFIG_PATH=./app/config/smtp.yml
     networks:
       ucrm:
         ipv4_address: ${NETWORK_PREFIX:-172.4}.4.15

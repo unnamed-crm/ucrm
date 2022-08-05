@@ -34,6 +34,7 @@ import (
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/logger"
+	mailer "ucrm/pkg/mailer/smtp"
 	"ucrm/pkg/pg"
 	redisCache "ucrm/pkg/redis-cache"
 )
@@ -79,6 +80,8 @@ func main() {
 
 	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
 
+	mailer := mailer.NewSmtpMailer()
+
 	web := app.NewAPIServer(":8081").
 		WithCors(config.Cors)
 
@@ -89,7 +92,7 @@ func main() {
 	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
 
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
-	userController := userApi.NewController(authorizer, userRepo, config.Mail, *cache)
+	userController := userApi.NewController(authorizer, userRepo, config.Mail, mailer, *cache)
 	dashboardController := dashboardApi.NewController(dashboardRepo, dashboardSettingsRepo)
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)

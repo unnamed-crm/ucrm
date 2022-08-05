@@ -4,13 +4,11 @@ import (
 	"context"
 	"net/http"
 	"strings"
-
 	"ucrm/app/auth"
 	"ucrm/app/config"
+	"ucrm/pkg/logger"
 
 	"github.com/dgrijalva/jwt-go/v4"
-
-	"ucrm/pkg/logger"
 )
 
 type AuthGuard struct{}

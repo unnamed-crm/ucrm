@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"ucrm/pkg/logger"
+	"ucrm/pkg/mailer"
 
 	"ucrm/app/auth"
 	"ucrm/app/config"
@@ -22,6 +23,7 @@ type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
 	mailConfig config.MailConfig
+	mailer mailer.Mailer
 	cache      redisCache.RedisCache
 }
 
@@ -29,12 +31,14 @@ func NewController(
 	a auth.AuthUseCase,
 	repo user.Repository,
 	mailConfig config.MailConfig,
+	mailer mailer.Mailer,
 	cache redisCache.RedisCache,
 ) *Controller {
 	return &Controller{
 		auth:       a,
 		repo:       repo,
 		mailConfig: mailConfig,
+		mailer: mailer,
 		cache:      cache,
 	}
 }
@@ -196,6 +200,7 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 			}, http.StatusBadRequest)
 			return
 		} else {
+			logger.Logger.Error(err.Error())
 			httpext.JSON(w, httpext.CommonError{
 				Error: err.Error(),
 				Code:  http.StatusInternalServerError,
@@ -337,8 +342,8 @@ func (c *Controller) sendMailMessage(
 		return errFailedRenderTemplateMessage
 	}
 
-	// _, _, err = c.mailer.SendMail(msg, c.mailConfig.Sender, email)
-	logger.Logger.Infof("Template msg: %s", msg)
+	_, _, err = c.mailer.SendMail(template.Subject, msg, c.mailConfig.Sender, email)
+	
 	if err != nil {
 		logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
 		return errFailedToSendMessage
@@ -349,7 +354,7 @@ func (c *Controller) sendMailMessage(
 
 var (
 	errFailedParseTime             = errors.New("failed to parse lastTime from cache")
-	errTooFrequentCodeEntry        = errors.New("try latter")
+	errTooFrequentCodeEntry        = errors.New("try later")
 	errFailedSaveLastTimeToCache   = errors.New("failed to save lastTime to cache")
 	errTemplateNotFound            = errors.New("template not found")
 	errFailedRenderTemplateMessage = errors.New("failed to render template message")
