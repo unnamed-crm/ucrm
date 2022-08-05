@@ -48,3 +48,4 @@ jobs:
             export IMAGE_TAG=${{ github.sha }}
           fi
           docker push "ghcr.io/${{ github.repository }}:$IMAGE_TAG"
+          docker push "ghcr.io/${{ github.repository }}:latest"
