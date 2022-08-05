@@ -39,6 +39,7 @@ jobs:
           fi
           docker build --build-arg version="$IMAGE_TAG" --no-cache -f ./docker/app.dockerfile -t ucrm .
           docker tag ucrm "ghcr.io/${{ github.repository }}:$IMAGE_TAG"
+          docker tag ucrm "ghcr.io/${{ github.repository }}:latest"
       - name: Push Image
         run: |
           export event_tag=${{ github.event.inputs.version }}
@@ -48,3 +49,4 @@ jobs:
             export IMAGE_TAG=${{ github.sha }}
           fi
           docker push "ghcr.io/${{ github.repository }}:$IMAGE_TAG"
+          docker push "ghcr.io/${{ github.repository }}:latest"
