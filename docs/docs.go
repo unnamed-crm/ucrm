@@ -2238,7 +2238,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1/",
 	Schemes:          []string{},
 	Title:            "Unnamed URCM",
 	Description:      "Unnamed URCM",

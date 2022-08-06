@@ -4,13 +4,11 @@ import (
 	"context"
 	"net/http"
 	"strings"
-
 	"ucrm/app/auth"
 	"ucrm/app/config"
+	"ucrm/pkg/logger"
 
 	"github.com/dgrijalva/jwt-go/v4"
-
-	blogger "github.com/sirupsen/logrus"
 )
 
 type AuthGuard struct{}
@@ -35,7 +33,7 @@ func (ag *AuthGuard) Next() func(next http.Handler) http.Handler {
 					return []byte(config.GetConfig().JWT.SigningKey), nil
 				})
 				if err != nil || !token.Valid {
-					blogger.Error("[AuthGuard] Error :%s", err.Error())
+					logger.Logger.Error("[AuthGuard] Error :%s", err.Error())
 					w.WriteHeader(http.StatusUnauthorized)
 					w.Write([]byte("Unauthorized"))
 					return

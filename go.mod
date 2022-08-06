@@ -16,10 +16,13 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
+require github.com/enmex/smtp v0.0.0-20220806045037-e954b54ab125 // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

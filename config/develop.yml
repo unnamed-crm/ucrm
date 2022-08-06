@@ -20,7 +20,6 @@ cors:
   use_allow_all_handler: true
 
 mail:
-  sender: 'ucrm@info.com'
   letters:
     verification:
       subject: 'Verification Code'

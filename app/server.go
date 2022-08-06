@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 
+	"ucrm/app/config"
+	"ucrm/pkg/logger"
+
 	"github.com/go-chi/chi"
 	"github.com/rs/cors"
-	"ucrm/app/config"
 )
 
 type Server struct {
@@ -62,5 +64,6 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) WaitForDone() error {
+	logger.Logger.Info("Server has been started")
 	return <-s.done
 }

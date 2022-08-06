@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	blogger "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"ucrm/pkg/logger"
 	"ucrm/pkg/pg"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -26,8 +27,9 @@ type MailLetter struct {
 }
 
 type MailConfig struct {
-	Sender  string                `yaml:"sender"`
-	Letters map[string]MailLetter `yaml:"letters"`
+	GmailUser     string
+	GmailPassword string
+	Letters       map[string]MailLetter `yaml:"letters"`
 }
 
 type CoreConfig struct {
@@ -69,7 +71,7 @@ func validateEnvironment(env string) bool {
 }
 
 func confFromFile(fileName string) (*CoreConfig, error) {
-	blogger.Infoln(fmt.Sprintf("reading from %s", fileName))
+	logger.Logger.Infoln(fmt.Sprintf("reading from %s", fileName))
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -143,9 +145,13 @@ func Init() error {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
-		Redis:       redis,
-		Cors:        coreConf.Cors,
-		Mail:        coreConf.Mail,
+		Redis: redis,
+		Cors:  coreConf.Cors,
+		Mail: MailConfig{
+			Letters:       coreConf.Mail.Letters,
+			GmailUser:     os.Getenv("GMAIL_USER"),
+			GmailPassword: os.Getenv("GMAIL_PASS"),
+		},
 		Environment: environment,
 	}
 	return nil
