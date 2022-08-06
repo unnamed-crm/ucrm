@@ -23,7 +23,7 @@ type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
 	mailConfig config.MailConfig
-	mailer mailer.Mailer
+	mailer     mailer.Mailer
 	cache      redisCache.RedisCache
 }
 
@@ -38,7 +38,7 @@ func NewController(
 		auth:       a,
 		repo:       repo,
 		mailConfig: mailConfig,
-		mailer: mailer,
+		mailer:     mailer,
 		cache:      cache,
 	}
 }
@@ -343,7 +343,7 @@ func (c *Controller) sendMailMessage(
 	}
 
 	_, _, err = c.mailer.SendMail(template.Subject, msg, c.mailConfig.Sender, email)
-	
+
 	if err != nil {
 		logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
 		return errFailedToSendMessage

@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	gmailHost = "smtp.gmail.com:"
+	gmailHost    = "smtp.gmail.com:"
 	gmailAddress = "smtp.gmail.com:465"
 )
 
@@ -15,20 +15,20 @@ type SmtpMailer struct {
 }
 
 func NewSmtpMailer(user string, pass string) *SmtpMailer {
-	providers := make(map[string]config.Provider,1)
+	providers := make(map[string]config.Provider, 1)
 	providers["default"] = config.Provider{
-		Credentials: config.Credentials {
-			User: user,
+		Credentials: config.Credentials{
+			User:     user,
 			Password: pass,
 		},
 		Delivery: config.Delivery{
-			Host: gmailHost,
+			Host:    gmailHost,
 			Address: gmailAddress,
 		},
 	}
 	return &SmtpMailer{
 		srv: *s.NewSender(config.Config{
-			Mode: config.SingleMode,
+			Mode:      config.SingleMode,
 			Providers: providers,
 		}),
 	}
@@ -36,13 +36,13 @@ func NewSmtpMailer(user string, pass string) *SmtpMailer {
 
 func (m *SmtpMailer) SendMail(subject string, msg string, sender string, recipient string) (string, string, error) {
 	if err := m.srv.Send(s.SendMailPayload{
-		Provider: "default",
+		Provider:   "default",
 		SenderMail: sender,
-		Subject: subject,
-		Message: msg,
-		Recipient: recipient,
-	});err != nil {
-		return "","",err
+		Subject:    subject,
+		Message:    msg,
+		Recipient:  recipient,
+	}); err != nil {
+		return "", "", err
 	}
 
 	return msg, recipient, nil
