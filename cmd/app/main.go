@@ -31,6 +31,7 @@ import (
 	userApi "ucrm/app/user/api"
 	userRepo "ucrm/app/user/repository"
 
+	_ "github.com/swaggo/files"
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/logger"
@@ -56,10 +57,6 @@ func main() {
 
 	config := conf.GetConfig()
 
-	if config.Environment == conf.DevelopEnvironment {
-		time.Sleep(15 * time.Second)
-	}
-
 	var pgLogger pgx.Logger
 	if config.Environment == conf.DevelopEnvironment {
 		pgLogger = logrusadapter.NewLogger(&logger.Logger)
@@ -68,6 +65,10 @@ func main() {
 	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	if err != nil {
 		logger.Logger.Fatal(err.Error())
+
+		logger.Logger.Infof("retry to connect to database...")
+		time.Sleep(15 * time.Second)
+		rwConn, err = pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	}
 
 	logger.Logger.Infof("database connection established")

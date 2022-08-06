@@ -47,7 +47,8 @@ func NewController(
 // @Summary  Sign-up
 // @Tags     users
 // @Accept   json
-// @Success  201  {object}  SignUpResponse
+// @Param    payload  body      SignUpPayload  true  " "
+// @Success  201  {object}  SignResponse
 // @Failure  400  {object}  httpext.CommonError
 // @Failure  401  {object}  httpext.CommonError
 // @Failure  500  {object}  httpext.CommonError
