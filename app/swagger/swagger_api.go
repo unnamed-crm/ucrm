@@ -6,5 +6,5 @@ import (
 )
 
 func RegisterRouter(r chi.Router) {
-	r.Get("/swagger/*", httpSwagger.WrapHandler)
+	r.Get("/swagger/{any}", httpSwagger.WrapHandler)
 }

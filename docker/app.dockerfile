@@ -9,6 +9,8 @@ RUN go mod download \
 
 COPY ./ ./
 
+RUN go install github.com/swaggo/swag/cmd/swag@latest && swag init -g ./cmd/app/main.go
+
 RUN CGO_ENABLED=0 GOOS=linux \
     go build -a \
     -ldflags '-extldflags "-static"' \

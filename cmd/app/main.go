@@ -31,6 +31,7 @@ import (
 	userRepo "ucrm/app/user/repository"
 
 	blogger "github.com/sirupsen/logrus"
+	_ "github.com/swaggo/files"
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/pg"
@@ -55,10 +56,6 @@ func main() {
 
 	config := conf.GetConfig()
 
-	if config.Environment == conf.DevelopEnvironment {
-		time.Sleep(15 * time.Second)
-	}
-
 	var pgLogger pgx.Logger
 	if config.Environment == conf.DevelopEnvironment {
 		pgLogger = logrusadapter.NewLogger(blogger.New())
@@ -67,6 +64,10 @@ func main() {
 	rwConn, err := pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	if err != nil {
 		blogger.Fatal(err.Error())
+
+		blogger.Infof("retry to connect to database...")
+		time.Sleep(15 * time.Second)
+		rwConn, err = pg.NewReadAndWriteConnection(ctx, config.Database, config.Database, pgLogger)
 	}
 
 	blogger.Infof("database connection established")
