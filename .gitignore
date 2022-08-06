@@ -3,4 +3,3 @@ vendor
 *.env
 !example.env
 ./.local
-config/smtp.yml

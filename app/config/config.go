@@ -27,13 +27,13 @@ type MailLetter struct {
 }
 
 type MailConfig struct {
-	GmailUser          string
-	GmailPassword      string
-	Letters map[string]MailLetter `yaml:"letters"`
+	GmailUser     string
+	GmailPassword string
+	Letters       map[string]MailLetter `yaml:"letters"`
 }
 
 type CoreConfig struct {
-	Cors        CorsConfig `yaml:"cors"`
+	Cors CorsConfig `yaml:"cors"`
 	Mail MailConfig `yaml:"mail"`
 }
 
@@ -148,9 +148,9 @@ func Init() error {
 		Redis: redis,
 		Cors:  coreConf.Cors,
 		Mail: MailConfig{
-			Letters: coreConf.Mail.Letters,
-			GmailUser:          os.Getenv("GMAIL_USER"),
-			GmailPassword:      os.Getenv("GMAIL_PASS"),
+			Letters:       coreConf.Mail.Letters,
+			GmailUser:     os.Getenv("GMAIL_USER"),
+			GmailPassword: os.Getenv("GMAIL_PASS"),
 		},
 		Environment: environment,
 	}
