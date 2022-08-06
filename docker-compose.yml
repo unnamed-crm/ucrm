@@ -1,6 +1,7 @@
 version: "3.9"
 volumes:
   postgres_data:
+  redis_data:
 
 services:
   postgres:
@@ -70,6 +71,8 @@ services:
     container_name: ucrm-redis
     image: "redis:alpine"
     command: redis-server --requirepass ${REDIS_PASSWORD:-password}
+    volumes:
+      - redis_data:/data
     ports:
       - ${REDIS_PORT:-6379}:6379
     environment:
