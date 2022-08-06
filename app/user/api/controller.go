@@ -47,13 +47,13 @@ func NewController(
 // @Summary  Sign-up
 // @Tags     users
 // @Accept   json
-// @Success  201  {object}  SignResponse
+// @Success  201  {object}  SignUpResponse
 // @Failure  400  {object}  httpext.CommonError
 // @Failure  401  {object}  httpext.CommonError
 // @Failure  500  {object}  httpext.CommonError
 // @Router   /users/signUp [post]
 func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
-	var payload SignPayload
+	var payload SignUpPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
@@ -119,7 +119,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 // @Summary  Sign-in
 // @Tags     users
 // @Accept   json
-// @Param    payload  body      SignPayload  true  " "
+// @Param    payload  body      SignInPayload  true  " "
 // @Success  200      {object}  SignResponse
 // @Failure  400  {object}  httpext.CommonError
 // @Failure  401  {object}  httpext.CommonError
@@ -127,7 +127,7 @@ func (c *Controller) SignUp(w http.ResponseWriter, r *http.Request) {
 // @Router   /users/signIn [post]
 func (c *Controller) SignIn(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var payload SignPayload
+	var payload SignInPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -211,8 +211,18 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// RecoveryPassword    godoc
+// @Summary  recovery password
+// @Tags     users
+// @Accept   json
+// @Param    payload  body  SignUpPayload  true  " "
+// @Success  200
+// @Failure  400      {object}  httpext.CommonError
+// @Failure  401      {object}  httpext.CommonError
+// @Failure  500      {object}  httpext.CommonError
+// @Router   /users/recoveryPassword [post]
 func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
-	var payload SignPayload
+	var payload SignUpPayload
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
@@ -264,6 +274,16 @@ func (c *Controller) RecoveryPassword(w http.ResponseWriter, r *http.Request) {
 	httpext.JSON(w, user, http.StatusOK)
 }
 
+// SendRecoveryCode    godoc
+// @Summary  Send recovery code
+// @Tags     users
+// @Accept   json
+// @Param    payload  body  SendCodePayload  true  " "
+// @Success  200
+// @Failure  400      {object}  httpext.CommonError
+// @Failure  401      {object}  httpext.CommonError
+// @Failure  500      {object}  httpext.CommonError
+// @Router   /users/sendRecoveryCode [post]
 func (c *Controller) SendRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var payload SendCodePayload

@@ -2,10 +2,16 @@ package api
 
 import "ucrm/app/models"
 
-type SignPayload struct {
+type SignPayloadBase struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
-	Code     int    `json:"code"`
+}
+
+type SignInPayload = SignPayloadBase
+
+type SignUpPayload struct {
+	SignPayloadBase
+	Code int `json:"code"`
 }
 
 type SignResponse struct {

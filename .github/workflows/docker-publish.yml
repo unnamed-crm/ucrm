@@ -2,13 +2,15 @@ name: Docker Push
 
 on:
   workflow_dispatch:
-    branches: [master]
+    branches:
+      - master
+      - release
     inputs:
       version:
         description: "Version"
         required: true
   push:
-    branches: [master]
+    branches: [release]
 
 jobs:
   build-backend:
