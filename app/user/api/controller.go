@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"ucrm/pkg/logger"
@@ -23,7 +22,7 @@ import (
 type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
-	mailConfig config.MailLetterConfig
+	mailConfig config.MailConfig
 	mailer     mailer.Mailer
 	cache      redisCache.RedisCache
 }
@@ -31,7 +30,7 @@ type Controller struct {
 func NewController(
 	a auth.AuthUseCase,
 	repo user.Repository,
-	mailConfig config.MailLetterConfig,
+	mailConfig config.MailConfig,
 	mailer mailer.Mailer,
 	cache redisCache.RedisCache,
 ) *Controller {
@@ -350,13 +349,9 @@ func (c *Controller) sendMailMessage(
 	Data := make(map[string]string)
 	Data["Code"] = fmt.Sprint(code)
 
-	var template config.MailLetter
+	template, found := c.mailConfig.Letters[templateKey]
 
-	if strings.EqualFold(templateKey, "verification") {
-		template = c.mailConfig.VerificationLetter
-	} else if strings.EqualFold(templateKey, "recovery-password") {
-		template = c.mailConfig.RecoveryLetter
-	} else {
+	if !found {
 		return errTemplateNotFound
 	}
 

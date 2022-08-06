@@ -26,16 +26,15 @@ type MailLetter struct {
 	Template string `yaml:"template"`
 }
 
-type MailLetterConfig struct {
+type MailConfig struct {
 	GmailUser          string
 	GmailPassword      string
-	VerificationLetter MailLetter `yaml:"verification"`
-	RecoveryLetter     MailLetter `yaml:"recovery-password"`
+	Letters map[string]MailLetter `yaml:"letters"`
 }
 
 type CoreConfig struct {
-	Cors        CorsConfig       `yaml:"cors"`
-	MailLetters MailLetterConfig `yaml:"mail-letter"`
+	Cors        CorsConfig `yaml:"cors"`
+	Mail MailConfig `yaml:"mail"`
 }
 
 type JWTConfig struct {
@@ -57,7 +56,7 @@ type Config struct {
 	Redis       RedisConfig
 	Cors        CorsConfig
 	Environment string
-	Mail        MailLetterConfig
+	Mail        MailConfig
 }
 
 var config Config
@@ -148,9 +147,8 @@ func Init() error {
 		},
 		Redis: redis,
 		Cors:  coreConf.Cors,
-		Mail: MailLetterConfig{
-			VerificationLetter: coreConf.MailLetters.VerificationLetter,
-			RecoveryLetter:     coreConf.MailLetters.RecoveryLetter,
+		Mail: MailConfig{
+			Letters: coreConf.Mail.Letters,
 			GmailUser:          os.Getenv("GMAIL_USER"),
 			GmailPassword:      os.Getenv("GMAIL_PASS"),
 		},
