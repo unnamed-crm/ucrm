@@ -20,11 +20,11 @@ import (
 )
 
 type Controller struct {
-	auth       auth.AuthUseCase
-	repo       user.Repository
-	mailConfig config.MailConfig
-	mailer     mailer.Mailer
-	cache      redisCache.RedisCache
+	auth        auth.AuthUseCase
+	repo        user.Repository
+	mailConfig  config.MailConfig
+	mailer      mailer.Mailer
+	cache       redisCache.RedisCache
 }
 
 func NewController(
@@ -35,11 +35,11 @@ func NewController(
 	cache redisCache.RedisCache,
 ) *Controller {
 	return &Controller{
-		auth:       a,
-		repo:       repo,
-		mailConfig: mailConfig,
-		mailer:     mailer,
-		cache:      cache,
+		auth:        a,
+		repo:        repo,
+		mailConfig:  mailConfig,
+		mailer:      mailer,
+		cache:       cache,
 	}
 }
 
@@ -324,26 +324,28 @@ func (c *Controller) sendMailMessage(
 	expireTime time.Duration,
 	email string,
 ) error {
-	var lastTimeRaw string
+	if config.GetConfig().Environment != config.DevelopEnvironment {
+		var lastTimeRaw string
 
-	err := c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), email), &lastTimeRaw)
-	if err == nil {
-		lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
+		err := c.cache.Get(ctx, fmt.Sprintf("%s_%s", retryPeriodPrefix(), email), &lastTimeRaw)
+		if err == nil {
+			lastTime, err := time.Parse(time.RFC3339, lastTimeRaw)
+			if err != nil {
+				logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
+				return errFailedParseTime
+			}
+			if !time.Now().Add(time.Duration(-5) * time.Minute).After(lastTime) {
+				return errTooFrequentCodeEntry
+			}
+		}
+
+		err = c.cache.Set(ctx,
+			fmt.Sprintf("%s_%s", retryPeriodPrefix(), email),
+			time.Now().Format(time.RFC3339))
 		if err != nil {
 			logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
-			return errFailedParseTime
+			return errFailedSaveLastTimeToCache
 		}
-		if !time.Now().Add(time.Duration(-5) * time.Minute).After(lastTime) {
-			return errTooFrequentCodeEntry
-		}
-	}
-
-	err = c.cache.Set(ctx,
-		fmt.Sprintf("%s_%s", retryPeriodPrefix(), email),
-		time.Now().Format(time.RFC3339))
-	if err != nil {
-		logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())
-		return errFailedSaveLastTimeToCache
 	}
 
 	code := utils.GenerateRandomNumber(10000, 99999)
