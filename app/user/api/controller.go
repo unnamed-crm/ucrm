@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"ucrm/pkg/logger"
@@ -22,7 +23,7 @@ import (
 type Controller struct {
 	auth       auth.AuthUseCase
 	repo       user.Repository
-	mailConfig config.MailConfig
+	mailConfig config.MailLetterConfig
 	mailer     mailer.Mailer
 	cache      redisCache.RedisCache
 }
@@ -30,7 +31,7 @@ type Controller struct {
 func NewController(
 	a auth.AuthUseCase,
 	repo user.Repository,
-	mailConfig config.MailConfig,
+	mailConfig config.MailLetterConfig,
 	mailer mailer.Mailer,
 	cache redisCache.RedisCache,
 ) *Controller {
@@ -200,7 +201,6 @@ func (c *Controller) SendVerifyCode(w http.ResponseWriter, r *http.Request) {
 			}, http.StatusBadRequest)
 			return
 		} else {
-			logger.Logger.Error(err.Error())
 			httpext.JSON(w, httpext.CommonError{
 				Error: err.Error(),
 				Code:  http.StatusInternalServerError,
@@ -349,12 +349,18 @@ func (c *Controller) sendMailMessage(
 	code := utils.GenerateRandomNumber(10000, 99999)
 	Data := make(map[string]string)
 	Data["Code"] = fmt.Sprint(code)
-	template, found := c.mailConfig.Letters[templateKey]
-	c.cache.SetWithExpiration(ctx, fmt.Sprintf("%s_%s", cachePrefix, email), expireTime, code)
 
-	if !found {
+	var template config.MailLetter
+
+	if strings.EqualFold(templateKey, "verification") {
+		template = c.mailConfig.VerificationLetter
+	} else if strings.EqualFold(templateKey, "recovery-password") {
+		template = c.mailConfig.RecoveryLetter
+	} else {
 		return errTemplateNotFound
 	}
+
+	c.cache.SetWithExpiration(ctx, fmt.Sprintf("%s_%s", cachePrefix, email), expireTime, code)
 
 	msg, err := utils.RenderTemplate(template.Template, utils.WrapTemplateData(Data))
 	if err != nil {
@@ -362,7 +368,7 @@ func (c *Controller) sendMailMessage(
 		return errFailedRenderTemplateMessage
 	}
 
-	_, _, err = c.mailer.SendMail(template.Subject, msg, c.mailConfig.Sender, email)
+	_, _, err = c.mailer.SendMail(template.Subject, msg, c.mailConfig.GmailUser, email)
 
 	if err != nil {
 		logger.Logger.Errorf("[user/sendMailMessage]: ctx: %v, error: %s", ctx, err.Error())

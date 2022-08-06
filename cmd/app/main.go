@@ -46,6 +46,8 @@ import (
 // @in                          header
 // @name                        Authorization
 func main() {
+	logger.Init()
+	
 	ctx := context.Background()
 	err := conf.Init()
 	if err != nil {
