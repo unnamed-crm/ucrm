@@ -34,7 +34,7 @@ import (
 	conf "ucrm/app/config"
 	_ "ucrm/docs"
 	"ucrm/pkg/logger"
-	mailer "ucrm/pkg/mailer/smtp"
+	mailer "ucrm/pkg/mailer/smtpext"
 	"ucrm/pkg/pg"
 	redisCache "ucrm/pkg/redis-cache"
 )
@@ -80,7 +80,7 @@ func main() {
 
 	cache := redisCache.NewRedisCache(redis, time.Minute*5, time.Minute*5, "cache")
 
-	mailer := mailer.NewSmtpMailer()
+	mailer := mailer.NewSmtpMailer(config.Mail.GmailUser, config.Mail.GmailPassword)
 
 	web := app.NewAPIServer(":8081").
 		WithCors(config.Cors)

@@ -27,8 +27,10 @@ type MailLetter struct {
 }
 
 type MailConfig struct {
-	Sender  string                `yaml:"sender"`
-	Letters map[string]MailLetter `yaml:"letters"`
+	GmailUser     string
+	GmailPassword string
+	Sender        string                `yaml:"sender"`
+	Letters       map[string]MailLetter `yaml:"letters"`
 }
 
 type CoreConfig struct {
@@ -144,9 +146,14 @@ func Init() error {
 			SigningKey:     os.Getenv("JWT_SIGNING_KEY"),
 			ExpireDuration: expireDuration,
 		},
-		Redis:       redis,
-		Cors:        coreConf.Cors,
-		Mail:        coreConf.Mail,
+		Redis: redis,
+		Cors:  coreConf.Cors,
+		Mail: MailConfig{
+			Sender:        coreConf.Mail.Sender,
+			Letters:       config.Mail.Letters,
+			GmailUser:     os.Getenv("GMAIL_USER"),
+			GmailPassword: os.Getenv("GMAIL_PASS"),
+		},
 		Environment: environment,
 	}
 	return nil
