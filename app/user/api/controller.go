@@ -20,11 +20,11 @@ import (
 )
 
 type Controller struct {
-	auth        auth.AuthUseCase
-	repo        user.Repository
-	mailConfig  config.MailConfig
-	mailer      mailer.Mailer
-	cache       redisCache.RedisCache
+	auth       auth.AuthUseCase
+	repo       user.Repository
+	mailConfig config.MailConfig
+	mailer     mailer.Mailer
+	cache      redisCache.RedisCache
 }
 
 func NewController(
@@ -35,11 +35,11 @@ func NewController(
 	cache redisCache.RedisCache,
 ) *Controller {
 	return &Controller{
-		auth:        a,
-		repo:        repo,
-		mailConfig:  mailConfig,
-		mailer:      mailer,
-		cache:       cache,
+		auth:       a,
+		repo:       repo,
+		mailConfig: mailConfig,
+		mailer:     mailer,
+		cache:      cache,
 	}
 }
 
