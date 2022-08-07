@@ -299,10 +299,10 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
-		if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-			return nil, err
-		}
-	
+	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+		return nil, err
+	}
+
 	rows, err := sq.Select("f.name", "cf.*").
 		From("fields f").
 		LeftJoin("card_fields cf on cf.field_id = f.id").
@@ -320,11 +320,10 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 
 	defer rows.Close()
 	fields := make([]models.CardField, 0)
-	
+
 	for rows.Next() {
 		var field models.CardField
-		if err := rows.Scan(&field.Name, &field.Id, &field.CardId, &field.FieldId, &field.Value,
-		); err != nil {
+		if err := rows.Scan(&field.Name, &field.Id, &field.CardId, &field.FieldId, &field.Value); err != nil {
 			return nil, err
 		}
 
@@ -353,9 +352,8 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	for tagRows.Next() {
 		var tag models.Tag
 
-		if err := tagRows.Scan(&tag.Id, &tag.Text, 
-			&tag.Description, &tag.Color, &tag.DashboardId);
-			err != nil {
+		if err := tagRows.Scan(&tag.Id, &tag.Text,
+			&tag.Description, &tag.Color, &tag.DashboardId); err != nil {
 			return nil, err
 		}
 

@@ -10,5 +10,5 @@ type Card struct {
 	Name       string      `json:"name"`
 	Contacts   []Contact   `json:"contacts"`
 	Fields     []CardField `json:"fields"`
-	Tags []Tag `json:"tags"`
+	Tags       []Tag       `json:"tags"`
 }

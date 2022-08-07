@@ -21,13 +21,13 @@ func NewRepository(pool pg.Pool) *Repository {
 }
 
 func (r *Repository) CreateTag(cardId string, dashboardId string, text string, description string, color string) (*models.Tag, error) {
-	tx, err := r.pool.Write().Begin()	
+	tx, err := r.pool.Write().Begin()
 	if err != nil {
 		return nil, err
 	}
 
 	var tag models.Tag
-	
+
 	row := sq.Insert("tags").
 		Columns("dashboard_id", `"text"`, "description", "color").
 		Values(dashboardId, text, description, color).
@@ -66,7 +66,7 @@ func (r *Repository) CreateTag(cardId string, dashboardId string, text string, d
 	}
 
 	return &tag, nil
-} 
+}
 
 func (r *Repository) DeleteTag(tagId string) error {
 	_, err := sq.Delete("tags").

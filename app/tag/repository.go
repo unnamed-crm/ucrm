@@ -13,6 +13,6 @@ type Repository interface {
 }
 
 var (
-	ErrDuplicateTag = errors.New("duplicate dashboard tag")
+	ErrDuplicateTag     = errors.New("duplicate dashboard tag")
 	ErrDuplicateCardTag = errors.New("duplicate card tag")
 )
