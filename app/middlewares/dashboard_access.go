@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/go-chi/chi"
 	"ucrm/app/auth"
 	"ucrm/app/dashboard"
 	"ucrm/pkg/httpext"
+
+	"github.com/go-chi/chi"
 )
 
 type DashboardAccessGuard struct {
@@ -88,8 +89,8 @@ func (dag *DashboardAccessGuard) Next(accessType string) func(next http.Handler)
 				}
 			}
 
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Forbidden"))
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
 		})
 	}
 }

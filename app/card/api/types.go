@@ -22,6 +22,7 @@ func (p *UpdateOnePayload) Validate() error {
 }
 
 type CreateTagPayload struct {
+	DashboardId string `json:"dashboard_id"`
 	Text string `json:"text"`
 	Description *string `json:"description,omitempty"`
 	Color string `json:"color"`

@@ -113,13 +113,11 @@ create unique index card_webhook_dashboard_idx on card_webhook(dashboard_id);
 
 create table tags (
     id uuid not null default uuid_generate_v4() constraint tags_pk primary key,
-    dashboard_id uuid not null constraint dashboard_id_fk references dashboard(id) on update cascade on delete cascade,
+    dashboard_id uuid not null constraint dashboard_id_fk references dashboards(id) on update cascade on delete cascade,
     text text not null,
-    description text not null,
+    description text,
     color text not null default '#ffffff'
 );
-
-create unique index tags_text_idx on tags(text);
 
 create table card_tags (
     id uuid not null default uuid_generate_v4() constraint card_tags_pk primary key,
