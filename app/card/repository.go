@@ -15,6 +15,7 @@ type Repository interface {
 	Delete(cardId string) error
 	UpdateOrders(cardIdsToNewOrder map[string]int) error
 	GetAllByPipelineId(cardId string) ([]models.Card, error)
+	CreateTag(cardId string, dashboardId string, text string, description string, color string) (*models.Tag, error)
 }
 
 var ErrFieldNotFound = errors.New("field not found")

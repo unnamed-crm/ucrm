@@ -419,3 +419,37 @@ func (cr *Controller) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (c *Controller) CreateTag(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	cardId := chi.URLParam(r, "cardId")
+	var payload CreateTagPayload
+
+	if len(cardId) == 0 {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "missing cardId: cards/updateOrder",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: "[Update] failed decode payload",
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	err = payload.Validate()
+	if err != nil {
+		httpext.JSON(w, httpext.CommonError{
+			Error: err.Error(),
+			Code:  http.StatusBadRequest,
+		}, http.StatusBadRequest)
+		return
+	}
+
+	
+}

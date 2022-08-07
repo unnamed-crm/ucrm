@@ -10,6 +10,8 @@ func RegisterRouter(r chi.Router, controller *Controller, authGuard middlewares.
 		r.Use(authGuard.Next())
 		r.Route("/cards", func(r chi.Router) {
 			r.Post("/create", controller.CreateOne)
+			r.Post("/createTag/{cardID}", controller.CreateTag)
+			r.Delete("/deleteTag/{cardID}", controller.DeleteTag)
 			r.Delete("/{cardId}", controller.Delete)
 			r.Get("/{cardId}", controller.GetOne)
 			r.Patch("/{cardId}", controller.Update)
