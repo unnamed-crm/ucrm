@@ -140,6 +140,10 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		}
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
 	return card, nil
 }
 
@@ -430,7 +434,7 @@ func (r *Repository) CreateTag(cardId string, dashboardId string, text string, d
 		return nil, err
 	}
 
-	var tag *models.Tag
+	var tag models.Tag
 	
 	row := sq.Insert("tags").
 		Columns("dashboard_id", `"text"`, "description", "color").
@@ -469,8 +473,8 @@ func (r *Repository) CreateTag(cardId string, dashboardId string, text string, d
 		return nil, err
 	}
 
-	return tag, nil
-}
+	return &tag, nil
+} 
 
 func (r *Repository) DeleteTag(tagId string) error {
 	_, err := sq.Delete("tags").
