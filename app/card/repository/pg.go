@@ -292,12 +292,21 @@ func (r *Repository) Update(cardId string, name *string, cardFields *map[string]
 
 func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	card := &models.Card{}
+
+	row := sq.Select("id", "name", "pipeline_id", "updated_at", `"order"`).
+		From("cards").
+		Where(sq.Eq{"id": cardId}).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+		if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
+			return nil, err
+		}
 	
-	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at", `c."order"`, "f.name", "cf.*").
-		From("cards c").
-		Where(sq.Eq{"c.id": cardId}).
-		LeftJoin("card_fields cf on cf.card_id = c.id").
-		LeftJoin("fields f on f.id = cf.field_id").
+	rows, err := sq.Select("f.name", "cf.*").
+		From("fields f").
+		LeftJoin("card_fields cf on cf.field_id = f.id").
+		Where(sq.Eq{"cf.card_id": cardId}).
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
@@ -311,12 +320,10 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 
 	defer rows.Close()
 	fields := make([]models.CardField, 0)
-
+	
 	for rows.Next() {
 		var field models.CardField
-		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
-			&field.Name,
-			&field.Id, &field.CardId, &field.FieldId, &field.Value,
+		if err := rows.Scan(&field.Name, &field.Id, &field.CardId, &field.FieldId, &field.Value,
 		); err != nil {
 			return nil, err
 		}
@@ -324,6 +331,38 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 		fields = append(fields, field)
 	}
 	card.Fields = fields
+
+	tagRows, err := sq.Select("t.id", `t."text"`, "t.description", "t.color", "t.dashboard_id").
+		From("card_tags ct").
+		Join("tags t ON ct.tag_id = t.id").
+		Where(sq.Eq{"ct.card_id": cardId}).
+		RunWith(r.pool.Read()).
+		PlaceholderFormat(sq.Dollar).
+		Query()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	defer tagRows.Close()
+	tags := make([]models.Tag, 0)
+
+	for tagRows.Next() {
+		var tag models.Tag
+
+		if err := tagRows.Scan(&tag.Id, &tag.Text, 
+			&tag.Description, &tag.Color, &tag.DashboardId);
+			err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, tag)
+	}
+
+	card.Tags = tags
 
 	return card, nil
 }
@@ -426,99 +465,4 @@ func (r *Repository) GetAllByPipelineId(cardId string) ([]models.Card, error) {
 	}
 
 	return cards, nil
-}
-
-func (r *Repository) CreateTag(cardId string, dashboardId string, text string, description string, color string) (*models.Tag, error) {
-	tx, err := r.pool.Write().Begin()	
-	if err != nil {
-		return nil, err
-	}
-
-	var tag models.Tag
-	
-	row := sq.Insert("tags").
-		Columns("dashboard_id", `"text"`, "description", "color").
-		Values(dashboardId, text, description, color).
-		Suffix(`returning id, dashboard_id, "text", description, color`).
-		RunWith(tx).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&tag.Id, &tag.DashboardId, &tag.Text, &tag.Description, &tag.Color); err != nil {
-		if err = tx.Rollback(); err != nil {
-			return nil, err
-		}
-
-		return nil, err
-	}
-
-	_, err = sq.Insert("card_tags").
-		Columns("card_id", "tag_id").
-		Values(cardId, tag.Id).
-		RunWith(tx).
-		PlaceholderFormat(sq.Dollar).
-		Exec()
-	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			return nil, err
-		}
-
-		if duplicate := strings.Contains(err.Error(), "duplicate"); duplicate {
-			return nil, repository.ErrDuplicateTag
-		}
-
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return &tag, nil
-} 
-
-func (r *Repository) DeleteTag(tagId string) error {
-	_, err := sq.Delete("tags").
-		Where(sq.Eq{"id": tagId}).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
-		Exec()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *Repository) InsertCardTag(cardId string, tagId string) error {
-	_, err := sq.Insert("card_tags").
-		Columns("card_id", "tag_id").
-		Values(cardId, tagId).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
-		Exec()
-
-	if err != nil {
-		if duplicate := strings.Contains(err.Error(), "duplicate"); duplicate {
-			return repository.ErrDuplicateCardTag
-		}
-
-		return err
-	}
-
-	return nil
-}
-
-func (r *Repository) DeleteCardTag(cardId string, tagId string) error {
-	_, err := sq.Delete("card_tags").
-		Where(sq.Eq{"card_id": cardId, "tag_id": tagId}).
-		RunWith(r.pool.Write()).
-		PlaceholderFormat(sq.Dollar).
-		Exec()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
