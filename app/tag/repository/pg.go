@@ -20,13 +20,12 @@ func NewRepository(pool pg.Pool) *Repository {
 	}
 }
 
-func (r *Repository) CreateTag(dashboardId string, text string, description string, color string) (*models.Tag, error) {
+func (r *Repository) CreateTag(dashboardId string, text string, description *string, color string) (*models.Tag, error) {
 	var tag models.Tag
 
 	row := sq.Insert("tags").
 		Columns("dashboard_id", `"text"`, "description", "color").
-		Values(dashboardId, text, description, color).
-		Suffix(`returning id, dashboard_id, "text", description, color`).
+		Values(dashboardId, text, description, color).Suffix(`returning id, dashboard_id, "text", description, color`).
 		RunWith(r.pool.Write()).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
@@ -34,6 +33,56 @@ func (r *Repository) CreateTag(dashboardId string, text string, description stri
 		if duplicate := strings.Contains(err.Error(), "duplicate"); duplicate {
 			return nil, repository.ErrDuplicateTag
 		}
+		return nil, err
+	}
+
+	return &tag, nil
+}
+
+func (r *Repository) CreateAndInsertTag(cardId string, dashboardId string, text string, description *string, color string) (*models.Tag, error) {
+	var tag models.Tag
+
+	tx, err := r.pool.Write().Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	row := sq.Insert("tags").
+		Columns("dashboard_id", `"text"`, "description", "color").
+		Values(dashboardId, text, description, color).Suffix(`returning id, dashboard_id, "text", description, color`).
+		RunWith(tx).
+		PlaceholderFormat(sq.Dollar).
+		QueryRow()
+	if err := row.Scan(&tag.Id, &tag.DashboardId, &tag.Text, &tag.Description, &tag.Color); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return nil, err
+		}
+
+		if duplicate := strings.Contains(err.Error(), "duplicate"); duplicate {
+			return nil, repository.ErrDuplicateTag
+		}
+		return nil, err
+	}
+
+	_, err = sq.Insert("card_tags").
+		Columns("card_id", "tag_id").
+		Values(cardId, tag.Id).
+		RunWith(r.pool.Write()).
+		PlaceholderFormat(sq.Dollar).
+		Exec()
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return nil, err
+		}
+
+		if duplicate := strings.Contains(err.Error(), "duplicate"); duplicate {
+			return nil, repository.ErrDuplicateCardTag
+		}
+
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 

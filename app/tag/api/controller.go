@@ -75,7 +75,7 @@ func (c *Controller) CreateTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpext.JSON(w, res, http.StatusCreated)
-} 
+}
 
 // CreateAndAttachTag godoc
 // @Summary      Create and attach tag

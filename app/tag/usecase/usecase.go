@@ -16,38 +16,34 @@ func NewTagUseCase(repo tag.Repository) *TagUseCase {
 }
 
 func (u *TagUseCase) CreateTag(payload dto.CreateTagPayload) (*dto.CreateTagResponse, error) {
-	tag, err := u.repo.CreateTag(payload.DashboardId, payload.Text, *payload.Description, payload.Color)
+	tag, err := u.repo.CreateTag(payload.DashboardId, payload.Text, payload.Description, payload.Color)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &dto.CreateTagResponse{
-		Id: tag.Id,
+		Id:          tag.Id,
 		DashboardId: tag.DashboardId,
-		Text: tag.Text,
+		Text:        tag.Text,
 		Description: tag.Description,
-		Color: tag.Color,
+		Color:       tag.Color,
 	}, nil
 }
 
 func (u *TagUseCase) CreateAndAttachTag(cardId string, payload dto.CreateTagPayload) (*dto.CreateTagResponse, error) {
-	tag, err := u.repo.CreateTag(payload.DashboardId, payload.Text, *payload.Description, payload.Color)
+	tag, err := u.repo.CreateAndInsertTag(cardId, payload.DashboardId, payload.Text, payload.Description, payload.Color)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err := u.repo.InsertCardTag(cardId, tag.Id); err != nil {
-		return nil, err
-	}
-
 	return &dto.CreateTagResponse{
-		Id: tag.Id,
+		Id:          tag.Id,
 		DashboardId: tag.DashboardId,
-		Text: tag.Text,
+		Text:        tag.Text,
 		Description: tag.Description,
-		Color: tag.Color,
+		Color:       tag.Color,
 	}, nil
 }
 
@@ -77,17 +73,16 @@ func (u *TagUseCase) DeleteTag(tagId string) error {
 
 func (u *TagUseCase) UpdateTag(tagId string, payload dto.UpdateTagPayload) (*dto.UpdateTagResponse, error) {
 	tag, err := u.repo.UpdateTag(tagId, payload.Text, payload.Description, payload.Color)
-	
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.UpdateTagResponse {
-		Id: tag.Id,
+	return &dto.UpdateTagResponse{
+		Id:          tag.Id,
 		DashboardId: tag.DashboardId,
-		Text: tag.Text,
+		Text:        tag.Text,
 		Description: tag.Description,
-		Color: tag.Color,
+		Color:       tag.Color,
 	}, nil
 }
-

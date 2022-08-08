@@ -23,15 +23,15 @@ func (p *CreateTagPayload) Validate() error {
 type CreateTagResponse = models.Tag
 
 type UpdateTagPayload struct {
-	Text *string `json:"text"`
+	Text        *string `json:"text"`
 	Description *string `json:"description"`
-	Color *string `json:"color"`
+	Color       *string `json:"color"`
 }
 
 func (p *UpdateTagPayload) Validate() error {
 	if (p.Text == nil || len(*p.Text) == 0) &&
-	   (p.Description == nil || len(*p.Description) == 0) &&
-	   (p.Color == nil || len(*p.Color) == 0) {
+		(p.Description == nil || len(*p.Description) == 0) &&
+		(p.Color == nil || len(*p.Color) == 0) {
 		return errors.New("incorrect params for tag update")
 	}
 

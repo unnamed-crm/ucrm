@@ -45,7 +45,7 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		RunWith(tx).
 		QueryRow()
 
-	if err := row.Scan(&orderRow, &dashboardId); err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := row.Scan(&orderRow, &dashboardId); err != nil {
 		return nil, err
 	}
 
@@ -293,20 +293,30 @@ func (r *Repository) Update(cardId string, name *string, cardFields *map[string]
 func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	card := &models.Card{}
 
-	row := sq.Select("id", "name", "pipeline_id", "updated_at", `"order"`).
-		From("cards").
-		Where(sq.Eq{"id": cardId}).
-		RunWith(r.pool.Read()).
-		PlaceholderFormat(sq.Dollar).
-		QueryRow()
-	if err := row.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order); err != nil {
-		return nil, err
+	type migratedCardField struct {
+		Id      sql.NullString
+		CardId  sql.NullString
+		FieldId sql.NullString
+		Name    sql.NullString
+		Value   *string
 	}
 
-	rows, err := sq.Select("f.name", "cf.*").
-		From("fields f").
-		LeftJoin("card_fields cf on cf.field_id = f.id").
-		Where(sq.Eq{"cf.card_id": cardId}).
+	type migratedTag struct {
+		Id          sql.NullString
+		DashboardId sql.NullString
+		Text        sql.NullString
+		Description *string
+		Color       sql.NullString
+	}
+
+	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at",
+		`c."order"`, "f.name", "cf.*", "t.*").
+		From("cards c").
+		Where(sq.Eq{"c.id": cardId}).
+		LeftJoin("card_fields cf on cf.card_id = c.id").
+		LeftJoin("fields f on f.id = cf.field_id").
+		LeftJoin("card_tags ct on ct.card_id = c.id").
+		LeftJoin("tags t on t.id = ct.tag_id").
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
@@ -320,46 +330,43 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 
 	defer rows.Close()
 	fields := make([]models.CardField, 0)
-
-	for rows.Next() {
-		var field models.CardField
-		if err := rows.Scan(&field.Name, &field.Id, &field.CardId, &field.FieldId, &field.Value); err != nil {
-			return nil, err
-		}
-
-		fields = append(fields, field)
-	}
-	card.Fields = fields
-
-	tagRows, err := sq.Select("t.id", `t."text"`, "t.description", "t.color", "t.dashboard_id").
-		From("card_tags ct").
-		Join("tags t ON ct.tag_id = t.id").
-		Where(sq.Eq{"ct.card_id": cardId}).
-		RunWith(r.pool.Read()).
-		PlaceholderFormat(sq.Dollar).
-		Query()
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-
-		return nil, err
-	}
-
-	defer tagRows.Close()
 	tags := make([]models.Tag, 0)
 
-	for tagRows.Next() {
-		var tag models.Tag
-
-		if err := tagRows.Scan(&tag.Id, &tag.Text,
-			&tag.Description, &tag.Color, &tag.DashboardId); err != nil {
+	for rows.Next() {
+		var field migratedCardField
+		var tag migratedTag
+		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
+			&field.Name,
+			&field.Id, &field.CardId, &field.FieldId, &field.Value,
+			&tag.Id, &tag.DashboardId, &tag.Text, &tag.Description, &tag.Color,
+		); err != nil {
 			return nil, err
 		}
 
-		tags = append(tags, tag)
-	}
+		if field.Name.Valid && field.Id.Valid && field.CardId.Valid && field.FieldId.Valid {
+			fields = append(fields, models.CardField{
+				Id:      field.Id.String,
+				CardId:  field.CardId.String,
+				FieldId: field.FieldId.String,
+				Value:   field.Value,
+				Field: models.Field{
+					Name: field.Name.String,
+				},
+			})
+		}
 
+		if tag.Id.Valid && tag.Text.Valid && tag.Color.Valid {
+			tags = append(tags, models.Tag{
+				Id:          tag.Id.String,
+				DashboardId: tag.DashboardId.String,
+				Text:        tag.Text.String,
+				Description: tag.Description,
+				Color:       tag.Color.String,
+			})
+		}
+
+	}
+	card.Fields = fields
 	card.Tags = tags
 
 	return card, nil

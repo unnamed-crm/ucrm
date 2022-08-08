@@ -5,7 +5,8 @@ import (
 )
 
 type Repository interface {
-	CreateTag(dashboardId string, text string, description string, color string) (*models.Tag, error)
+	CreateTag(dashboardId string, text string, description *string, color string) (*models.Tag, error)
+	CreateAndInsertTag(cardId string, dashboardId string, text string, description *string, color string) (*models.Tag, error)
 	InsertCardTag(cardId string, tagId string) error
 	DeleteCardTag(cardId string, tagId string) error
 	DeleteTag(tagId string) error

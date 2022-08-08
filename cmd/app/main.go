@@ -19,10 +19,10 @@ import (
 	"ucrm/app/middlewares"
 	pipelineApi "ucrm/app/pipeline/api"
 	pipelineRepo "ucrm/app/pipeline/repository"
-	tagApi "ucrm/app/tag/api"
-	tagUseCase "ucrm/app/tag/usecase"
-	tagRepo "ucrm/app/tag/repository"
 	"ucrm/app/swagger"
+	tagApi "ucrm/app/tag/api"
+	tagRepo "ucrm/app/tag/repository"
+	tagUseCase "ucrm/app/tag/usecase"
 
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
