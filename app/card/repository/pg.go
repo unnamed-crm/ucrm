@@ -332,9 +332,10 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	fields := make([]models.CardField, 0)
 	tags := make([]models.Tag, 0)
 
+	var field migratedCardField
+	var tag migratedTag
+
 	for rows.Next() {
-		var field migratedCardField
-		var tag migratedTag
 		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
 			&field.Name,
 			&field.Id, &field.CardId, &field.FieldId, &field.Value,

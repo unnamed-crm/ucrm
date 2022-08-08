@@ -67,7 +67,7 @@ func (r *Repository) CreateAndInsertTag(cardId string, dashboardId string, text 
 	_, err = sq.Insert("card_tags").
 		Columns("card_id", "tag_id").
 		Values(cardId, tag.Id).
-		RunWith(r.pool.Write()).
+		RunWith(tx).
 		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
