@@ -137,6 +137,10 @@ func (r *Repository) DeleteCardTag(cardId string, tagId string) error {
 }
 
 func (r *Repository) UpdateTag(tagId string, text *string, description *string, color *string) (*models.Tag, error) {
+	if text == nil && description == nil && color == nil {
+		return nil, repository.ErrAllFieldsEmpty	
+	}
+
 	query := sq.Update("tags")
 
 	if text != nil {

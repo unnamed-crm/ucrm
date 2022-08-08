@@ -316,6 +316,13 @@ func (c *Controller) UpdateTag(w http.ResponseWriter, r *http.Request) {
 
 	res, err := c.tagUseCase.UpdateTag(tagId, payload)
 	if err != nil {
+		if errors.Is(err, tag.ErrAllFieldsEmpty) {
+			httpext.JSON(w, httpext.CommonError{
+				Error: fmt.Sprintf("[UpdateTag]:%s", err.Error()),
+				Code:  http.StatusBadRequest,
+			}, http.StatusBadRequest)
+			return
+		}
 		logger.Logger.Errorf("[card/updateTag] ctx: %v, error: %s", ctx, err.Error())
 		httpext.JSON(w, httpext.CommonError{
 			Error: fmt.Sprintf("[UpdateTag]:%s", err.Error()),
