@@ -49,7 +49,8 @@ func (r *Repository) CreateAndInsertTag(cardId string, dashboardId string, text 
 
 	row := sq.Insert("tags").
 		Columns("dashboard_id", `"text"`, "description", "color").
-		Values(dashboardId, text, description, color).Suffix(`returning id, dashboard_id, "text", description, color`).
+		Values(dashboardId, text, description, color).
+		Suffix(`returning id, dashboard_id, "text", description, color`).
 		RunWith(tx).
 		PlaceholderFormat(sq.Dollar).
 		QueryRow()
@@ -138,7 +139,7 @@ func (r *Repository) DeleteCardTag(cardId string, tagId string) error {
 
 func (r *Repository) UpdateTag(tagId string, text *string, description *string, color *string) (*models.Tag, error) {
 	if text == nil && description == nil && color == nil {
-		return nil, repository.ErrAllFieldsEmpty	
+		return nil, repository.ErrAllFieldsEmpty
 	}
 
 	query := sq.Update("tags")

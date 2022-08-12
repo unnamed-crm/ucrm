@@ -94,15 +94,12 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 
 			fieldsRow.Close()
 
-			noValueFieldIds := make([]string, 0)
 			if fields != nil {
 				fieldsMap := *fields
 
 				for _, id := range fieldsIds {
 					value, found := fieldsMap[id]
-					if !found {
-						noValueFieldIds = append(noValueFieldIds, id)
-					} else {
+					if found {
 						_, err := sq.Insert("card_fields").
 							Columns("card_id", "field_id", "value").
 							Values(card.Id, id, value).
@@ -117,24 +114,6 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 							return nil, repository.ErrFieldNotFound
 						}
 					}
-				}
-			} else {
-				noValueFieldIds = fieldsIds
-			}
-
-			for _, id := range noValueFieldIds {
-				_, err := sq.Insert("card_fields").
-					Columns("card_id", "field_id").
-					Values(card.Id, id).
-					RunWith(tx).
-					PlaceholderFormat(sq.Dollar).
-					Exec()
-
-				if err != nil {
-					if err = tx.Rollback(); err != nil {
-						return nil, err
-					}
-					return nil, err
 				}
 			}
 		}
@@ -292,23 +271,6 @@ func (r *Repository) Update(cardId string, name *string, cardFields *map[string]
 
 func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	card := &models.Card{}
-
-	type migratedCardField struct {
-		Id      sql.NullString
-		CardId  sql.NullString
-		FieldId sql.NullString
-		Name    sql.NullString
-		Value   *string
-	}
-
-	type migratedTag struct {
-		Id          sql.NullString
-		DashboardId sql.NullString
-		Text        sql.NullString
-		Description *string
-		Color       sql.NullString
-	}
-
 	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at",
 		`c."order"`, "f.name", "cf.*", "t.*").
 		From("cards c").
@@ -332,8 +294,8 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	fields := make([]models.CardField, 0)
 	tags := make([]models.Tag, 0)
 
-	var field migratedCardField
-	var tag migratedTag
+	var field cardFieldRecord
+	var tag tagRecord
 
 	for rows.Next() {
 		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
@@ -357,11 +319,17 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 		}
 
 		if tag.Id.Valid && tag.Text.Valid && tag.Color.Valid {
+			var description *string
+			if tag.Description.Valid {
+				description = &tag.Description.String
+			} else {
+				description = nil
+			}
 			tags = append(tags, models.Tag{
 				Id:          tag.Id.String,
 				DashboardId: tag.DashboardId.String,
 				Text:        tag.Text.String,
-				Description: tag.Description,
+				Description: description,
 				Color:       tag.Color.String,
 			})
 		}
@@ -471,4 +439,20 @@ func (r *Repository) GetAllByPipelineId(cardId string) ([]models.Card, error) {
 	}
 
 	return cards, nil
+}
+
+type cardFieldRecord struct {
+	Id      sql.NullString
+	CardId  sql.NullString
+	FieldId sql.NullString
+	Name    sql.NullString
+	Value   *string
+}
+
+type tagRecord struct {
+	Id          sql.NullString
+	DashboardId sql.NullString
+	Text        sql.NullString
+	Description sql.NullString
+	Color       sql.NullString
 }
