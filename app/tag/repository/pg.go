@@ -39,7 +39,7 @@ func (r *Repository) CreateTag(dashboardId string, text string, description *str
 	return &tag, nil
 }
 
-func (r *Repository) CreateAndInsertTag(cardId string, dashboardId string, text string, description *string, color string) (*models.Tag, error) {
+func (r *Repository) CreateAndAttachTag(cardId string, dashboardId string, text string, description *string, color string) (*models.Tag, error) {
 	var tag models.Tag
 
 	tx, err := r.pool.Write().Begin()

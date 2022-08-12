@@ -32,7 +32,7 @@ func (u *TagUseCase) CreateTag(payload dto.CreateTagPayload) (*dto.CreateTagResp
 }
 
 func (u *TagUseCase) CreateAndAttachTag(cardId string, payload dto.CreateTagPayload) (*dto.CreateTagResponse, error) {
-	tag, err := u.repo.CreateAndInsertTag(cardId, payload.DashboardId, payload.Text, payload.Description, payload.Color)
+	tag, err := u.repo.CreateAndAttachTag(cardId, payload.DashboardId, payload.Text, payload.Description, payload.Color)
 
 	if err != nil {
 		return nil, err
