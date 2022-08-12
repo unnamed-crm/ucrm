@@ -27,7 +27,7 @@ func (r *Repository) Create(name string, dashboardId string) (*models.Pipeline, 
 	order := 1
 
 	row := sq.Select(`max("order")`).
-		From("pipeline").
+		From("pipelines").
 		Where(sq.Eq{"dashboard_id": dashboardId}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.pool.Read()).

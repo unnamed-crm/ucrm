@@ -20,6 +20,9 @@ import (
 	pipelineApi "ucrm/app/pipeline/api"
 	pipelineRepo "ucrm/app/pipeline/repository"
 	"ucrm/app/swagger"
+	tagApi "ucrm/app/tag/api"
+	tagRepo "ucrm/app/tag/repository"
+	tagUseCase "ucrm/app/tag/usecase"
 
 	"github.com/go-chi/chi"
 	chim "github.com/go-chi/chi/middleware"
@@ -93,6 +96,9 @@ func main() {
 	pipelineRepo := pipelineRepo.NewRepository(rwConn)
 	cardRepo := cardRepo.NewRepository(rwConn)
 	dashboardSettingsRepo := dashboardSettingsRepo.NewRepository(rwConn)
+	tagRepo := tagRepo.NewRepository(rwConn)
+
+	tagUseCase := tagUseCase.NewTagUseCase(tagRepo)
 
 	authorizer := authUC.NewAuthUseCase(config.JWT.HashSalt, []byte(config.JWT.SigningKey), config.JWT.ExpireDuration)
 	userController := userApi.NewController(authorizer, userRepo, config.Mail, mailer, *cache)
@@ -100,6 +106,7 @@ func main() {
 	pipelineController := pipelineApi.NewController(pipelineRepo)
 	cardController := cardApi.NewController(cardRepo, dashboardSettingsRepo)
 	contactController := contactApi.NewController(contactRepo.NewRepository(rwConn), cardRepo)
+	tagController := tagApi.NewController(*tagUseCase)
 
 	pipelineAccessGuard := middlewares.NewPipelineAccessGuard(pipelineRepo)
 	dashboardAccesGuard := middlewares.NewDashboardAccessGuard(dashboardRepo)
@@ -122,6 +129,7 @@ func main() {
 		cardApi.RegisterRouter(v1, cardController, *authGuard)
 		swagger.RegisterRouter(v1)
 		contactApi.RegisterRouter(v1, contactController, *authGuard)
+		tagApi.RegisterRouter(v1, tagController, *authGuard)
 	})
 
 	if err := web.Start(); err != nil {

@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
 	repository "ucrm/app/card"
 	"ucrm/app/dashboard/api"
 	"ucrm/app/models"
 	"ucrm/pkg/pg"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 type Repository struct {
@@ -63,6 +64,7 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 		if err = tx.Rollback(); err != nil {
 			return nil, err
 		}
+
 		return nil, err
 	}
 
@@ -92,15 +94,12 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 
 			fieldsRow.Close()
 
-			noValueFieldIds := make([]string, 0)
 			if fields != nil {
 				fieldsMap := *fields
 
 				for _, id := range fieldsIds {
 					value, found := fieldsMap[id]
-					if !found {
-						noValueFieldIds = append(noValueFieldIds, id)
-					} else {
+					if found {
 						_, err := sq.Insert("card_fields").
 							Columns("card_id", "field_id", "value").
 							Values(card.Id, id, value).
@@ -116,26 +115,12 @@ func (r *Repository) CreateOne(name string, pipelineId string, fields *map[strin
 						}
 					}
 				}
-			} else {
-				noValueFieldIds = fieldsIds
-			}
-
-			for _, id := range noValueFieldIds {
-				_, err := sq.Insert("card_fields").
-					Columns("card_id", "field_id").
-					Values(card.Id, id).
-					RunWith(tx).
-					PlaceholderFormat(sq.Dollar).
-					Exec()
-
-				if err != nil {
-					if err = tx.Rollback(); err != nil {
-						return nil, err
-					}
-					return nil, err
-				}
 			}
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return card, nil
@@ -286,12 +271,14 @@ func (r *Repository) Update(cardId string, name *string, cardFields *map[string]
 
 func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 	card := &models.Card{}
-
-	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at", `c."order"`, "f.name", "cf.*").
+	rows, err := sq.Select("c.id", "c.name", "c.pipeline_id", "c.updated_at",
+		`c."order"`, "f.name", "cf.*", "t.*").
 		From("cards c").
 		Where(sq.Eq{"c.id": cardId}).
 		LeftJoin("card_fields cf on cf.card_id = c.id").
 		LeftJoin("fields f on f.id = cf.field_id").
+		LeftJoin("card_tags ct on ct.card_id = c.id").
+		LeftJoin("tags t on t.id = ct.tag_id").
 		RunWith(r.pool.Read()).
 		PlaceholderFormat(sq.Dollar).
 		Query()
@@ -305,19 +292,51 @@ func (r *Repository) GetOne(cardId string) (*models.Card, error) {
 
 	defer rows.Close()
 	fields := make([]models.CardField, 0)
+	tags := make([]models.Tag, 0)
+
+	var field cardFieldRecord
+	var tag tagRecord
 
 	for rows.Next() {
-		var field models.CardField
 		if err := rows.Scan(&card.Id, &card.Name, &card.PipelineId, &card.UpdatedAt, &card.Order,
 			&field.Name,
 			&field.Id, &field.CardId, &field.FieldId, &field.Value,
+			&tag.Id, &tag.DashboardId, &tag.Text, &tag.Description, &tag.Color,
 		); err != nil {
 			return nil, err
 		}
 
-		fields = append(fields, field)
+		if field.Name.Valid && field.Id.Valid && field.CardId.Valid && field.FieldId.Valid {
+			fields = append(fields, models.CardField{
+				Id:      field.Id.String,
+				CardId:  field.CardId.String,
+				FieldId: field.FieldId.String,
+				Value:   field.Value,
+				Field: models.Field{
+					Name: field.Name.String,
+				},
+			})
+		}
+
+		if tag.Id.Valid && tag.Text.Valid && tag.Color.Valid {
+			var description *string
+			if tag.Description.Valid {
+				description = &tag.Description.String
+			} else {
+				description = nil
+			}
+			tags = append(tags, models.Tag{
+				Id:          tag.Id.String,
+				DashboardId: tag.DashboardId.String,
+				Text:        tag.Text.String,
+				Description: description,
+				Color:       tag.Color.String,
+			})
+		}
+
 	}
 	card.Fields = fields
+	card.Tags = tags
 
 	return card, nil
 }
@@ -420,4 +439,20 @@ func (r *Repository) GetAllByPipelineId(cardId string) ([]models.Card, error) {
 	}
 
 	return cards, nil
+}
+
+type cardFieldRecord struct {
+	Id      sql.NullString
+	CardId  sql.NullString
+	FieldId sql.NullString
+	Name    sql.NullString
+	Value   *string
+}
+
+type tagRecord struct {
+	Id          sql.NullString
+	DashboardId sql.NullString
+	Text        sql.NullString
+	Description sql.NullString
+	Color       sql.NullString
 }
